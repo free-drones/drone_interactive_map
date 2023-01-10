@@ -1,0 +1,135 @@
+/**
+ * Setup for connection to server.
+ */
+
+import io from 'socket.io-client';
+import * as Upstream from './Upstream.js';
+
+/**
+ * Loggin flag. For controlling logging of calls behaviour.
+ */
+const LOGGING = true;
+
+/**
+ * Back-end IP address.
+ */
+const SERVER_IP = "pum2020.linkoping-ri.se";
+
+/**
+ * Back-end port.
+ */
+const PORT = 65008;
+
+/**
+ * Respons time out time in ms.
+ */
+const TIME_OUT_MS = 10000;
+
+var socket;
+
+/**
+ * Initialize the server connection.
+ * 
+ * @param {String} serverIP Server IP address to connect to. Default SERVER_IP.
+ * @param {Int} port Downstream request port to connect to. Default PORT.
+ * @param {String} namespace Optional namespace to connect to. Default "/"
+ * @param {Object} socketOptions Optional socket uptions.
+ */
+export function initialize(serverIP = SERVER_IP, port = PORT, namespace = "", socketOptions = {}) {
+    var connectionString = "http://" + serverIP + ":" + port + namespace;
+
+    // Set up socket
+    socket = io(connectionString, socketOptions);
+    socket.connect();
+    console.log("Stream bound to " + connectionString);
+    socket.on("notify", upstreamRequestEventHandler);
+}
+
+export function disconnect(){
+    if (socket != null)
+        socket.disconnect()
+}
+
+/**
+ * Message queue. Contains all unsent messages.
+ */
+var messageQueue = [];
+
+/**
+ * Handle a request from backend.
+ * 
+ * @param {String} message Recieved message
+ */
+function upstreamRequestEventHandler(message) {
+    switch(message.fcn) {
+        case "new_pic":
+            Upstream.newImage(message.type, message.prioritized, message.imageID);
+            break;
+        default:
+            throw new Error("Unknown function type '" + message.fcn + "'.");
+    }
+}
+
+/**
+ * Queue a message to be sent downstream. This will happen immediatly if no other messages are in the queue.
+ * 
+ * @param {String} event Event type to emit
+ * @param {Object} data JSON object to be sent
+ * @param {Function} callback Optional callback function
+ */
+export function sendDownstream(event, data, callback = null) {
+    messageQueue.push([event, data, callback]);
+    if (messageQueue.length === 1)
+        handleNextMessage();
+}
+
+/**
+ * Send a message upstream. NOTE that this function is only called as a reply to a notification from back-end.
+ * 
+ * @param {Object} data JSON object to be sent
+ */
+export function sendUpstream(data) {
+    socket.emit("notify", data);
+}
+
+/**
+ * Sent a message downstream.
+ * 
+ * @param {String} data JSON object to be sent
+ * @param {Function} callback Optional callback function
+ */
+function _sendDownstream(event, data, callback = null) {
+
+    var responseTimeout = setTimeout(() => {
+        callback = null;
+        throw new Error("Response to '" + event + "' event timed out.");
+    }, TIME_OUT_MS);
+
+    socket.once("response", (reply) => {
+        clearTimeout(responseTimeout);
+
+        if (callback !== null && callback !== undefined)
+            callback(reply);
+
+        handleNextMessage();
+    });
+
+    if (LOGGING) {
+        console.log(new Date(Date.now()) + ": " + event);
+        console.log(data);
+    }
+    
+    socket.emit(event, data);
+}
+
+/**
+ * Handle next message in the message queue
+ */
+function handleNextMessage() {
+    var mesBack = messageQueue.shift();
+
+    if (mesBack !== null && mesBack !== undefined)
+        _sendDownstream(...mesBack);
+}
+
+export default {initialize, disconnect, sendUpstream, sendDownstream};

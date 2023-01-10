@@ -1,0 +1,12 @@
+RDS_emulator/.linuxvenv
+IMM/images/*
+venv
+.idea
+*.db
+__pycache__
+.vscode
+htmlcov/
+.coverage
+virenv
+*.JPG
+log.txt

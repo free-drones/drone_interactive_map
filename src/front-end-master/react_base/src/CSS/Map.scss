@@ -1,0 +1,24 @@
+// Basic setup for the leaflet container
+.leaflet-container {
+    width: 100vw;
+    height: 100vh;
+}
+
+.map {
+    z-index: 0;
+}
+
+.marker {
+    -webkit-filter: drop-shadow( 2px 9px 5px rgba(50, 50, 50, 0.5));
+    filter: drop-shadow( 2px 9px 5px rgba(50, 50, 50, 0.5));
+    stroke: #FFFFFF;
+    stroke-width: 0.75px;
+}
+
+.marker:first-child {
+    color: #4caf50;
+}
+
+.marker:last-child {
+    color: #f44336;
+}
