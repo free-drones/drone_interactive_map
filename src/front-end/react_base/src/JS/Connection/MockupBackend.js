@@ -7,7 +7,7 @@ const MockupConstants = require('./MockupConstants.js');
 const Server = require('socket.io');
 
 // Set up local response server.
-var server = new Server(MockupConstants.PORT);
+var server = new Server.Server(MockupConstants.PORT, { cors: { origin: '*' } });
 var io = server.of(MockupConstants.NAMESPACE);
 
 io.on("connect", (socket) => {
