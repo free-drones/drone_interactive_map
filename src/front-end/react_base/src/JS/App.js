@@ -4,9 +4,9 @@
 import React from "react";
 import {
     BrowserRouter as Router,
-    Switch,
+    Routes,
     Route,
-    Redirect
+    Navigate
   } from "react-router-dom";
 import Main from './Main/Main.js';
 import StartUp from './Startup/StartUp.js';
@@ -88,15 +88,12 @@ export function App() {
     return (
         <ThemeProvider theme={theme}>
             <Router>
-                <Redirect exact from="/" to="/Main" />
-                <Switch>
-                    <Route path="/Main">
-                        <Main />
-                    </Route>
-                    <Route path="/StartUp">
-                        <StartUp />
-                    </Route>
-                </Switch>
+                {/* <Navigate  exact from="/" to="/Main" state={} replace={false} /> */}
+                <Routes>
+                    <Route path="/" element={<Navigate replace to="/Main" />} />
+                    <Route path="/Main" element={<Main />} />                        
+                    <Route path="/StartUp" element={<StartUp />} />
+                </Routes>
             </Router>
         </ThemeProvider>
     )

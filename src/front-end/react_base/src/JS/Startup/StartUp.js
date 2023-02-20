@@ -11,7 +11,7 @@ import Leaflet from 'leaflet';
 import {makeStyles} from '@material-ui/core';
 import {Button, Fab} from '@material-ui/core';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@material-ui/core';
-import {Redirect} from "react-router-dom";
+import {Navigate} from "react-router-dom";
 import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import {Check, Delete} from '@material-ui/icons';
@@ -143,7 +143,7 @@ function StartUp(props) {
     return (
         
         <div>
-            {redirected ? <Redirect to="/Main" /> : <div />}
+            {redirected ? <Navigate to="/Main" /> : <div />}
             
             <ColorWrapper
                 color="accept"

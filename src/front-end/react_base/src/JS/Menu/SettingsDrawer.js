@@ -9,7 +9,7 @@ import TabDrawerTab from './TabDrawerTab.js';
 import ListItem from '@material-ui/core/ListItem';
 import {Button} from '@material-ui/core';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@material-ui/core';
-import {Redirect} from "react-router-dom";
+import {Navigate} from "react-router-dom";
 import ModeButtonGroup from './ModeButtonGroup.js'
 import SensorModeButtonGroup from './SensorModeButtonGroup.js'
 import UndoIcon from '@material-ui/icons/Undo';
@@ -52,7 +52,7 @@ function SettingsDrawer(props) {
 
     return (
         <div>
-        {redirected ? <Redirect to="/StartUp" /> : <div />}
+        {redirected ? <Navigate to="/StartUp" /> : <div />}
 
         <TabDrawer
             anchor='left'

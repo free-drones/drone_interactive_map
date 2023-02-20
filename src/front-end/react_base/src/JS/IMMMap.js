@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { Map, TileLayer, Marker, Polygon, ImageOverlay } from 'react-leaflet';
+import { MapContainer , TileLayer, Marker, Polygon, ImageOverlay, useMapEvents } from 'react-leaflet';
 import "../CSS/Map.scss";
 import { connect, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
 import { mapPositionActions, zoomLevelActions, areaWaypointActions, mapStateActions } from './Storage.js'
@@ -109,19 +109,35 @@ class IMMMap extends React.Component {
 
         const worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
 
+        function MapEventHandler(props) {
+            const map = useMapEvents({
+              click: (e) => {
+                if (props.parent.props.allowDefine) {
+                    props.parent.props.store.addAreaWaypoint({lat: e.latlng.lat, lng: e.latlng.lng})
+                }
+                // map.locate()  // This finds the users current position via gps
+              },
+            //   locationfound: (location) => { // Called when 
+            //     console.log('location found:', location)
+            //   },
+              
+            })
+            return null
+          }
+
         return(
-            <Map
+            <MapContainer
                 className="map"
                 ref={this.mapRef}
                 center={this.props.center}
                 zoom={this.props.zoom}
                 onViewportChanged={this.updateBounds}
-                onClick={this.props.allowDefine ? (e) => this.props.store.addAreaWaypoint({lat: e.latlng.lat, lng: e.latlng.lng}) : this.dummy}
                 zoomControl={false}
                 maxBounds={this.props.maxBounds}
                 maxBoundsViscosity={0.5}
                 minZoom={10}
             >
+                <MapEventHandler parent={this} />
                 <TileLayer maxNativeZoom={18} maxZoom={22}
                     attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a>     contributors'
                     url={tile_server_url}
@@ -154,7 +170,7 @@ class IMMMap extends React.Component {
                     />
                 )}         
 
-            </Map>
+            </MapContainer>
         );
     }
 }
