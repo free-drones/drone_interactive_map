@@ -56,7 +56,7 @@ class GUIPubThread(Thread):
             self.socketio.emit("notify", msg)
         else:
             _logger.debug(f"Sending notify request to client {to_client_id}: {msg}")
-            self.socketio.emit("notify", msg, to_client_id)
+            self.socketio.emit("notify", msg, to=to_client_id)
 
     def add_request(self, request):
         """Adds a new request for the thread to handle.
