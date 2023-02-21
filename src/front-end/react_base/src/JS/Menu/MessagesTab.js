@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { useState } from 'react';
-import { makeStyles } from '@mui/styles';
 
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -26,13 +25,13 @@ import ErrorIcon from '@mui/icons-material/Error';
 import { MESSAGE_TYPES, connect, messages, messagesActions } from '../Storage.js';
 import ColorWrapper from '../ColorWrapper.js';
 
-const useStyles = makeStyles( (theme) => ({
+const styles = {
     fullWidthButton : {
         flexGrow: 1,
         justifyContent: 'center'
     },
     thinIcon : {
-        minWidth: theme.spacing(2),
+        minWidth: (theme) => theme.spacing(2),
         alignSelf: 'flex-start'
     },
     wrappingText : {
@@ -41,10 +40,9 @@ const useStyles = makeStyles( (theme) => ({
         textJustify: 'inter-word',
         margin: 0
     }
-}));
+};
 
 function MessagesTab(props) {
-    const classes = useStyles();
     
     const [menuAnchor, setMenuAnchor] = React.useState(null);
     const [menuOpen, setMenuOpen] = React.useState(false);
@@ -103,7 +101,7 @@ function MessagesTab(props) {
                 keepMounted
                 open={menuOpen}
                 onClose={() => setMenuOpen(false)}
-                getContentAnchorEl={null}
+                // getContentAnchorEl={null}
                 anchorEl={menuAnchor}
                 anchorOrigin={{
                     vertical: 'bottom',
@@ -129,7 +127,7 @@ function MessagesTab(props) {
                     onClick={menuButtonClick}
                     variant="contained"
                     endIcon={<FilterListIcon />}
-                    className={classes.fullWidthButton}
+                    sx={styles.fullWidthButton}
                 >
                     Filter
                 </Button>
@@ -142,7 +140,7 @@ function MessagesTab(props) {
                     <Button
                         onClick={() => props.store.clearMessages()}
                         variant="contained"
-                        className={classes.fullWidthButton}
+                        sx={styles.fullWidthButton}
                     >
                         Clear messages
                     </Button>
@@ -153,10 +151,10 @@ function MessagesTab(props) {
             {/* First filter for relevant messages, then add all to list */}
             {props.store.messages.filter((message) => filter[message.type] === true).map((message) => 
                 <ListItem>
-                    <ListItemIcon className={classes.thinIcon}>
+                    <ListItemIcon sx={styles.thinIcon}>
                         {getIconByType(message.type)}
                     </ListItemIcon>
-                    <ListItemText className={classes.wrappingText} primary={message.heading} secondary={message.message}  />
+                    <ListItemText sx={styles.wrappingText} primary={message.heading} secondary={message.message}  />
                 </ListItem>
             )}
             </List>

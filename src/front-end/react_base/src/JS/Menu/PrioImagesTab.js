@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { useState } from 'react';
-import { makeStyles } from '@mui/styles';
 
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -26,23 +25,22 @@ import { connect, requestQueue, requestQueueActions } from '../Storage.js';
 import { clearImageQueue, callbackWrapper } from '../Connection/Downstream';
 import ColorWrapper from '../ColorWrapper.js';
 
-const useStyles = makeStyles( (theme) => ({
+const styles = {
     fullWidthButton : {
         flexGrow: 1,
         justifyContent: 'center'
     },
     thinIcon : {
-        minWidth: theme.spacing(2),
+        minWidth: (theme) => theme.spacing(2),
         alignSelf: 'flex-start'
     },
     wrappingText : {
         whiteSpace: "normal",
         margin: 0
     }
-}));
+};
 
 function PrioImagesTab(props) {
-    const classes = useStyles();
 
     var [dialogOpen, setDialogState] = useState(false);
 
@@ -85,12 +83,12 @@ function PrioImagesTab(props) {
             {/* Sort requests on request time, then add all to list */}
             {[...props.store.requestQueue.items].sort((i1, i2) => i2.requestTime - i1.requestTime).map((item) =>
                 <ListItem key={item.requestTime}>
-                    <ListItemIcon className={classes.thinIcon}>
+                    <ListItemIcon sx={styles.thinIcon}>
                         {item.recieved ? <Check /> : <ChevronRightIcon />}
                     </ListItemIcon>
                     <ListItemText 
                         disableTypography
-                        className={classes.wrappingText}
+                        sx={styles.wrappingText}
                         primary={
                             <Typography variant="body1">
                                 {item.id}

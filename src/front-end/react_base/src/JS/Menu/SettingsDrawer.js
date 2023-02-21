@@ -3,7 +3,6 @@
  */
 
 import React, {useState} from 'react';
-import { makeStyles } from '@mui/styles';
 import TabDrawer from './TabDrawer.js';
 import TabDrawerTab from './TabDrawerTab.js';
 import ListItem from '@mui/material/ListItem';
@@ -17,16 +16,14 @@ import { connect, areaWaypoints, areaWaypointActions, requestQueueActions, mapSt
 import ModeIcon from './ModeIcon.js'
 import ColorWrapper from '../ColorWrapper.js';
 
-const useStyles = makeStyles( (theme) => ({
+const styles = {
     fullWidthButton : {
         flexGrow: 1,
         justifyContent: 'center'
     }
-}));
+};
 
 function SettingsDrawer(props) {
-
-    const classes = useStyles();
     
     var [dialogOpen, setDialogState] = useState(false);
     var [redirected, redirect] = useState(false);
@@ -72,7 +69,7 @@ function SettingsDrawer(props) {
                         color="decline"
                     >
                         <Button
-                            className={classes.fullWidthButton}
+                            sx={styles.fullWidthButton}
                             variant="contained" 
                             onClick={redefineClickHandler}
                             startIcon={<UndoIcon />}
