@@ -2,8 +2,8 @@
  * Class file for camera queue indicator.
  */
 import React, { Component } from 'react';
-import Badge from '@material-ui/core/Badge';
-import CameraAltIcon from '@material-ui/icons/CameraAlt';
+import Badge from '@mui/material/Badge';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { connect, requestQueue } from "../Storage.js";
 
 

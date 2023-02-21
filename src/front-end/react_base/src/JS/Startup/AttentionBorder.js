@@ -3,9 +3,9 @@
  */
 
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
 
 const useStyles = makeStyles((theme) => ({
     borderBox: {
@@ -13,8 +13,8 @@ const useStyles = makeStyles((theme) => ({
         
         overflow: 'hidden',
 
-        height: "calc(100% - " + theme.spacing(4) + "px)",
-        width:  "calc(100% - " + theme.spacing(4) + "px)",
+        height: `calc(100% - ${theme.spacing(4)})`,
+        width:  `calc(100% - ${theme.spacing(4)})`,
 
         top: "50%",
         left: "50%",
@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
 
         borderColor: theme.palette.error.main,
         borderStyle: "dashed",
-        borderWidth: theme.spacing(1) + "px",
+        borderWidth: theme.spacing(1),
         borderRadius: theme.spacing(1),
 
         pointerEvents: 'none',

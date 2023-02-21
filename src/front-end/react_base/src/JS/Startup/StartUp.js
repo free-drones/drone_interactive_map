@@ -8,19 +8,19 @@ import clsx from 'clsx';
 
 import Leaflet from 'leaflet';
 
-import {makeStyles} from '@material-ui/core';
-import {Button, Fab} from '@material-ui/core';
-import {Dialog, DialogActions, DialogTitle, DialogContent} from '@material-ui/core';
+import {makeStyles} from '@mui/styles';
+import {Button, Fab} from '@mui/material';
+import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
 import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
-import {Check, Delete} from '@material-ui/icons';
+import {Check, Delete} from '@mui/icons-material';
 
 import Downstream from '../Connection/Downstream.js';
 
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Snackbar from '@mui/material/Snackbar';
+import { Alert } from '@mui/material';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 import ColorWrapper from '../ColorWrapper.js';
 
 /**
@@ -28,8 +28,8 @@ import ColorWrapper from '../ColorWrapper.js';
  */
 const ALERT_ELEVATION = 6
 
-function Alert(props) {
-  return <MuiAlert elevation={ALERT_ELEVATION} variant="filled" {...props} />;
+function Alerter(props) {
+  return <Alert elevation={ALERT_ELEVATION} variant="filled" {...props} />;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -178,9 +178,9 @@ function StartUp(props) {
             </ClickAwayListener>
             
             <Snackbar open={snackbar.open} autoHideDuration={5000} onClose={() => setSnackbar({...snackbar, open : false})}>
-                <Alert onClose={() => setSnackbar({...snackbar, open : false})} severity={snackbar.severity}>
+                <Alerter onClose={() => setSnackbar({...snackbar, open : false})} severity={snackbar.severity}>
                     {snackbar.message}
-                </Alert>
+                </Alerter>
             </Snackbar>
 
             <Dialog open={dialogOpen} onClose={() => {setDialogState(false)}}>

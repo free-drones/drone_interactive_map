@@ -2,11 +2,11 @@
  * Class file for camera button component.
  */
 
-import { Fab } from '@material-ui/core';
-import AddAPhoto from '@material-ui/icons/AddAPhoto'
+import { Fab } from '@mui/material';
+import AddAPhoto from '@mui/icons-material/AddAPhoto'
 import React from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles( (theme) => ({
     cameraButton : {

@@ -3,16 +3,16 @@
  */
 
 import React, {useState} from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import TabDrawer from './TabDrawer.js';
 import TabDrawerTab from './TabDrawerTab.js';
-import ListItem from '@material-ui/core/ListItem';
-import {Button} from '@material-ui/core';
-import {Dialog, DialogActions, DialogTitle, DialogContent} from '@material-ui/core';
+import ListItem from '@mui/material/ListItem';
+import {Button} from '@mui/material';
+import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
 import ModeButtonGroup from './ModeButtonGroup.js'
 import SensorModeButtonGroup from './SensorModeButtonGroup.js'
-import UndoIcon from '@material-ui/icons/Undo';
+import UndoIcon from '@mui/icons-material/Undo';
 import { connect, areaWaypoints, areaWaypointActions, requestQueueActions, mapState, mapStateActions, activePicturesActions } from '../Storage.js';
 import ModeIcon from './ModeIcon.js'
 import ColorWrapper from '../ColorWrapper.js';

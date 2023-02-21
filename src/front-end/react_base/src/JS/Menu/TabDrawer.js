@@ -5,10 +5,10 @@
 import React from 'react';
 import { useState } from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import Portal from '@material-ui/core/Portal';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Portal from '@mui/material/Portal';
 
 const useStyles = makeStyles((theme) => ({
     // Page wrapper hides unwanted overflow from overextending tabs heads

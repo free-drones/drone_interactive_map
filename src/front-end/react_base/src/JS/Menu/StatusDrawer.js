@@ -6,7 +6,7 @@ import React from 'react';
 import TabDrawer from './TabDrawer';
 import TabDrawerTab from './TabDrawerTab';
 import CameraQueueIcon from './CameraQueueIcon.js'
-import SmsFailedIcon from '@material-ui/icons/SmsFailed';
+import SmsFailedIcon from '@mui/icons-material/SmsFailed';
 import MessagesTab from './MessagesTab';
 import { connect, requestQueue, requestQueueActions } from '../Storage.js';
 import PrioImagesTab from './PrioImagesTab';
