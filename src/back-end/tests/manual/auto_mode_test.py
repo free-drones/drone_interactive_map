@@ -4,7 +4,7 @@ This mock simulates frontend setting mode to AUTO and gets four images from IMM.
 
 import numpy as np
 import socketio as sio2
-from utility.test_helper_function import create_backend_thread, init_db_and_add_images
+from utility.test_helper_function import create_backend_thread, init_db_and_add_all_images
 from config_file import BACKEND_BASE_URL
 import requests
 import cv2
