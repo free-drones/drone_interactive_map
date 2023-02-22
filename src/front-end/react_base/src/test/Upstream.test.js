@@ -1,4 +1,5 @@
 import ServerConnection from '../JS/Connection/ServerConnection.js';
+import "core-js"
 const {Server} = require('socket.io');
 
 // Localhost

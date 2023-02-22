@@ -1,5 +1,6 @@
 import ServerConnection from '../JS/Connection/ServerConnection.js';
 import Downstream, { isValidView, translateView, isValidCoordinate, translateCoordinate } from '../JS/Connection/Downstream.js';
+import "core-js"
 const {Server} = require('socket.io');
 
 // Localhost
