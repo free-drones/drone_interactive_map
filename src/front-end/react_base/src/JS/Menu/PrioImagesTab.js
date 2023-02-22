@@ -4,45 +4,43 @@
 
 import React from 'react';
 import { useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
 
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography'
-import { Dialog, DialogActions, DialogTitle, DialogContent } from '@material-ui/core';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography'
+import { Dialog, DialogActions, DialogTitle, DialogContent } from '@mui/material';
 
-import Divider from '@material-ui/core/Divider';
+import Divider from '@mui/material/Divider';
 
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import Redo from '@material-ui/icons/Redo'
-import Check from '@material-ui/icons/Check';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import Redo from '@mui/icons-material/Redo'
+import Check from '@mui/icons-material/Check';
 
 import { connect, requestQueue, requestQueueActions } from '../Storage.js';
 
 import { clearImageQueue, callbackWrapper } from '../Connection/Downstream';
 import ColorWrapper from '../ColorWrapper.js';
 
-const useStyles = makeStyles( (theme) => ({
+const styles = {
     fullWidthButton : {
         flexGrow: 1,
         justifyContent: 'center'
     },
     thinIcon : {
-        minWidth: theme.spacing(2),
+        minWidth: (theme) => theme.spacing(2),
         alignSelf: 'flex-start'
     },
     wrappingText : {
         whiteSpace: "normal",
         margin: 0
     }
-}));
+};
 
 function PrioImagesTab(props) {
-    const classes = useStyles();
 
     var [dialogOpen, setDialogState] = useState(false);
 
@@ -85,12 +83,12 @@ function PrioImagesTab(props) {
             {/* Sort requests on request time, then add all to list */}
             {[...props.store.requestQueue.items].sort((i1, i2) => i2.requestTime - i1.requestTime).map((item) =>
                 <ListItem key={item.requestTime}>
-                    <ListItemIcon className={classes.thinIcon}>
+                    <ListItemIcon sx={styles.thinIcon}>
                         {item.recieved ? <Check /> : <ChevronRightIcon />}
                     </ListItemIcon>
                     <ListItemText 
                         disableTypography
-                        className={classes.wrappingText}
+                        sx={styles.wrappingText}
                         primary={
                             <Typography variant="body1">
                                 {item.id}

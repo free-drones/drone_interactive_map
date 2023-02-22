@@ -8,19 +8,18 @@ import clsx from 'clsx';
 
 import Leaflet from 'leaflet';
 
-import {makeStyles} from '@material-ui/core';
-import {Button, Fab} from '@material-ui/core';
-import {Dialog, DialogActions, DialogTitle, DialogContent} from '@material-ui/core';
-import {Redirect} from "react-router-dom";
+import {Button, Fab} from '@mui/material';
+import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
+import {Navigate} from "react-router-dom";
 import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
-import {Check, Delete} from '@material-ui/icons';
+import {Check, Delete} from '@mui/icons-material';
 
 import Downstream from '../Connection/Downstream.js';
 
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Snackbar from '@mui/material/Snackbar';
+import { Alert } from '@mui/material';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 import ColorWrapper from '../ColorWrapper.js';
 
 /**
@@ -28,43 +27,42 @@ import ColorWrapper from '../ColorWrapper.js';
  */
 const ALERT_ELEVATION = 6
 
-function Alert(props) {
-  return <MuiAlert elevation={ALERT_ELEVATION} variant="filled" {...props} />;
+function Alerter(props) {
+  return <Alert elevation={ALERT_ELEVATION} variant="filled" {...props} />;
 }
 
-const useStyles = makeStyles((theme) => ({
+const styles = {
     fab: {
         position: 'absolute',
-        bottom: theme.spacing(3),
-        zIndex: theme.zIndex.appBar
+        bottom: (theme) => theme.spacing(3),
+        zIndex: 'appBar'
     },
     fabRight: {
-        right: theme.spacing(3),
+        right: (theme) => theme.spacing(3),
     },
     fabLeft: {
-        left: theme.spacing(3)
+        left: (theme) => theme.spacing(3)
     },
     extendingFab: {
         // Medium button height
-        height: theme.spacing(7),
-        borderRadius: theme.spacing(7),
+        height: (theme) => theme.spacing(7),
+        borderRadius: (theme) => theme.spacing(7),
         justifyContent: 'flex-start',
         
         overflowX: 'hidden',
-        paddingLeft: theme.spacing(2),
+        paddingLeft: (theme) => theme.spacing(2),
 
-        transition: theme.transitions.create('all', {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.standard,
+        transition: (theme) => theme.transitions.create('all', {
+            easing: 'easeOut',
+            duration: 'standard',
         })
     }
-}));
+};
 
 /*
     This function loads component through its return function.
 */
 function StartUp(props) {
-    const classes = useStyles();
 
     var [redirected, redirect] = useState(false);
     redirect = redirect.bind(true);
@@ -143,14 +141,14 @@ function StartUp(props) {
     return (
         
         <div>
-            {redirected ? <Redirect to="/Main" /> : <div />}
+            {redirected ? <Navigate to="/Main" /> : <div />}
             
             <ColorWrapper
                 color="accept"
             >
                 <Fab
                     onClick={() => {setDialogState(true)}}
-                    className={`${classes.fab} ${classes.fabRight}`}
+                    sx={[styles.fab, styles.fabRight]}
                     disabled={(props.store.areaWaypoints.length<3)}
                 >
                     <Check />
@@ -169,7 +167,7 @@ function StartUp(props) {
                             }
                         }
                         variant={clearWaypointsConfirm ? "extended" : "round"}
-                        className={clsx(classes.fab, classes.fabLeft, classes.extendingFab)}
+                        sx={[styles.fab, styles.fabLeft, styles.extendingFab]}
                     >
                         <Delete />
                         {clearWaypointsConfirm ? 'Are you sure?' : ''}
@@ -178,9 +176,9 @@ function StartUp(props) {
             </ClickAwayListener>
             
             <Snackbar open={snackbar.open} autoHideDuration={5000} onClose={() => setSnackbar({...snackbar, open : false})}>
-                <Alert onClose={() => setSnackbar({...snackbar, open : false})} severity={snackbar.severity}>
+                <Alerter onClose={() => setSnackbar({...snackbar, open : false})} severity={snackbar.severity}>
                     {snackbar.message}
-                </Alert>
+                </Alerter>
             </Snackbar>
 
             <Dialog open={dialogOpen} onClose={() => {setDialogState(false)}}>

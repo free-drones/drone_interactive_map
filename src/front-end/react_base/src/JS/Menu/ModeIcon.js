@@ -2,8 +2,8 @@
  * Class file for Mode indicator.
  */
 import React, { Component } from 'react';
-import Badge from '@material-ui/core/Badge';
-import SettingsIcon from '@material-ui/icons/Settings';
+import Badge from '@mui/material/Badge';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { connect, mode, modeActions } from "../Storage.js";
 
 

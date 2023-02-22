@@ -5,12 +5,11 @@
 import React from 'react';
 import { useState } from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Portal from '@mui/material/Portal';
+import { Box } from '@mui/system';
 
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import Portal from '@material-ui/core/Portal';
-
-const useStyles = makeStyles((theme) => ({
+const styles = {
     // Page wrapper hides unwanted overflow from overextending tabs heads
     pageWrapper: {
         height: '100%',
@@ -24,14 +23,14 @@ const useStyles = makeStyles((theme) => ({
         overflow: 'hidden',
         pointerEvents: 'none',
 
-        zIndex: theme.zIndex.appBar,
+        zIndex: 'appBar',
 
         // Re-enable click events for all children
         '& > *': {
             pointerEvents: 'auto'
         }
     }
-}));
+};
 
 /**
  * @typedef {Object} Properties
@@ -46,7 +45,6 @@ const useStyles = makeStyles((theme) => ({
  * @param {Properties} props Passed properties.
  */
 function TabDrawer(props) {
-    const classes = useStyles(props)
     
     // Set up default states
     var [states, setStates] = useState(new Array(props.children.length).fill('dormant'));
@@ -94,9 +92,9 @@ function TabDrawer(props) {
     return (
         <Portal>
             <ClickAwayListener onClickAway={handleClickAway}>
-                <div className={classes.pageWrapper}>
+                <Box sx={styles.pageWrapper}>
                     { children }
-                </div>
+                </Box>
             </ClickAwayListener>
         </Portal>
     );

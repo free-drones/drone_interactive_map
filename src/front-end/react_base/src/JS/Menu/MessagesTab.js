@@ -4,35 +4,34 @@
 
 import React from 'react';
 import { useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
 
-import Divider from '@material-ui/core/Divider';
+import Divider from '@mui/material/Divider';
 
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Checkbox from '@mui/material/Checkbox';
 
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import FilterListIcon from '@material-ui/icons/FilterList';
-import FlashOnIcon from '@material-ui/icons/FlashOn';
-import ErrorIcon from '@material-ui/icons/Error';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import ErrorIcon from '@mui/icons-material/Error';
 
 import { MESSAGE_TYPES, connect, messages, messagesActions } from '../Storage.js';
 import ColorWrapper from '../ColorWrapper.js';
 
-const useStyles = makeStyles( (theme) => ({
+const styles = {
     fullWidthButton : {
         flexGrow: 1,
         justifyContent: 'center'
     },
     thinIcon : {
-        minWidth: theme.spacing(2),
+        minWidth: (theme) => theme.spacing(2),
         alignSelf: 'flex-start'
     },
     wrappingText : {
@@ -41,10 +40,9 @@ const useStyles = makeStyles( (theme) => ({
         textJustify: 'inter-word',
         margin: 0
     }
-}));
+};
 
 function MessagesTab(props) {
-    const classes = useStyles();
     
     const [menuAnchor, setMenuAnchor] = React.useState(null);
     const [menuOpen, setMenuOpen] = React.useState(false);
@@ -103,7 +101,7 @@ function MessagesTab(props) {
                 keepMounted
                 open={menuOpen}
                 onClose={() => setMenuOpen(false)}
-                getContentAnchorEl={null}
+                // getContentAnchorEl={null}
                 anchorEl={menuAnchor}
                 anchorOrigin={{
                     vertical: 'bottom',
@@ -129,7 +127,7 @@ function MessagesTab(props) {
                     onClick={menuButtonClick}
                     variant="contained"
                     endIcon={<FilterListIcon />}
-                    className={classes.fullWidthButton}
+                    sx={styles.fullWidthButton}
                 >
                     Filter
                 </Button>
@@ -142,7 +140,7 @@ function MessagesTab(props) {
                     <Button
                         onClick={() => props.store.clearMessages()}
                         variant="contained"
-                        className={classes.fullWidthButton}
+                        sx={styles.fullWidthButton}
                     >
                         Clear messages
                     </Button>
@@ -153,10 +151,10 @@ function MessagesTab(props) {
             {/* First filter for relevant messages, then add all to list */}
             {props.store.messages.filter((message) => filter[message.type] === true).map((message) => 
                 <ListItem>
-                    <ListItemIcon className={classes.thinIcon}>
+                    <ListItemIcon sx={styles.thinIcon}>
                         {getIconByType(message.type)}
                     </ListItemIcon>
-                    <ListItemText className={classes.wrappingText} primary={message.heading} secondary={message.message}  />
+                    <ListItemText sx={styles.wrappingText} primary={message.heading} secondary={message.message}  />
                 </ListItem>
             )}
             </List>
