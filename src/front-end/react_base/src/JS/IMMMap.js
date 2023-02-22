@@ -85,6 +85,18 @@ class IMMMap extends React.Component {
         }
     }
 
+
+    /**
+     * Checks if any waypoints have crossing connections.
+     * @param {any} waypoints List of all waypoints that will be checked
+     * 
+     * ***THIS FUNCTION SHOULD BE USED IN MARKER CLICKED, BOTH WHEN PLACED AND REMOVED MARKER***
+     */
+    markerCrossingCheck(waypoints){
+        waypoints.forEach()
+
+    }
+
     /**
      * Places all waypoints as markers on the map.
      */
