@@ -408,61 +408,66 @@ export const clearMessages = createAction('CLEAR_MESSAGES');
  * ====================================================================================================
  */
 
-export const _areaWaypoints = createReducer([], {
-    [addAreaWaypoint]: (state, action) => {
+export const _areaWaypoints = createReducer([], (builder) => {
+    builder
+    .addCase(addAreaWaypoint, (state, action) => {
         const newWaypoint = action.payload;
         return [
             ...state,
             newWaypoint
         ];
-    },
-    [removeAreaWaypoint]: (state, action) => {
+    })
+    .addCase(removeAreaWaypoint, (state, action) => {
         const index = action.payload;
         return [
             ...state.slice(0, index),
             ...state.slice(index + 1)
         ];
-    },
-    [clearAreaWaypoints]: (state, action) => {
+    })
+    .addCase(clearAreaWaypoints, (state, action) => {
         return [];
-    }
+    })
 });
 
-export const _clientID = createReducer(null, {
-    [setClientID]: (state, action) => {
+export const _clientID = createReducer(null, (builder) => {
+    builder
+    .addCase(setClientID, (state, action) => {
         const newID = action.payload;
         return newID;
-    }
+    })
 });
 
-export const _zoomLevel = createReducer(DEFAULT_ZOOM_LEVEL, {
-    [setZoomLevel]: (state, action) => {
+export const _zoomLevel = createReducer(DEFAULT_ZOOM_LEVEL, (builder) => {
+    builder
+    .addCase(setZoomLevel, (state, action) => {
         const newZoom = action.payload;
         return newZoom;
-    }
+    })
 });
 
-export const _mapPosition = createReducer(getGeodata(), {
-    [setMapPosition]: (state, action) => {
+export const _mapPosition = createReducer(getGeodata(), (builder) => {
+    builder
+    .addCase(setMapPosition, (state, action) => {
         const newPosition = action.payload;
         return newPosition;
-    }
+    })
 });
 
-export const _requestQueue = createReducer(initialRequestQueue, {
-    [addRequest]: (state, action) => {
+export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
+    builder
+    .addCase(addRequest, (state, action) => {
         var newState = {size: state.size+1, items: [...state.items, action.payload]}; 
         return newState;
-    },
-    [removeRequest]: (state, action) => {
+    })
+    .addCase(removeRequest, (state, action) => {
         const index = action.payload;
         return {size: state.size-1, items:[
             //Removes item "index" from id list.
             ...state.items.slice(0, index),
             ...state.items.slice(index + 1)
         ]};
-    },
-    [recieveRequest]: (state, action) => {
+    })
+    .addCase(recieveRequest, (state, action) => {
         const index = state.items.map(e => e.id).indexOf(action.payload);
 
         if (index !== -1) {
@@ -483,82 +488,88 @@ export const _requestQueue = createReducer(initialRequestQueue, {
         // If ID is not found, make no change
         return state;
 
-    },
-    [clearRequestQueue]: (state) => {
+    })
+    .addCase(clearRequestQueue, (state) => {
         var newState = {size: 0, items: []};
         return newState;
-    }
+    })
 });
 
-export const _activePictures = createReducer(initialActivePictures, {
-    [addActivePicture]: (state, action) => {
+export const _activePictures = createReducer(initialActivePictures, (builder) => {
+    builder
+    .addCase(addActivePicture, (state, action) => {
         return [
             ...state,
             action.payload
         ];
-    },
-    [removeActivePicture]: (state, action) => {
+    })
+    .addCase(removeActivePicture, (state, action) => {
         const index = action.payload;
         return [
             //Removes item "index" from list.
             ...state.slice(0, index),
             ...state.slice(index + 1)
         ];
-    },
-    [clearActivePictures]: (state) => {
+    })
+    .addCase(clearActivePictures, (state) => {
         var newState = [];
         return newState;
-    }
+    })
 });
 
-export const _mapBounds = createReducer(null, {
-    [setMapBounds]: (state, action) => {
+export const _mapBounds = createReducer(null, (builder) => {
+    builder
+    .addCase(setMapBounds, (state, action) => {
         return action.payload;
-    },
-    [clearMapBounds]: (state, action) => {
+    })
+    .addCase(clearMapBounds, (state, action) => {
         return null;
-    }
+    })
 });
 
-export const _mode = createReducer("MAN", {
-    [setMode]: (state, action) => {
+export const _mode = createReducer("MAN", (builder) => {
+    builder
+    .addCase(setMode, (state, action) => {
         const newmode = action.payload;
         return newmode;
-    }
+    })
 });
 
-export const _sensor = createReducer("RGB", {
-    [setSensor]: (state, action) => {
+export const _sensor = createReducer("RGB", (builder) => {
+    builder
+    .addCase(setSensor, (state, action) => {
         const newmode = action.payload;
         return newmode;
-    }
+    })
 });
 
-export const _messages = createReducer([], {
-    [addMessage]: (state, action) => {
+export const _messages = createReducer([], (builder) => {
+    builder
+    .addCase(addMessage, (state, action) => {
         const newMessage = action.payload;
         return [
             ...state,
             newMessage
         ];
-    },
-    [removeMessage]: (state, action) => {
+    })
+    .addCase(removeMessage, (state, action) => {
         const index = action.payload;
         return [
             ...state.slice(0, index),
             ...state.slice(index + 1)
         ];
-    },
-    [clearMessages]: (state, action) => {
+    })
+    .addCase(clearMessages, (state, action) => {
         return [];
-    }
+    })
 });
 
-export const _mapState = createReducer("Main", {
-    [setMapState]: (state, action) => {
+export const _mapState = createReducer("Main", (builder) =>{
+    builder
+    .addCase(setMapState, (state, action) => {
         const newstate = action.payload;
         return newstate;
-    }
+    })
 });
 
 /**
