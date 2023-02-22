@@ -81,17 +81,17 @@ def dig(value_dict, key_path):
     key_path -- A list containing the keys in the path that will be checked
                 in value_dict.
 
-    Returns a boolean that says if the keys existed or not.
+    Returns a boolean which is true if the key path existed and false if not.
     """
 
     if not key_path:
         return False
 
     elif isinstance(key_path, str) and key_path in value_dict:
-        return False
+        return True
 
     elif key_path[0] not in value_dict.keys():
-        return True
+        return False
     else:
         return dig(value_dict[key_path[0]], key_path[1:])
 
@@ -103,12 +103,11 @@ def check_keys_exists(value_dict, key_paths):
     value_dict -- A dict containing the values to be checked.
     key_paths -- A list containing the paths of keys that will be checked in value_dict.
 
-    Returns a boolean that says if all key paths existed or not.
+    Returns a boolean which is true if all key paths existed and false if not.
     """
 
     for key_path in key_paths:
-        invalid = dig(value_dict, key_path)
-        if invalid:
+        if not dig(value_dict, key_path):
             return False
     return True
 
@@ -157,7 +156,7 @@ def is_overlapping(square1, square2):
 
 
 def polygon_contains_point(in_point, in_polygon):
-    """Returns true if point is within polygon
+    """Returns true if point is within polygon (NOTE: the polygon must be a quadrilateral, *not* a general polygon)
 
     This function takes a point as (x,y) and
     a list as [bottom_left, top_left, top_right, bottom_right]
