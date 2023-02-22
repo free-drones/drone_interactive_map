@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Portal from '@mui/material/Portal';
+import { Box } from '@mui/system';
 
 const styles = {
     // Page wrapper hides unwanted overflow from overextending tabs heads
@@ -91,9 +92,9 @@ function TabDrawer(props) {
     return (
         <Portal>
             <ClickAwayListener onClickAway={handleClickAway}>
-                <div sx={styles.pageWrapper}>
+                <Box sx={styles.pageWrapper}>
                     { children }
-                </div>
+                </Box>
             </ClickAwayListener>
         </Portal>
     );
