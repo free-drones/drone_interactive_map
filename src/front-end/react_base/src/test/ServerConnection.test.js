@@ -1,5 +1,5 @@
 import ServerConnection from '../JS/Connection/ServerConnection.js';
-const Server = require('socket.io');
+const {Server} = require('socket.io');
 
 // Localhost
 const testNamespace = '/ServerConnectionTest';
