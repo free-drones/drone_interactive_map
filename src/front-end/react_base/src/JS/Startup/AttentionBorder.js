@@ -3,70 +3,68 @@
  */
 
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
+import { Box } from '@mui/system';
 
-const useStyles = makeStyles((theme) => ({
+const styles = {
     borderBox: {
         position: 'absolute',
         
         overflow: 'hidden',
 
-        height: "calc(100% - " + theme.spacing(4) + "px)",
-        width:  "calc(100% - " + theme.spacing(4) + "px)",
+        height: (theme) => `calc(100% - ${theme.spacing(4)})`,
+        width:  (theme) => `calc(100% - ${theme.spacing(4)})`,
 
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
 
-        borderColor: theme.palette.error.main,
+        borderColor: 'error.main',
         borderStyle: "dashed",
-        borderWidth: theme.spacing(1) + "px",
-        borderRadius: theme.spacing(1),
+        borderWidth: (theme) => theme.spacing(1),
+        borderRadius: (theme) => theme.spacing(1),
 
         pointerEvents: 'none',
 
-        zIndex: theme.zIndex.appBar
+        zIndex: 'appBar'
     },
     borderHead: {
         position: 'absolute',
 
-        top: theme.spacing(3),
+        top: (theme) => theme.spacing(3),
         left: "50%",
         transform: "translate(-50%, 0)",
         
-        padding: theme.spacing(1),
-        color: theme.palette.error.main,
-        boxShadow: theme.shadows[5],
-        borderRadius: theme.spacing(1),
+        padding: (theme) => theme.spacing(1),
+        color: 'error.main',
+        boxShadow: (theme) => theme.shadows[5],
+        borderRadius: (theme) => theme.spacing(1),
         backgroundColor: "rgba(255,255,255,0.75)",
 
-        zIndex: theme.zIndex.appBar - 1,
+        zIndex: (theme) => theme.zIndex.appBar - 1,
         pointerEvents: 'none',
 
-        ...theme.typography.button
+        ...((theme) => theme.typography.button)
     }
-}));
+};
 
 
 /**
  * AttentionBorder component function.
  */
 export function AttentionBorder(props) {
-    
-    const classes = useStyles(props);
 
     return (
         <div>
-            <div
-                className={classes.borderHead}
+            <Box
+                sx={styles.borderHead}
             >
                 <Typography variant="h6" component="h2" elevation={10}>
                     {props.children}
                 </Typography>
-            </div>
-            <div className={classes.borderBox}/>
+            </Box>
+            <Box sx={styles.borderBox}/>
         </div>
     );
 }

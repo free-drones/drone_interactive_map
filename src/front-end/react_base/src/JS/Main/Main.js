@@ -6,7 +6,7 @@
 import React from 'react';
 import IMMMap from "../IMMMap.js"
 import CameraButton from './CameraButton.js';
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 import { connect, clientID, mapPosition, mapPositionActions, requestQueue, requestQueueActions, areaWaypoints, areaWaypointActions, mapBounds, zoomLevel, mapState, mapStateActions, sensor, mode, activePictures, activePicturesActions } from "../Storage.js";
 
@@ -130,7 +130,7 @@ class Main extends React.Component {
     render() {
         return (
             <div>
-                {this.areaIsInvalid() ? <Redirect to="/StartUp" /> : <div />}
+                {this.areaIsInvalid() ? <Navigate to="/StartUp" replace={true} /> : <div />}
 
                 <SettingsDrawer />
                 <StatusDrawer />

@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { Map, TileLayer, Marker, Polygon, ImageOverlay } from 'react-leaflet';
+import { MapContainer , TileLayer, Marker, Polygon, ImageOverlay, useMapEvents } from 'react-leaflet';
 import "../CSS/Map.scss";
 import { connect, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
 import { mapPositionActions, zoomLevelActions, areaWaypointActions, mapStateActions } from './Storage.js'
@@ -19,39 +19,29 @@ const marker = Leaflet.divIcon({className: "marker", iconAnchor: Leaflet.point(1
 
 class IMMMap extends React.Component {
 
-    constructor(props) {
-        super(props)
-
-        this.updateBounds = this.updateBounds.bind(this);
-        this.markerClick = this.markerClick.bind(this);
-
-        this.mapRef = React.createRef();
-    }
-
     /**
-     * Function run on mount, handles setup.
+     * Pans and zooms to the selected area when it has been confirmed
+     * @param {*} map 
      */
-    componentDidMount() {
-
+    fitBounds(map) {
         if (this.props.store.mapState === "Main") {
-            const map = this.mapRef.current;
             let bounds = this.props.store.mapBounds;
 
             // Check that bounds has a value
             if (bounds) {
-                map.leafletElement.fitBounds(bounds);
+                map.fitBounds(bounds);
             }
         }
     }
 
     /**
-     * Unpack coordinates and update the state with current viewport.
+     * Update the state with current viewport on every zoom and move.
+     * @param {Object} parentProps reference to props of IMMMap component
+     * @param {MapConstructor} map Reference to the MapContainer element
      */
-    updateBounds() {
-        const map = this.mapRef.current;
-        const bounds = map.leafletElement.getBounds();
-        const zoom = map.leafletElement.getZoom();
-
+    updateBounds(map) {
+        const bounds = map.getBounds();
+        const zoom = map.getZoom();
         // Make sure zoom level is not already set, ignore update if already set.
         if (this.props.store.zoomLevel === zoom) {
             return;
@@ -62,14 +52,13 @@ class IMMMap extends React.Component {
     }
 
     /**
-     * Places all waypoints as markers on the map.
+     * Adds an area waypoint to the map
+     * @param {*} e the click event cotaining click location
      */
-    markerFactory() {
-        const markers = this.props.store.areaWaypoints.map((pos, i) => 
-            <Marker position={pos} key={JSON.stringify(pos)} onClick={() => this.markerClick(i)} icon={marker} />
-        );
-
-        return(markers);
+    addAreaWaypoint(e) {
+        if (this.props.allowDefine) {
+            this.props.store.addAreaWaypoint({lat: e.latlng.lat, lng: e.latlng.lng})
+        }
     }
 
     /**
@@ -84,9 +73,11 @@ class IMMMap extends React.Component {
 
             // Remove all waypoints
             this.props.store.clearAreaWaypoints();
-
-            // Add restructured waypoints
-            newWP.forEach(wp => this.props.store.addAreaWaypoint(wp));
+            // Timeout could be replaced by other synchronization for better experience
+            setTimeout(() => {
+                // Add restructured waypoints
+                newWP.forEach(wp => this.props.store.addAreaWaypoint(wp));
+            }, 1);
         }
         else {
             // Marked node was clicked, remove it
@@ -95,10 +86,19 @@ class IMMMap extends React.Component {
     }
 
     /**
-     * Empty clickhandler for when not to add waypoints.
+     * Places all waypoints as markers on the map.
      */
-    dummy(){
-        return;
+    markerFactory() {
+        const markers = this.props.store.areaWaypoints.map((pos, i) => 
+            <Marker 
+                position={pos}
+                key={JSON.stringify(pos)}
+                icon={marker}
+                eventHandlers={{ click: () => this.markerClick(i) }}
+            />
+        );
+
+        return(markers);
     }
 
     /**
@@ -109,19 +109,42 @@ class IMMMap extends React.Component {
 
         const worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
 
+        function MapEventHandler(props) {
+            const parent = props.parent; // parent is what is referred to as "this" outside of this function
+            const map = useMapEvents({
+              click: (e) => {
+                parent.addAreaWaypoint(e)
+                // map.locate()  // This finds the users current position via gps
+              },
+              layeradd: () => {
+                parent.fitBounds(map)
+              },
+              zoom: () => {
+                parent.updateBounds(map)
+              },
+              moveend: () => {
+                parent.updateBounds(map)
+              },
+
+            //   locationfound: (location) => { // Called when user's gps location has been found
+            //     console.log('location found:', location)
+            //   },
+              
+            })
+            return null
+          }
+
         return(
-            <Map
+            <MapContainer
                 className="map"
-                ref={this.mapRef}
                 center={this.props.center}
                 zoom={this.props.zoom}
-                onViewportChanged={this.updateBounds}
-                onClick={this.props.allowDefine ? (e) => this.props.store.addAreaWaypoint({lat: e.latlng.lat, lng: e.latlng.lng}) : this.dummy}
                 zoomControl={false}
                 maxBounds={this.props.maxBounds}
                 maxBoundsViscosity={0.5}
                 minZoom={10}
             >
+                <MapEventHandler parent={this} />
                 <TileLayer maxNativeZoom={18} maxZoom={22}
                     attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a>     contributors'
                     url={tile_server_url}
@@ -154,7 +177,7 @@ class IMMMap extends React.Component {
                     />
                 )}         
 
-            </Map>
+            </MapContainer>
         );
     }
 }

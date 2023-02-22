@@ -4,7 +4,8 @@
  */
 
 import React from 'react';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { StyledEngineProvider } from '@mui/material';
 
 function ColorWrapper (props, ref) {
     
@@ -17,7 +18,7 @@ function ColorWrapper (props, ref) {
     );
 
     function generateThemeWrapper(baseTheme) {
-        const extendedTheme = createMuiTheme({
+        const extendedTheme = createTheme({
             ...baseTheme,
             palette : {
                 ...baseTheme.palette,
@@ -30,9 +31,11 @@ function ColorWrapper (props, ref) {
     }
 
     return (
-        <ThemeProvider theme={generateThemeWrapper}>
-            {children}
-        </ThemeProvider>
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={generateThemeWrapper}>
+                {children}
+            </ThemeProvider>
+        </StyledEngineProvider>
     );
 }
 

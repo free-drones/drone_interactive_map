@@ -3,12 +3,12 @@
  */
 
 import React, { Component } from 'react';
-import RadioGroup from '@material-ui/core/RadioGroup';
+import RadioGroup from '@mui/material/RadioGroup';
 import { setMode, callbackWrapper } from "../Connection/Downstream.js";
 import { connect, mapPosition, mapPositionActions, modeActions, mode } from "../Storage.js"
-import Typography from '@material-ui/core/Typography';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Radio from '@material-ui/core/Radio';
+import Typography from '@mui/material/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
 
 class ModeButtonGroup extends Component {
 

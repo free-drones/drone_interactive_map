@@ -4,13 +4,14 @@
 import React from "react";
 import {
     BrowserRouter as Router,
-    Switch,
+    Routes,
     Route,
-    Redirect
+    Navigate
   } from "react-router-dom";
 import Main from './Main/Main.js';
 import StartUp from './Startup/StartUp.js';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { StyledEngineProvider } from "@mui/material";
 
 import ServerConnection from './Connection/ServerConnection.js';
 import MockupConstants from './Connection/MockupConstants.js';
@@ -20,7 +21,7 @@ import Storage from './Storage.js';
 /**
  * Theme for components. To use, wrap component in a <ThemeProvider theme={theme}>.
  */
-const theme = createMuiTheme({
+const theme = createTheme({
     palette: {
         primary: {
             main: '#303f9f' // Indigo
@@ -86,19 +87,18 @@ else {
 
 export function App() {
     return (
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Redirect exact from="/" to="/Main" />
-                <Switch>
-                    <Route path="/Main">
-                        <Main />
-                    </Route>
-                    <Route path="/StartUp">
-                        <StartUp />
-                    </Route>
-                </Switch>
-            </Router>
-        </ThemeProvider>
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    {/* <Navigate  exact from="/" to="/Main" state={} replace={false} /> */}
+                    <Routes>
+                        <Route path="/" element={<Navigate replace to="/Main" />} />
+                        <Route path="/Main" element={<Main />} />                        
+                        <Route path="/StartUp" element={<StartUp />} />
+                    </Routes>
+                </Router>
+            </ThemeProvider>
+        </StyledEngineProvider>
     )
 }
 
