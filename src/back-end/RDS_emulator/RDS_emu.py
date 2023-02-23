@@ -266,12 +266,13 @@ class IMMSubThread(Thread):
         coordinates = poi["coordinates"]
         # Maybe add a wait here to make it threadsafe
         with rds_session_scope() as session:
-            if not self.drone_thread.get_mode() == "AUTO":
-                image = session.query(RDSImage).filter_by(coordinates=coordinates).first()
+            if self.drone_thread.get_mode() == "MAN":
+                # image = session.query(RDSImage).filter_by(coordinates=coordinates).first()
+                image = session.query(RDSImage).filter_by(coordinates="stefan").first()
                 if image is not None:
                     image.force_que_id = poi["force_que_id"]
                     self.drone_thread.add_image_to_queue(image)
-                    # print("Image added to queue")
+                    print("Image added to queue WOOOOOOOOO")
                     return {"msg": "Image added to queue"}
                 else:
                     print("Image with those coordinates does not exist")
