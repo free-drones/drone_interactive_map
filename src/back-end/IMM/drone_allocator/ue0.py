@@ -5,14 +5,13 @@ import pygame as ue
 def main():
     WIDTH = 800
     HEIGHT = 600
+    SPACING = 10
 
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
-
-    #poly = ue.Polygon()
 
 
     ue.init()
@@ -22,7 +21,7 @@ def main():
     surface = ue.Surface((WIDTH, HEIGHT), ue.SRCALPHA)
 
     polygon = seg.Polygon([])
-    triangles = []
+    node_grid_list = []
 
     while True:
         clock.tick(60)
@@ -34,12 +33,14 @@ def main():
             next = polygon.nodes[(i+1) % len(polygon.nodes)]
             ue.draw.aaline(surface, BLACK, node, next)
             ue.draw.circle(surface, RED, node, 5)
-            #print(f"node: ({node[0]}, {node[1]})")
         
-        for triangle in triangles:
+        for triangle in polygon.triangles:
             for i, node in enumerate(triangle.nodes()): 
                 next = triangle.nodes()[(i + 1) % 3]
-                ue.draw.aaline(surface, BLUE, node, next)
+                ue.draw.aaline(surface, GREEN, node, next)
+
+        for node in polygon.node_grid:
+            ue.draw.circle(surface, BLUE, node, 2)
 
         screen.blit(surface, (0,0))
 
@@ -53,11 +54,15 @@ def main():
                 polygon.nodes.append(mouse_pos)
                 
             if event.type == ue.KEYDOWN:
+                if ue.key.get_pressed()[ue.K_s]:
+                    polygon.gogo_gadget(SPACING)
                 if ue.key.get_pressed()[ue.K_t]:
-                    triangles = polygon.earcut_triangulate()
+                    polygon.triangles = polygon.earcut_triangulate()
+                if ue.key.get_pressed()[ue.K_g]:
+                    polygon.node_grid = polygon.create_node_grid(SPACING)
                 if ue.key.get_pressed()[ue.K_c]:
                     polygon.nodes.clear()
-                    triangles.clear()
+                    polygon.triangles.clear()
 
         ue.display.update()
 
