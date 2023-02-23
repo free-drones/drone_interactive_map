@@ -39,11 +39,11 @@ def get_coordinates(coordinates):
 
 def init_db_and_add_all_images():
     """Adds images to the RDS emulator database."""
-
+    print("init db and add all images")
     # Get coordinates json file
-    with open(get_path_from_root("/RDS_emulator/AUTO_images/auto_sequence_test_images/coordinates.JSON")) as f:
+    with open(get_path_from_root("/RDS_emulator/AUTO_images/pum2023_images/coordinates.JSON")) as f:
         coordinates = json.load(f)
-    img_file_paths = glob.glob(get_path_from_root("/RDS_emulator/AUTO_images/auto_sequence_test_images/*.JPG"))
+    img_file_paths = glob.glob(get_path_from_root("/RDS_emulator/AUTO_images/pum2023_images/*.JPG"))
     with rds_session_scope() as session:
         for img_path in img_file_paths:
             img_name = img_path.split("/")[-1]
