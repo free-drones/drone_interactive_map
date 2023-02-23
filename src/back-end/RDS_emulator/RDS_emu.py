@@ -267,8 +267,12 @@ class IMMSubThread(Thread):
         # Maybe add a wait here to make it threadsafe
         with rds_session_scope() as session:
             if self.drone_thread.get_mode() == "MAN":
+                
+                # TODO: This is temporarily set to just retrieve any image from the db, should instead retrieve the most
+                #   fitting image(s), e.g. by center point
                 # image = session.query(RDSImage).filter_by(coordinates=coordinates).first()
-                image = session.query(RDSImage).filter_by(coordinates="stefan").first()
+                image = session.query(RDSImage).first()
+
                 if image is not None:
                     image.force_que_id = poi["force_que_id"]
                     self.drone_thread.add_image_to_queue(image)

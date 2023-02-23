@@ -39,17 +39,24 @@ def get_coordinates(coordinates):
 
 def init_db_and_add_all_images():
     """Adds images to the RDS emulator database."""
-    print("init db and add all images")
+    
+    # TODO: Refactor the path handling to also work on Windows. Currently hard-coded path for the example image.
+
     # Get coordinates json file
     with open(get_path_from_root("/RDS_emulator/AUTO_images/pum2023_images/coordinates.JSON")) as f:
         coordinates = json.load(f)
-    img_file_paths = glob.glob(get_path_from_root("/RDS_emulator/AUTO_images/pum2023_images/*.JPG"))
+    #img_file_paths = glob.glob(get_path_from_root("/RDS_emulator/AUTO_images/pum2023_images/*.JPG"))
     with rds_session_scope() as session:
-        for img_path in img_file_paths:
-            img_name = img_path.split("/")[-1]
-            img_coordinates = coordinates[img_name]
-            image = RDSImage(img_coordinates, img_path, "AUTO", force_que_id=0)
-            session.add(image)
+        # for img_path in img_file_paths:
+        #     img_name = img_path.split("/")[-1]
+        #     img_coordinates = coordinates[img_name]
+        #     image = RDSImage(img_coordinates, img_path, "AUTO", force_que_id=0)
+        #     session.add(image)
+        img_path = 'C:\\Users\\Marcu\\Desktop\\RISE drone system\\drone_interactive_map\\src\\back-end\\RDS_emulator\\AUTO_images\\pum2023_images\\overview.JPG'
+        img_name = 'overview.JPG'
+        img_coordinates = coordinates[img_name]
+        image = RDSImage(img_coordinates, img_path, "AUTO", force_que_id=0)
+        session.add(image)
 
 # -----------INIT------------------
 
