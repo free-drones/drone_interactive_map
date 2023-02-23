@@ -33,8 +33,8 @@ class Triangle():
 
     def isConvex(self):
         # Checks if the angle formed by BAC
-        ab = (self.b[0] - self.a[0], self.b[1] - self.a[1])
-        ac = (self.c[0] - self.a[0], self.c[1] - self.a[1])
+        ab = (self.b.x - self.a.x, self.b.y - self.a.y)
+        ac = (self.c.x - self.a.x, self.c.y - self.a.y)
         
         cross_product = np.cross(ab, ac)
         return cross_product >= 0
@@ -42,15 +42,15 @@ class Triangle():
     @staticmethod
     def area(a, b, c):
         # Return the area of a triangle formed by the nodes a, b and c
-        return abs((a[0] * (b[1] - c[1]) \
-		+ b[0] * (c[1] - a[1]) \
-		+ c[0] * (a[1] - b[1])) / 2.0)
+        return abs((a.x * (b.y - c.y) \
+		+ b.x * (c.y - a.y) \
+		+ c.x * (a.y - b.y)) / 2.0)
     
     def create_bounding_box(self):
         # Calculate the bounding box of the triangle and store extreme points in a dictionary
         dic = {}
-        x_coords = [node[0] for node in self.nodes()]
-        y_coords = [node[1] for node in self.nodes()]
+        x_coords = [node.x for node in self.nodes()]
+        y_coords = [node.y for node in self.nodes()]
         dic["x_min"] = min(x_coords)
         dic["x_max"] = max(x_coords)
         dic["y_min"] = min(y_coords)
@@ -59,8 +59,8 @@ class Triangle():
 
     def check_bounding_box(self, point):
         # Check if the given point is within the bounding box
-        outside_x = point[0] < self.bounding_box["x_min"] or point[0] > self.bounding_box["x_max"]
-        outside_y = point[1] < self.bounding_box["y_min"] or point[1] > self.bounding_box["y_max"]
+        outside_x = point.x < self.bounding_box["x_min"] or point.x > self.bounding_box["x_max"]
+        outside_y = point.y < self.bounding_box["y_min"] or point.y > self.bounding_box["y_max"]
         return not (outside_x or outside_y)
 
     def contains(self, point):
@@ -86,7 +86,7 @@ class Polygon():
         self.triangles = []
         self.node_grid = []
     
-    def gogo_gadget(self, node_spacing):
+    def gogo_gadget(self, node_spacing, start_location):
         # Find area segments
         self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
@@ -95,10 +95,9 @@ class Polygon():
         #
         #
 
-
     def earcut_triangulate(self):
         # Triangulate the polygon and return the triangles as a list
-        nodes = np.array(self.nodes).reshape(-1, 2)
+        nodes = np.array([node() for node in self.nodes]).reshape(-1, 2)
         rings = np.array([len(nodes)])
         result = earcut.triangulate_int32(nodes, rings)
         triangles = []
@@ -111,23 +110,26 @@ class Polygon():
     def create_bounding_box(self):
         # Calculate the bounding box of the polygon and store extreme points in a dictionary
         dic = {}
-        x_coords = [node[0] for node in self.nodes]
-        y_coords = [node[1] for node in self.nodes]
+        x_coords = [node.x for node in self.nodes]
+        y_coords = [node.y for node in self.nodes]
         dic["x_min"] = min(x_coords)
         dic["x_max"] = max(x_coords)
         dic["y_min"] = min(y_coords)
         dic["y_max"] = max(y_coords)
         return dic 
 
-    def create_node_grid(self, node_spacing):
+    def create_node_grid(self, node_spacing, start_location=None):
         # Create a node grid for the polygon
         node_grid = []
         self.bounding_box = self.create_bounding_box()
         for x in range(self.bounding_box["x_min"], self.bounding_box["x_max"], node_spacing):
             for y in range(self.bounding_box["y_min"], self.bounding_box["y_max"], node_spacing):
                 for triangle in self.triangles:
-                    if triangle.contains((x, y)):
-                        node_grid.append((x,y))
+                    node = Node(x, y)
+                    if triangle.contains(node):
+                        node_grid.append(node)
+                        if start_location:
+                            node.angle_to_start = node.angle_to(start_location)
                         break
         return node_grid
 
@@ -146,3 +148,22 @@ class Polygon():
 
     def __repr__(self):
         pass
+
+class Node():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.angle_to_start = None
+    
+    def angle_to(self, other_node):
+        return np.arctan2(other_node.y - self.y, other_node.x - self.x)
+
+    def __call__(self):
+        return (self.x, self.y)
+
+class Segment():
+    def __init__(self, start_location, start_angle, end_angle):
+        self.start_location = start_location
+        self.start_angle = start_angle
+        self.end_angle = end_angle
+        self.owned_nodes = []

@@ -5,7 +5,9 @@ import pygame as ue
 def main():
     WIDTH = 800
     HEIGHT = 600
+    
     SPACING = 10
+    START_LOCATION = seg.Node(100, 100)
 
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
@@ -31,16 +33,16 @@ def main():
 
         for i, node in enumerate(polygon.nodes):
             next = polygon.nodes[(i+1) % len(polygon.nodes)]
-            ue.draw.aaline(surface, BLACK, node, next)
-            ue.draw.circle(surface, RED, node, 5)
+            ue.draw.aaline(surface, BLACK, node(), next())
+            ue.draw.circle(surface, RED, node(), 5)
         
         for triangle in polygon.triangles:
             for i, node in enumerate(triangle.nodes()): 
                 next = triangle.nodes()[(i + 1) % 3]
-                ue.draw.aaline(surface, GREEN, node, next)
+                ue.draw.aaline(surface, GREEN, node(), next())
 
         for node in polygon.node_grid:
-            ue.draw.circle(surface, BLUE, node, 2)
+            ue.draw.circle(surface, BLUE, node(), 2)
 
         screen.blit(surface, (0,0))
 
@@ -51,11 +53,11 @@ def main():
 
             if event.type == ue.MOUSEBUTTONDOWN and ue.mouse.get_pressed()[0]:
                 mouse_pos = ue.mouse.get_pos()
-                polygon.nodes.append(mouse_pos)
+                polygon.nodes.append(seg.Node(mouse_pos[0], mouse_pos[1]))
                 
             if event.type == ue.KEYDOWN:
                 if ue.key.get_pressed()[ue.K_s]:
-                    polygon.gogo_gadget(SPACING)
+                    polygon.gogo_gadget(SPACING, START_LOCATION)
                 if ue.key.get_pressed()[ue.K_t]:
                     polygon.triangles = polygon.earcut_triangulate()
                 if ue.key.get_pressed()[ue.K_g]:
