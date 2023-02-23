@@ -30,7 +30,6 @@ def main():
         surface.fill(WHITE)
         screen.blit(surface, (0,0))
 
-        #print("===================")
         for i, node in enumerate(polygon.nodes):
             next = polygon.nodes[(i+1) % len(polygon.nodes)]
             ue.draw.aaline(surface, BLACK, node, next)
@@ -38,9 +37,7 @@ def main():
             #print(f"node: ({node[0]}, {node[1]})")
         
         for triangle in triangles:
-            #print("New triangle:")
             for i, node in enumerate(triangle.nodes()): 
-                #print(f"Node in triangle: ({node[0]}, {node[1]})")
                 next = triangle.nodes()[(i + 1) % 3]
                 ue.draw.aaline(surface, BLUE, node, next)
 
@@ -54,18 +51,15 @@ def main():
             if event.type == ue.MOUSEBUTTONDOWN and ue.mouse.get_pressed()[0]:
                 mouse_pos = ue.mouse.get_pos()
                 polygon.nodes.append(mouse_pos)
-                print("Add point")
+                
             if event.type == ue.KEYDOWN:
                 if ue.key.get_pressed()[ue.K_t]:
-                    triangles = polygon.triangulate()
+                    triangles = polygon.earcut_triangulate()
                 if ue.key.get_pressed()[ue.K_c]:
                     polygon.nodes.clear()
                     triangles.clear()
 
         ue.display.update()
-        
-
-    print("Hello world!")
 
 if __name__ == "__main__":
     main()

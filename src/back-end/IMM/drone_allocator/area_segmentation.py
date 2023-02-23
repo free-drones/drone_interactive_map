@@ -1,4 +1,5 @@
 import numpy as np
+import mapbox_earcut as earcut
 
 # Polygon
 # node_list
@@ -53,6 +54,18 @@ class Triangle():
         
         return ABC_area == PBC_area + PAC_area + PAB_area
 
+    def is_clockwise(self):
+        signed_area = 0
+        nodes = self.nodes()
+        num_nodes = len(nodes)
+
+        for i in range(num_nodes):
+            x1, y1 = nodes[i]
+            x2, y2 = nodes[(i+1) % num_nodes]
+            signed_area += (x2 - x1) * (y2 + y1)
+
+        return signed_area <= 0
+
     def nodes(self):
         return [self.a, self.b, self.c]
 
@@ -62,18 +75,14 @@ class Polygon():
         #assert len(nodes) >= 3
         self.nodes = nodes
 
-    def triangulate(self):
-        nodes = self.nodes[:]
-        print (f"Polygon is clockwise: { Polygon.is_clockwise(nodes)}")
-        if Polygon.is_clockwise(nodes):
-            nodes = nodes[::-1]
+    def earcut_triangulate(self):
+        nodes = np.array(self.nodes).reshape(-1, 2)
+        rings = np.array([len(nodes)])
+        result = earcut.triangulate_int32(nodes, rings)
         triangles = []
-
-        while len(nodes) >= 3:
-            triangle, index = Polygon.get_ear(nodes)
-            del nodes[index]
-            if triangle:
-                triangles.append(triangle)
+        for i in range(0, len(result), 3):
+            triangle = Triangle([self.nodes[result[i]], self.nodes[result[i+1]], self.nodes[result[i+2]]])
+            triangles.append(triangle)
 
         return triangles
 
@@ -87,31 +96,7 @@ class Polygon():
             x2, y2 = nodes[(i+1) % num_nodes]
             signed_area += (x2 - x1) * (y2 + y1)
 
-        return signed_area > 0
-
-    @staticmethod
-    def get_ear(nodes):
-        num_nodes = len(nodes)
-        if num_nodes == 3:
-            print("We only have 3 nodes!!! Woah!")
-            return Triangle(nodes), 0
-        isEar = False
-        
-        for index, node in enumerate(nodes):
-            # Construct a triangle from prev, curr, and next node
-            print("Let's create a triangle!")
-            triangle = Triangle([nodes[(index-1) % num_nodes], node, nodes[(index+1) % num_nodes]])
-            print("Check convex")
-            if triangle.isConvex():
-                for point in nodes:
-                    print("Let's check if it contains pblpslbepsbl")
-                    print(f"Node: ({point[0], point[1]})")
-                    if not point in triangle.nodes() and triangle.contains(point):
-                        isEar = True
-                if not isEar:
-                    return triangle, index
-        print("Did not find ear???")
-        return None, 0
+        return signed_area <= 0
 
     def __repr__(self):
         pass
