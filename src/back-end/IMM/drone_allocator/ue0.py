@@ -1,5 +1,6 @@
 import area_segmentation as seg
 import sys
+import numpy as np
 import pygame as ue
 
 def main():
@@ -8,6 +9,10 @@ def main():
     
     SPACING = 10
     START_LOCATION = seg.Node(100, 100)
+    NUM_SEG = 5
+    # BYT UT SEN
+    line_length = 800
+    #
 
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
@@ -44,6 +49,11 @@ def main():
         for node in polygon.node_grid:
             ue.draw.circle(surface, BLUE, node(), 2)
 
+        for segment in polygon.segments:
+            end_angle = segment.owned_nodes[-1].angle_to_start
+            end_position = seg.Node(line_length * np.cos(end_angle + np.pi), line_length * np.sin(end_angle + np.pi))
+            ue.draw.aaline(surface, RED, START_LOCATION(), end_position())
+
         screen.blit(surface, (0,0))
 
         for event in ue.event.get():
@@ -57,11 +67,11 @@ def main():
                 
             if event.type == ue.KEYDOWN:
                 if ue.key.get_pressed()[ue.K_s]:
-                    polygon.gogo_gadget(SPACING, START_LOCATION)
+                    polygon.gogo_gadget(SPACING, START_LOCATION, NUM_SEG)
                 if ue.key.get_pressed()[ue.K_t]:
                     polygon.triangles = polygon.earcut_triangulate()
                 if ue.key.get_pressed()[ue.K_g]:
-                    polygon.node_grid = polygon.create_node_grid(SPACING)
+                    polygon.node_grid = polygon.create_node_grid(SPACING, START_LOCATION)
                 if ue.key.get_pressed()[ue.K_c]:
                     polygon.nodes.clear()
                     polygon.triangles.clear()

@@ -1,4 +1,5 @@
 import numpy as np
+from bisect import insort
 import mapbox_earcut as earcut
 
 # Polygon
@@ -85,12 +86,14 @@ class Polygon():
         self.bounding_box = {}
         self.triangles = []
         self.node_grid = []
+        self.segments = []
     
-    def gogo_gadget(self, node_spacing, start_location):
+    def gogo_gadget(self, node_spacing, start_location, num_seg):
         # Find area segments
         self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
-        self.node_grid = self.create_node_grid(node_spacing)
+        self.node_grid = self.create_node_grid(node_spacing, start_location)
+        self.segments = self.create_segments(num_seg)
         #........... Fortsättning följer ;)
         #
         #
@@ -106,6 +109,16 @@ class Polygon():
             triangles.append(triangle)
 
         return triangles
+    
+    def create_segments(self, num_seg):
+        total_node_count = 0
+        segments = []
+        num_nodes = int(np.ceil(len(self.node_grid) / num_seg))
+        while total_node_count < len(self.node_grid):
+            seg_nodes = self.node_grid[total_node_count : total_node_count + num_nodes]
+            segments.append(Segment(seg_nodes))
+            total_node_count += num_nodes
+        return segments
 
     def create_bounding_box(self):
         # Calculate the bounding box of the polygon and store extreme points in a dictionary
@@ -118,7 +131,7 @@ class Polygon():
         dic["y_max"] = max(y_coords)
         return dic 
 
-    def create_node_grid(self, node_spacing, start_location=None):
+    def create_node_grid(self, node_spacing, start_location):
         # Create a node grid for the polygon
         node_grid = []
         self.bounding_box = self.create_bounding_box()
@@ -127,9 +140,8 @@ class Polygon():
                 for triangle in self.triangles:
                     node = Node(x, y)
                     if triangle.contains(node):
-                        node_grid.append(node)
-                        if start_location:
-                            node.angle_to_start = node.angle_to(start_location)
+                        node.angle_to_start = node.angle_to(start_location)
+                        insort(node_grid, node, key=lambda n: n.angle_to_start)
                         break
         return node_grid
 
@@ -162,8 +174,5 @@ class Node():
         return (self.x, self.y)
 
 class Segment():
-    def __init__(self, start_location, start_angle, end_angle):
-        self.start_location = start_location
-        self.start_angle = start_angle
-        self.end_angle = end_angle
-        self.owned_nodes = []
+    def __init__(self, owned_nodes):
+        self.owned_nodes = owned_nodes
