@@ -12,7 +12,6 @@ def main():
     NUM_SEG = 5
     # BYT UT SEN
     line_length = 800
-    #
 
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
@@ -28,7 +27,6 @@ def main():
     surface = ue.Surface((WIDTH, HEIGHT), ue.SRCALPHA)
 
     polygon = seg.Polygon([])
-    node_grid_list = []
 
     while True:
         clock.tick(60)
@@ -53,13 +51,13 @@ def main():
             # -- Draw start line
             start_angle = segment.owned_nodes[0].angle_to_start
             end_position = seg.Node((START_LOCATION.x + line_length * np.cos(start_angle), \
-                                    START_LOCATION.y +line_length * np.sin(start_angle)))
+                                    START_LOCATION.y + line_length * np.sin(start_angle)))
             ue.draw.aaline(surface, RED, START_LOCATION(), end_position())
 
             # -- Draw end line
             end_angle = segment.owned_nodes[-1].angle_to_start
             end_position = seg.Node((START_LOCATION.x + line_length * np.cos(end_angle), \
-                                    START_LOCATION.y +line_length * np.sin(end_angle)))
+                                    START_LOCATION.y + line_length * np.sin(end_angle)))
             ue.draw.aaline(surface, BLUE, START_LOCATION(), end_position())
 
         screen.blit(surface, (0,0))

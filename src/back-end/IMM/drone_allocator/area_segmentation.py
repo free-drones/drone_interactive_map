@@ -136,7 +136,6 @@ class Polygon():
         node_grid = []
         self.bounding_box = self.create_bounding_box()
         max_diff_ang = self.max_diff_angle(start_location)
-        print("Max diff: ", max_diff_ang)
         for x in range(self.bounding_box["x_min"], self.bounding_box["x_max"], node_spacing):
             for y in range(self.bounding_box["y_min"], self.bounding_box["y_max"], node_spacing):
                 for triangle in self.triangles:
@@ -163,9 +162,7 @@ class Polygon():
                 if angular_separation > max_separation:
                     chosen_nodes = (node_a, node_b)
                     max_separation = angular_separation
-        #min_angle_node = min(chosen_nodes, key=lambda n: n)
         return start_location.angle_to(chosen_nodes[0])
-        #return chosen_nodes
 
     @staticmethod
     def is_clockwise(nodes):
