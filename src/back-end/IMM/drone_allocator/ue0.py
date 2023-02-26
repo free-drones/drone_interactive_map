@@ -8,7 +8,7 @@ def main():
     HEIGHT = 600
     
     SPACING = 10
-    START_LOCATION = seg.Node(100, 100)
+    START_LOCATION = seg.Node((100, 100))
     NUM_SEG = 5
     # BYT UT SEN
     line_length = 800
@@ -50,9 +50,17 @@ def main():
             ue.draw.circle(surface, BLUE, node(), 2)
 
         for segment in polygon.segments:
-            end_angle = segment.owned_nodes[-1].angle_to_start
-            end_position = seg.Node(line_length * np.cos(end_angle + np.pi), line_length * np.sin(end_angle + np.pi))
+            # -- Draw start line
+            start_angle = segment.owned_nodes[0].angle_to_start
+            end_position = seg.Node((START_LOCATION.x + line_length * np.cos(start_angle), \
+                                    START_LOCATION.y +line_length * np.sin(start_angle)))
             ue.draw.aaline(surface, RED, START_LOCATION(), end_position())
+
+            # -- Draw end line
+            end_angle = segment.owned_nodes[-1].angle_to_start
+            end_position = seg.Node((START_LOCATION.x + line_length * np.cos(end_angle), \
+                                    START_LOCATION.y +line_length * np.sin(end_angle)))
+            ue.draw.aaline(surface, BLUE, START_LOCATION(), end_position())
 
         screen.blit(surface, (0,0))
 
@@ -63,7 +71,7 @@ def main():
 
             if event.type == ue.MOUSEBUTTONDOWN and ue.mouse.get_pressed()[0]:
                 mouse_pos = ue.mouse.get_pos()
-                polygon.nodes.append(seg.Node(mouse_pos[0], mouse_pos[1]))
+                polygon.nodes.append(seg.Node(mouse_pos))
                 
             if event.type == ue.KEYDOWN:
                 if ue.key.get_pressed()[ue.K_s]:

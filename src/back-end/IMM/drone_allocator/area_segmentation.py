@@ -135,15 +135,37 @@ class Polygon():
         # Create a node grid for the polygon
         node_grid = []
         self.bounding_box = self.create_bounding_box()
+        max_diff_ang = self.max_diff_angle(start_location)
+        print("Max diff: ", max_diff_ang)
         for x in range(self.bounding_box["x_min"], self.bounding_box["x_max"], node_spacing):
             for y in range(self.bounding_box["y_min"], self.bounding_box["y_max"], node_spacing):
                 for triangle in self.triangles:
-                    node = Node(x, y)
+                    node = Node((x, y))
                     if triangle.contains(node):
-                        node.angle_to_start = node.angle_to(start_location)
-                        insort(node_grid, node, key=lambda n: n.angle_to_start)
+                        node.angle_to_start = start_location.angle_to(node)
+                        node_grid.append(node)
+                        #insort(node_grid, node, key=lambda n: n.angle_to_start)
                         break
+        node_grid.sort(key=lambda n: (n.angle_to_start - max_diff_ang), reverse=False)
         return node_grid
+
+    def max_diff_angle(self, start_location):
+        # Calculate the difference between (start_location, a) and (start_location, b) for
+        # each node combination (a and b), and return the angle from the pair with the greatest
+        # difference
+        max_separation = 0
+        chosen_nodes = (None, None)
+        for node_a in self.nodes:
+            for node_b in self.nodes:
+                if node_a is node_b:
+                    continue
+                angular_separation = np.abs(start_location.angle_to(node_a) - start_location.angle_to(node_b))
+                if angular_separation > max_separation:
+                    chosen_nodes = (node_a, node_b)
+                    max_separation = angular_separation
+        #min_angle_node = min(chosen_nodes, key=lambda n: n)
+        return start_location.angle_to(chosen_nodes[0])
+        #return chosen_nodes
 
     @staticmethod
     def is_clockwise(nodes):
@@ -162,10 +184,10 @@ class Polygon():
         pass
 
 class Node():
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.angle_to_start = None
+    def __init__(self, position, start_location=None):
+        self.x = position[0]
+        self.y = position[1]
+        self.angle_to_start = start_location if start_location else None
     
     def angle_to(self, other_node):
         return np.arctan2(other_node.y - self.y, other_node.x - self.x)
