@@ -7,7 +7,7 @@ def main():
     WIDTH = 800
     HEIGHT = 600
     
-    SPACING = 10
+    SPACING = 5
     START_LOCATION = seg.Node((100, 100))
     NUM_SEG = 5
     # BYT UT SEN
@@ -62,15 +62,28 @@ def main():
 
         screen.blit(surface, (0,0))
 
+        if ue.key.get_pressed()[ue.K_f] and polygon.triangles:
+            mouse_pos = ue.mouse.get_pos()
+            START_LOCATION = seg.Node(mouse_pos)
+            polygon.node_grid = polygon.create_node_grid(SPACING, START_LOCATION)
+            polygon.segments = polygon.create_segments(NUM_SEG)
+
         for event in ue.event.get():
             if event.type == ue.QUIT or ue.key.get_pressed()[ue.K_ESCAPE]:
                 ue.quit()
                 sys.exit()
 
-            if event.type == ue.MOUSEBUTTONDOWN and ue.mouse.get_pressed()[0]:
+            if event.type == ue.MOUSEBUTTONDOWN:
                 mouse_pos = ue.mouse.get_pos()
-                polygon.nodes.append(seg.Node(mouse_pos))
-                
+                if ue.mouse.get_pressed()[0]:
+                    polygon.nodes.append(seg.Node(mouse_pos))
+                    if len(polygon.nodes) >= 3:
+                        polygon.triangles = polygon.earcut_triangulate()
+            
+            if event.type == ue.MOUSEWHEEL:
+                NUM_SEG += event.y
+                NUM_SEG = max(1, NUM_SEG)
+
             if event.type == ue.KEYDOWN:
                 if ue.key.get_pressed()[ue.K_s]:
                     polygon.gogo_gadget(SPACING, START_LOCATION, NUM_SEG)
@@ -81,6 +94,8 @@ def main():
                 if ue.key.get_pressed()[ue.K_c]:
                     polygon.nodes.clear()
                     polygon.triangles.clear()
+                    polygon.node_grid.clear()
+                    polygon.segments.clear()
 
         ue.display.update()
 
