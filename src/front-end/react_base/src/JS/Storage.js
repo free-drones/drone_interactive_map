@@ -98,6 +98,8 @@ var initialRequestQueue={
 */
 var initialActivePictures = []
 
+const initialUserPrio = 1;
+
 /**
  * ====================================================================================================
  *                                             Actions
@@ -147,6 +149,21 @@ export const setClientID = createAction('SET_CLIENT_ID', function prepare(token)
     }
     else {
         throw new Error("Client ID must be a number.")
+    }
+});
+
+/**
+ * User Priority, restricted to a number. 
+ * Determines which permissions a user has
+ */
+export const setUserPrio = createAction('SET_USER_PRIO', function prepare(token) {
+    if(!isNaN(token)){
+        return {
+            payload: token
+        }
+    }
+    else {
+        throw new Error("User Prio must be a number.")
     }
 });
 
@@ -437,6 +454,14 @@ export const _clientID = createReducer(null, (builder) => {
     })
 });
 
+export const _userPrio = createReducer(initialUserPrio, (builder) => {
+    builder
+    .addCase(setUserPrio, (state, action) => {
+        const newUserPrio = action.payload;
+        return newUserPrio;
+    })
+});
+
 export const _zoomLevel = createReducer(DEFAULT_ZOOM_LEVEL, (builder) => {
     builder
     .addCase(setZoomLevel, (state, action) => {
@@ -593,6 +618,12 @@ export function clientID(state) {
     });
 }
 
+export function userPrio(state) {
+    return ({
+        userPrio: state.userPrio
+    });
+}
+
 export function zoomLevel(state) {
     return ({
         zoomLevel: state.zoomLevel
@@ -647,7 +678,7 @@ export function mapState(state) {
     });
 }
 
-const states = { areaWaypoints, clientID, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState };
+const states = { areaWaypoints, clientID, userPrio, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState };
 
 /**
  * Combine multiple functions into a single.
@@ -680,6 +711,8 @@ export const areaWaypointActions = { addAreaWaypoint, removeAreaWaypoint, clearA
 
 export const clientIDActions = { setClientID };
 
+export const userPrioActions = { setUserPrio };
+
 export const zoomLevelActions = { setZoomLevel };
 
 export const mapPositionActions = { setMapPosition };
@@ -698,7 +731,7 @@ export const messagesActions = { addMessage, removeMessage, clearMessages }
 
 export const mapStateActions = {setMapState}
 
-const actions = { areaWaypointActions, clientIDActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions };
+const actions = { areaWaypointActions, clientIDActions, userPrioActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions };
 
 /**
  * Storage
@@ -723,6 +756,7 @@ export const store = configureStore({
     reducer: {
         areaWaypoints: _areaWaypoints,
         clientID: _clientID,
+        userPrio: _userPrio,
         zoomLevel: _zoomLevel,
         mapPosition: _mapPosition,
         requestQueue: _requestQueue,

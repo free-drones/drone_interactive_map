@@ -134,7 +134,7 @@ class Main extends React.Component {
 
                 <SettingsDrawer />
                 <StatusDrawer />
-                <IMMMap center={this.props.store.mapPosition.center} zoom={this.props.store.zoomLevel} maxBounds={this.props.store.mapBounds} allowDefine={false} />
+                <IMMMap key={this.props.store.mapBounds} center={this.props.store.mapPosition.center} zoom={this.props.store.zoomLevel} maxBounds={this.props.store.mapBounds} allowDefine={false} />
                 <CameraButton clickHandler={this.cameraClickHandler} />
             </div>
         );

@@ -90,11 +90,12 @@ export function disconnect(callback = null) {
  * @param {Coordinate[]} waypointsList Ordered array of waypoints.
  * @param {APICallback} callback Optional callback function
  */
-export function setArea(clientID, waypointsList, callback = null) {
+export function setArea(clientID, waypointsList, bounds, callback = null) {
     let message = {
         fcn: 'set_area',
         arg: {
             client_id: clientID,
+            bounds: bounds,
             coordinates: waypointsList.map((coordinate) => translateCoordinate(coordinate))
         }
     };
