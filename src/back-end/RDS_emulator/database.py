@@ -13,6 +13,8 @@ from utility.helper_functions import get_path_from_root
 
 __PRODUCTION_DATABASE_FILE_PATH = get_path_from_root("/RDS_emulator/rds_database.db")
 __TEST_DATABASE_FILE_PATH = get_path_from_root("/RDS_emulator/test.db")
+hardcoded_file_path = "C:Users\\Marcu\\Desktop\\RISE drone system\\drone_interactive_map\\src\\back-end\\RDS_emulator\\test.db"
+__TEST_DATABASE_FILE_PATH = hardcoded_file_path
 
 _Base = declarative_base()
 
@@ -48,7 +50,10 @@ class _Database:
         echo        True if the engine should print SQL commands sent to the
                     DBMS, else False. (default False)
         """
-
+        print("-----------------------SQLLITE PATH----------------------------------------")
+        
+        #hardcoded_file_path = "C:Users\\Marcu\\Desktop\\RISE drone system\\drone_interactive_map\\src\\back-end\\RDS_emulator\\test.db"
+        #file_path = hardcoded_file_path
         self.__engine = create_engine('sqlite:///' + file_path, echo=echo)
         _Base.metadata.create_all(bind=self.__engine)
         self.__session_maker = sessionmaker(bind=self.__engine)

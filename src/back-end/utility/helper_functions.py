@@ -17,10 +17,14 @@ def get_path_from_root(path):
 
     Returns a string containg the full path from root of the device running IMM.
     """
+    # /IMM/IMM_app.py \\
     res = os.path.dirname(__file__)  # Get the path to the directory where this file is located.
-    # path_list = [".."] + path.split("/")
-    res += "/.." + path
-    return res
+    path_to_wd = res.split(os.sep)[:-1]
+    path_to_file = path.split("/")
+
+
+    return os.path.join(*path_to_wd, *path_to_file)
+
 
 def coordinates_list_to_json(coordinates):
     """Convert a coordinate list to json format.
