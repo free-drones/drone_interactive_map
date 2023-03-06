@@ -26,6 +26,8 @@ def get_path_from_root(path):
     # TODO: implement this more robustly
     if len(path_to_wd[0]) == 2 and ":" in path_to_wd[0]:
         path_to_wd[0] = path_to_wd[0] + os.sep
+    else:
+        path_to_wd[0] = os.sep + path_to_wd[0]
 
     path_to_file = path.split("/")
     return os.path.join(*path_to_wd, *path_to_file)
