@@ -13,16 +13,21 @@ def get_path_from_root(path):
     """Returns the full path to the specified (relative) path.
 
     Keyword arguments:
-    path -- A string containing the path from the project root folder.
+    path -- A string containing the path from the project root folder. Separator '/'
 
     Returns a string containg the full path from root of the device running IMM.
     """
-    # /IMM/IMM_app.py \\
     res = os.path.dirname(__file__)  # Get the path to the directory where this file is located.
     path_to_wd = res.split(os.sep)[:-1]
+
+    # os.path for windows does not insert a file path separator after drive names since drives 
+    # have their own current directories. A file separator is therefore added after the drive name 
+    # so the drive's root is used.
+    # TODO: implement this more robustly
+    if len(path_to_wd[0]) == 2 and ":" in path_to_wd[0]:
+        path_to_wd[0] = path_to_wd[0] + os.sep
+
     path_to_file = path.split("/")
-
-
     return os.path.join(*path_to_wd, *path_to_file)
 
 

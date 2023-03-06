@@ -270,13 +270,13 @@ class IMMSubThread(Thread):
                 
                 # TODO: This is temporarily set to just retrieve any image from the db, should instead retrieve the most
                 #   fitting image(s), e.g. by center point
-                # image = session.query(RDSImage).filter_by(coordinates=coordinates).first()
+                # Original code:
+                #       image = session.query(RDSImage).filter_by(coordinates=coordinates).first()
                 image = session.query(RDSImage).first()
 
                 if image is not None:
                     image.force_que_id = poi["force_que_id"]
                     self.drone_thread.add_image_to_queue(image)
-                    print("Image added to queue WOOOOOOOOO")
                     return {"msg": "Image added to queue"}
                 else:
                     print("Image with those coordinates does not exist")
