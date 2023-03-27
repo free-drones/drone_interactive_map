@@ -15,6 +15,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import { connect, areaWaypoints, areaWaypointActions, requestQueueActions, mapState, mapStateActions, activePicturesActions } from '../Storage.js';
 import ModeIcon from './ModeIcon.js'
 import ColorWrapper from '../ColorWrapper.js';
+import { userPrio } from '../Storage.js';
 
 const styles = {
     fullWidthButton : {
@@ -73,6 +74,7 @@ function SettingsDrawer(props) {
                             variant="contained" 
                             onClick={redefineClickHandler}
                             startIcon={<UndoIcon />}
+                            disabled={props.store.userPrio !== 1}
                         >
                             Redefine area
                         </Button>
@@ -114,4 +116,4 @@ function SettingsDrawer(props) {
     );
 }
 
-export default connect({areaWaypoints, mapState},{...areaWaypointActions, ...mapStateActions, ...requestQueueActions, ...activePicturesActions})( SettingsDrawer )
+export default connect({userPrio, areaWaypoints, mapState},{...areaWaypointActions, ...mapStateActions, ...requestQueueActions, ...activePicturesActions})( SettingsDrawer )
