@@ -70,11 +70,11 @@ io.on("connect", (socket) => {
             fcn_name : "set_area"
         }
 
-        socket.emit("response", reply)
-        prioAndArea.high_priority_client = request.arg.client_id
-        prioAndArea.bounds = request.arg.bounds
-        prioAndArea.coordinates = request.arg.coordinates
-        io.emit("set_prio", prioAndArea)
+        socket.emit("response", reply);
+        prioAndArea.high_priority_client = request.arg.client_id;
+        prioAndArea.bounds = request.arg.bounds;
+        prioAndArea.coordinates = request.arg.coordinates;
+        io.emit("set_prio", prioAndArea);
     });
 
     // RequestView

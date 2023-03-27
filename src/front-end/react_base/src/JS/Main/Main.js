@@ -134,6 +134,7 @@ class Main extends React.Component {
 
                 <SettingsDrawer />
                 <StatusDrawer />
+                {/* Key is used to rerender the map when the bounds change */}
                 <IMMMap key={this.props.store.mapBounds} center={this.props.store.mapPosition.center} zoom={this.props.store.zoomLevel} maxBounds={this.props.store.mapBounds} allowDefine={false} />
                 <CameraButton clickHandler={this.cameraClickHandler} />
             </div>

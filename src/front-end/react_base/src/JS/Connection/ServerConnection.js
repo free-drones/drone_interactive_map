@@ -45,7 +45,7 @@ export function initialize(serverIP = SERVER_IP, port = PORT, namespace = "", so
     socket.connect();
     console.log("Stream bound to " + connectionString);
     socket.on("notify", upstreamRequestEventHandler);
-    socket.on("set_prio", userPrioEventHandler)
+    socket.on("set_prio", userPrioEventHandler);
 }
 
 export function disconnect(){
@@ -81,12 +81,12 @@ function upstreamRequestEventHandler(message) {
 function userPrioEventHandler(message) {
     // If this user is not a high priority user lower userPrio and set the correct area defined by other user
     if (message.high_priority_client !== store.getState().clientID) {
-        store.dispatch(setUserPrio(5))
+        store.dispatch(setUserPrio(5));
         // Clears any waypoints set by this user
-        store.dispatch(areaWaypointActions.clearAreaWaypoints())
+        store.dispatch(areaWaypointActions.clearAreaWaypoints());
         // Adds all waypoints set by high priority user
         for (const waypoint of message.coordinates) { 
-            store.dispatch(areaWaypointActions.addAreaWaypoint({lat: waypoint.lat, lng: waypoint.long}))
+            store.dispatch(areaWaypointActions.addAreaWaypoint({ lat: waypoint.lat, lng: waypoint.long }));
         }
         store.dispatch(setMapBounds(message.bounds));
         store.dispatch(setMapState("Main"));
