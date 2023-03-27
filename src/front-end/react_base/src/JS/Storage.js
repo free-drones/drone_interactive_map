@@ -104,6 +104,75 @@ var initialActivePictures = []
  * ====================================================================================================
  */
 
+
+
+/* THIS IS IN THE WRONG PLACE!!!!!!!!!!!!!!!**/
+
+/**
+ * Checks if any waypoints have crossing connections.
+ * @param {any} waypoint A waypoint that will be added.
+ * 
+ * Returns true if waypoint lines cross
+ * 
+ * *** THIS FUNCTION DOES NOT WORK WITH REMOVING WAYPOINTS***
+ */
+function waypointCrossingCheck(waypoint) {
+    // vectors to be checked lat=y long=x
+    // vector 1: (a,b) -> (c,d) (neighbour 1, forward) intersects with (p,q) -> (r,s)
+    // vector 2: (a,b) -> (e,f) (neighbour 2, backward) intersects with (p,q) -> (r,s)
+
+    const waypoints = store.getState().areaWaypoints;
+    //console.log(store.areaWaypoints);
+    if(waypoints.length < 3) {
+        return false;
+    }
+
+    let crossing;
+
+    const a = waypoint.lat;
+    const b = waypoint.lng;
+
+    const c = waypoints[0].lat; 
+    const d = waypoints[0].lng;
+
+    const e = waypoints[waypoints.length - 1].lat;
+    const f = waypoints[waypoints.length - 1].lng;
+
+    for (let i = 0; i < waypoints.length-1; i++) {
+        const p = waypoints[i].lat; 
+        const q = waypoints[i].lng;
+
+        if (i != waypoint.length){
+            const r = waypoints[i + 1].lat; 
+            const s = waypoints[i + 1].lng;
+            crossing = crossing || intersctingVectors(a, b, c, d, p, q, r, s) || intersctingVectors(a, b, e, f, p, q, r, s);
+        }
+
+    };
+
+    return crossing;
+
+};
+
+/*
+*   If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true.
+**/
+function intersctingVectors(a, b, c, d, p, q, r, s) {
+    var det, gamma, lambda;
+    det = (c - a) * (s - q) - (r - p) * (d - b);
+    if (det === 0) {
+        return false;
+    } else {
+        lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+        gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+        return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+    }
+};
+
+
+
+
+
  /**
   * Actions related to waypoints defining the area of interest.
   */
@@ -113,6 +182,7 @@ export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepar
         waypoint.lng !== undefined &&
         (!isNaN(waypoint.lat)) &&
         (!isNaN(waypoint.lng)) 
+        && !waypointCrossingCheck(waypoint)
     ) {
         return {
             payload: waypoint
