@@ -34,7 +34,6 @@ class ModeButtonGroup extends Component {
     }
 
     render() {
-        console.log(this.props.store.userPrio)
         switch(this.props.store.userPrio) {
             case 1:
                 return (
