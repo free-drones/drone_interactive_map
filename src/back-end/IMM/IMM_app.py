@@ -191,6 +191,11 @@ def on_set_area(data):
         _logger.debug(f"set_area resp: {response}")
         emit("response", response)
 
+        route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
+        #route_list = Area + Pathfinding functions
+        thread_handler.drone_manager_thread.set_start_routes(route_list)
+        
+
 
 @socketio.on("request_view")
 def on_request_view(data):
