@@ -286,6 +286,9 @@ def on_request_view(data):
         response["arg"] = {}
         response["arg"]["image_data"] = img_data
 
+        # Alert drone manager about the neww view
+        thread_handler.get_drone_manager_thread().receive_manual_view(data["arg"]["coordinates"])
+
         _logger.debug(f"request_view resp: {response}")
         emit("response", response)
 
@@ -347,12 +350,17 @@ def on_request_priority_view(data):
         request_to_rds["arg"]["type"] = data["arg"]["type"]
         thread_handler.get_rds_pub_thread().add_request(request_to_rds)
 
+        
+
         # Assemble response to GUI.
         response={}
         response["fcn"] = "ack"
         response["fcn_name"] = "request_priority_view"
         response["arg"] = {}
         response["arg"]["force_que_id"] = prio_imageID
+
+        # Alert drone manager of this photo request
+        thread_handler.get_drone_manager_thread().receive_photo_request(data["arg"]["coordinates"])
 
         _logger.debug(f"request_priority_view resp: {response}")
         emit("response", response)
@@ -415,6 +423,10 @@ def on_set_mode(data):
         # Update the global mode.
         current_mode = data["arg"]["mode"]
 
+        thread_handler.get_drone_manager_thread().set_mode(current_mode)
+        if current_mode == "MAN":
+            thread_handler.get_drone_manager_thread().receive_manual_view(data["arg"]["zoom"])
+        
         response = {}
         response["fcn"] = "ack"
         response["fcn_name"] = "set_mode"

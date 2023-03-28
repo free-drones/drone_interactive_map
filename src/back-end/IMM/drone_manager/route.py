@@ -13,3 +13,9 @@ class Route():
 
     def get_last_visited_node(self):
         return self.nodes[-1] if self.nodes else None
+    
+    def add_nodes(self, nodes):
+        self.nodes.extend(nodes)
+
+    def overwrite_nodes(self, nodes):
+        self.nodes = nodes
