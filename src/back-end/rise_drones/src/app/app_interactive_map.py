@@ -142,11 +142,11 @@ class InteractiveMap():
     _logger.info("CRM socket closed")
 
     # Disconnect drone if drone is alive
-    if self.drone.alive:
+    if self.drone_dict[drone_name].alive:
       #wait until other DSS threads finished
       time.sleep(0.5)
       _logger.info("Closing socket to DSS")
-      self.drone.close_dss_socket()
+      self.drone_dict[drone_name].close_dss_socket()
 
     _logger.debug('~ THE END ~')
 
@@ -189,22 +189,22 @@ class InteractiveMap():
 
 #--------------------------------------------------------------------#
   # Setup the DSS info stream thread
-  def setup_dss_info_stream(self):
+  def setup_dss_info_stream(self, drone_name):
     #Get info port from DSS
-    answer = self.drone._dss.get_info()
+    answer = self.drone_dict[drone_name]._dss.get_info()
     info_port = answer['info_pub_port']
     if info_port:
       self._dss_info_thread = threading.Thread(
-        target=self._main_info_dss, args=[self.drone._dss.ip, info_port])
+        target=self._main_info_dss, args=[self.drone_dict[drone_name]._dss.ip, info_port])
       self._dss_info_thread_active = True
       self._dss_info_thread.start()
 
 #--------------------------------------------------------------------#
   # The main function for subscribing to info messages from the DSS.
-  def _main_info_dss(self, ip, port):
+  def _main_info_dss(self, ip, port, drone_name):
     # Enable LLA stream
-    self.drone._dss.data_stream('LLA', True)
-    self.drone._dss.data_stream('battery', True)
+    self.drone_dict[drone_name]._dss.data_stream('LLA', True)
+    self.drone_dict[drone_name]._dss.data_stream('battery', True)
     # Create info socket and start listening thread
     info_socket = dss.auxiliaries.zmq.Sub(_context, ip, port, "info " + self.crm.app_id)
     while self._dss_info_thread_active:
@@ -288,19 +288,19 @@ class InteractiveMap():
     # Connect to the nth drone, set app_id in socket
     drone_name = "drone"+ str(len(self.drone_dict))
     self.drone_dict[drone_name] = dss.client.Client(timeout=2000, exception_handler=None, context=_context)
-    self.drone_dict{drone_name}.connect(answer['ip'], answer['port'], app_id=self.crm.app_id)
-    _logger.info("Connected as owner of drone: [%s]", self.drone._dss.dss_id)
+    self.drone_dict[drone_name].connect(answer['ip'], answer['port'], app_id=self.crm.app_id)
+    _logger.info("Connected as owner of drone: [%s]", self.drone_dict[drone_name]._dss.dss_id)
 
     # Setup info stream to DSS
-    self.setup_dss_info_stream()
+    self.setup_dss_info_stream(drone_name)
 
-  def task_launch_drone(self, height):
+  def task_launch_drone(self, height, drone_name):
     #Initialize drone
-    self.drone.try_set_init_point()
-    self.drone.set_geofence(max(2, self.height_min-2), self.height_max+2, self.delta_r_max+10)
-    self.drone.await_controls()
-    self.drone.arm_and_takeoff(height)
-    self.drone.reset_dss_srtl()
+    self.drone_dict[drone_name].try_set_init_point()
+    self.drone_dict[drone_name].set_geofence(max(2, self.height_min-2), self.height_max+2, self.delta_r_max+10)
+    self.drone_dict[drone_name].await_controls()
+    self.drone_dict[drone_name].arm_and_takeoff(height)
+    self.drone_dict[drone_name].reset_dss_srtl()
 
   def task_await_init_point(self):
     # Wait until info stream up and running
@@ -308,19 +308,19 @@ class InteractiveMap():
       _logger.debug("Waiting for start position from drone...")
       time.sleep(1.0)
 
-  def task_execute_random_missions(self):
+  def task_execute_random_missions(self, drone_name):
     # Compute number of WPs
     t_wp = self.wp_dist / self.default_speed
     n_wps = int(np.floor(self.t_max/t_wp))
     #Compute random mission
     mission = self.generate_random_mission(n_wps)
-    self.drone.upload_mission_LLA(mission)
+    self.drone_dict[drone_name].upload_mission_LLA(mission)
     time.sleep(0.5)
     # Fly waypoints, allow PILOT intervention.
     start_wp = 0
     while True:
       try:
-        self.drone.fly_waypoints(start_wp)
+        self.drone_dict[drone_name].fly_waypoints(start_wp)
       except dss.auxiliaries.exception.Nack as nack:
         if nack.msg == 'Not flying':
           _logger.info("Pilot has landed")
@@ -329,11 +329,11 @@ class InteractiveMap():
         break
       except dss.auxiliaries.exception.AbortTask:
         # PILOT took controls
-        (current_wp, _) = self.drone.get_currentWP()
+        (current_wp, _) = self.drone_dict[drone_name].get_currentWP()
         # Prepare to continue the mission
         start_wp = current_wp
         _logger.info("Pilot took controls, awaiting PILOT action")
-        self.drone.await_controls()
+        self.drone_dict[drone_name].await_controls()
         _logger.info("PILOT gave back controls")
         # Try to continue mission
         continue
@@ -341,16 +341,16 @@ class InteractiveMap():
         # Mission is completed
         break
     #Perform rtl
-    self.drone.rtl()
+    self.drone_dict[drone_name].rtl()
 
 #--------------------------------------------------------------------#
 # Main function
   def main(self):
     # Execute tasks
     self.task_connect_to_drone()
-    self.task_launch_drone(self.takeoff_height)
+    self.task_launch_drone(self.takeoff_height, str(self.drone_dict.keys()[0]))
     self.task_await_init_point()
-    self.task_execute_random_missions()
+    self.task_execute_random_missions(str(self.drone_dict.keys()[0]))
 
 
 #--------------------------------------------------------------------#
@@ -373,7 +373,7 @@ def _main():
 
   # Create the AppNoise class
   try:
-    app = AppNoise(args.app_ip, args.id, args.crm)
+    app = InteractiveMap(args.app_ip, args.id, args.crm)
   except dss.auxiliaries.exception.NoAnswer:
     _logger.error('Failed to instantiate application: Probably the CRM couldn\'t be reached')
     sys.exit()
