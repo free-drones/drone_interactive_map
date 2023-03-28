@@ -8,7 +8,7 @@ from IMM.threads.thread_rds_pub import RDSPubThread
 from IMM.threads.thread_rds_sub import RDSSubThread
 from IMM.threads.thread_gui_pub import GUIPubThread
 from IMM.threads.thread_info_fetcher import InfoFetcherThread
-from IMM.threads.drone_manager import DroneManager
+from IMM.drone_manager.drone_manager import DroneManager
 
 
 class ThreadHandler():
