@@ -5,7 +5,7 @@
 import React from 'react';
 import { MapContainer , TileLayer, Marker, Polygon, ImageOverlay, useMapEvents } from 'react-leaflet';
 import "../CSS/Map.scss";
-import { connect, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
+import { connect, config, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
 import { mapPositionActions, zoomLevelActions, areaWaypointActions, mapStateActions } from './Storage.js'
 import { viewify } from './Helpers/maphelper.js'
 
@@ -168,6 +168,16 @@ class IMMMap extends React.Component {
                     : ""
                 }
 
+                {/* This marker is only here to show the effects of the drone icon configs until the actual drone icons are added */}
+                {this.props.store.config.showDroneIcons ?
+                <Marker 
+                    
+                    position={[59.815636, 17.649551]}
+                    icon={Leaflet.divIcon({className: "tmp", iconAnchor: Leaflet.point(this.props.store.config.droneIconPixelSize / 2, this.props.store.config.droneIconPixelSize / 2), html:
+                    `<svg fill="#000000" height="${this.props.store.config.droneIconPixelSize}px" width="${this.props.store.config.droneIconPixelSize}px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1792 1792" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path></g></svg>`})}
+                />
+                : ""}
+
                 {this.props.store.activePictures.map((img) => 
                     <ImageOverlay
                         url={img.url}
@@ -182,4 +192,4 @@ class IMMMap extends React.Component {
     }
 }
 
-export default connect({ areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures }, {...areaWaypointActions, ...mapPositionActions, ...zoomLevelActions, ...mapStateActions }) (IMMMap);
+export default connect({ config, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures }, {...areaWaypointActions, ...mapPositionActions, ...zoomLevelActions, ...mapStateActions }) (IMMMap);

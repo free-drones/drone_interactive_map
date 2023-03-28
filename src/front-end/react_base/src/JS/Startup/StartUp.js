@@ -11,7 +11,7 @@ import Leaflet from 'leaflet';
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
+import {connect, config, setConfigValue, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import {Check, Delete} from '@mui/icons-material';
 
@@ -118,7 +118,6 @@ function StartUp(props) {
      * Clickhandler for when area is confirmed. Sets needed states and reroutes to main.
      */
     function defineArea() {
-        
         const setArea = (clientID, areaWaypoints) => Downstream.setArea(clientID, areaWaypoints, Downstream.callbackWrapper((reply) => {
             setDialogState(false);
 
@@ -219,4 +218,4 @@ function StartUp(props) {
     );
 }
 
-export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, messages },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions })(StartUp)
+export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, config, messages },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions, ...configActions })(StartUp)
