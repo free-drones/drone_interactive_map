@@ -11,35 +11,72 @@ const DEFAULT_ZOOM_LEVEL = 14;
 
 const DEFAULT_CONFIG = sessionStorage.getItem("config") ? JSON.parse(sessionStorage.getItem("config")) : frontendConfig;
 
-/**
- * Sets the structure of a view.
- */
-function getGeodata() {
-    var view = {
-        upLeft: {
-            lat: 59.815636,
-            lng: 17.649551
-        },
-        upRight: {
-            lat: 59.815636,
-            lng: 17.676910
-        }, 
-        downLeft: {
-            lat: 59.807759,
-            lng: 17.649551
-        }, 
-        downRight: {
-            lat: 59.807759,
-            lng: 17.676910
-        }, 
-        center: {
-            lat: 59.812157,
-            lng: 17.660430
-        }
-    };
-    return view;
+let startView = {
+    upLeft: {
+        lat: 59.815636,
+        lng: 17.649551
+    },
+    upRight: {
+        lat: 59.815636,
+        lng: 17.676910
+    }, 
+    downLeft: {
+        lat: 59.807759,
+        lng: 17.649551
+    }, 
+    downRight: {
+        lat: 59.807759,
+        lng: 17.676910
+    }, 
+    center: {
+        lat: 59.812157,
+        lng: 17.660430
+    }
 }
 
+/**
+ * Sets the structure of the start view based on the users current geographical position.
+ */
+export function getPos() {
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const viewLatRadius = 0.0035;
+            const viewLngRadius = 0.012;
+            console.log(position)
+            startView = {
+                upLeft: {
+                    lat: lat - viewLatRadius,
+                    lng: lng - viewLngRadius,
+                },
+                upRight: {
+                    lat: lat - viewLatRadius,
+                    lng: lng + viewLngRadius,
+                },
+                downLeft: {
+                    lat: lat + viewLatRadius,
+                    lng: lng - viewLngRadius,
+                },
+                downRight: {
+                    lat: lat + viewLatRadius,
+                    lng: lng + viewLngRadius,
+                },
+                center: {
+                    lat: lat,
+                    lng: lng
+                }
+            };
+            // setMapPosition(startView)
+            console.log(startView)
+        },
+        (error) => {
+            console.error(error)
+        }
+    );
+    console.log(startView)
+    return startView
+}
 /**
  * Structure for the request queue.
  * 
@@ -187,7 +224,10 @@ export const setZoomLevel = createAction('SET_ZOOM_LEVEL', function prepare(leve
 /**
  * Current map view. Stored as stringified JSON.
  */
-export const setMapPosition = createAction('SET_MAP_POSITION', function prepare(view){
+export const setMapPosition = createAction('SET_MAP_POSITION', function prepare(view) {
+    console.log("TEST")
+    setTimeout(300)
+    view = getPos()
     if (
         view.upLeft    !== undefined &&
         view.upRight   !== undefined &&
@@ -206,6 +246,7 @@ export const setMapPosition = createAction('SET_MAP_POSITION', function prepare(
         (!isNaN(view.center.lat))    &&
         (!isNaN(view.center.lng))
     ){
+        console.log(view)
         return{
             payload: view
         }
@@ -467,7 +508,7 @@ export const _zoomLevel = createReducer(DEFAULT_ZOOM_LEVEL, (builder) => {
     })
 });
 
-export const _mapPosition = createReducer(getGeodata(), (builder) => {
+export const _mapPosition = createReducer(startView, (builder) => {
     builder
     .addCase(setMapPosition, (state, action) => {
         const newPosition = action.payload;

@@ -125,10 +125,10 @@ class IMMMap extends React.Component {
               moveend: () => {
                 parent.updateBounds(map)
               },
-
-            //   locationfound: (location) => { // Called when user's gps location has been found
-            //     console.log('location found:', location)
-            //   },
+              locationfound: (location) => { // Called when user's gps location has been found
+                console.log('location found:', location)
+                map.flyTo(location);
+              },
               
             })
             return null
