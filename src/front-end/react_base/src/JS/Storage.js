@@ -138,16 +138,13 @@ function waypointCrossingCheck(waypoint) {
     const e = waypoints[waypoints.length - 1].lat;
     const f = waypoints[waypoints.length - 1].lng;
 
-    for (let i = 0; i < waypoints.length-1; i++) {
+    for (let i = 0; i < waypoints.length - 1; i++) {
         const p = waypoints[i].lat; 
         const q = waypoints[i].lng;
 
-        if (i != waypoint.length){
-            const r = waypoints[i + 1].lat; 
-            const s = waypoints[i + 1].lng;
-            crossing = crossing || intersctingVectors(a, b, c, d, p, q, r, s) || intersctingVectors(a, b, e, f, p, q, r, s);
-        }
-
+        const r = waypoints[i + 1].lat; 
+        const s = waypoints[i + 1].lng;
+        crossing = crossing || intersctingVectors(a, b, c, d, p, q, r, s) || intersctingVectors(a, b, e, f, p, q, r, s);
     };
 
     return crossing;
@@ -176,13 +173,13 @@ function intersctingVectors(a, b, c, d, p, q, r, s) {
  /**
   * Actions related to waypoints defining the area of interest.
   */
-export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepare(waypoint) {
+export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepare(waypoint, reconstructing = false) {
     if(
         waypoint.lat !== undefined &&
         waypoint.lng !== undefined &&
         (!isNaN(waypoint.lat)) &&
         (!isNaN(waypoint.lng)) 
-        && !waypointCrossingCheck(waypoint)
+        && (!waypointCrossingCheck(waypoint) || reconstructing)
     ) {
         return {
             payload: waypoint

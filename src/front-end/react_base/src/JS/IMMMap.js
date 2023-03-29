@@ -76,7 +76,7 @@ class IMMMap extends React.Component {
             // Timeout could be replaced by other synchronization for better experience
             setTimeout(() => {
                 // Add restructured waypoints
-                newWP.forEach(wp => this.props.store.addAreaWaypoint(wp));
+                newWP.forEach(wp => this.props.store.addAreaWaypoint(wp, true));
             }, 1);
         }
         else {
