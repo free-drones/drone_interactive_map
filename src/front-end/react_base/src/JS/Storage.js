@@ -113,8 +113,6 @@ var initialActivePictures = []
  * @param {any} waypoint A waypoint that will be added.
  * 
  * Returns true if waypoint lines cross
- * 
- * *** THIS FUNCTION DOES NOT WORK WITH REMOVING WAYPOINTS***
  */
 function newWaypointLinesCrossing(waypoint) {
     // vectors to be checked lat=y long=x
@@ -152,6 +150,12 @@ function newWaypointLinesCrossing(waypoint) {
 };
 
 
+/**
+ * Checks if any waypoints have crossing connections when waypoint of index is removed.
+ * @param {any} index Index of waypoint that will be removed.
+ * 
+ * Returns true if waypoint lines cross
+ */
 function removedWaypointLinesCrossing(index) {
     // vectors to be checked lat=y long=x
     // vector 1: (a,b) -> (c,d) intersects with (p,q) -> (r,s)
@@ -161,8 +165,7 @@ function removedWaypointLinesCrossing(index) {
         return false;
     }
 
-    let crossing;
-    let a, b, c, d;
+    let crossing, a, b, c, d;
 
     // Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
     if (index == 0) {
@@ -202,10 +205,9 @@ function removedWaypointLinesCrossing(index) {
 };
 
 
-/** 
+/**
  * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true. 
-*/
-
+ */
 function intersctingVectors(a, b, c, d, p, q, r, s) {
     let det, gamma, lambda;
     det = (c - a) * (s - q) - (r - p) * (d - b);
