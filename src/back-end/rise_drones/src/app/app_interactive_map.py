@@ -13,6 +13,13 @@ import dss.client
 
 _logger = logging.getLogger('dss.app_interactive_map')
 _context = zmq.Context()
+#TODO: investigate whether gogo runs the next pending mission even if a mission is underway
+#TODO: Implement ask functions for drone status, (this includes current position, waypoint, mission, etc.)
+#TODO: Figure out the taking pictures part
+#TODO: Clean up the file after tests (when we know what we need and what we don't)
+#TODO: fix the logger for new and old functions
+#TODO: Fix main so that it is coherent with the new functions and new purpose of the app
+#TODO: Connect to config file
 #--------------------------------------------------------------------#
 class Waypoint():
   def __init__(self):
@@ -175,7 +182,6 @@ class InteractiveMap():
         msg = self._app_socket.recv_json()
         msg = json.loads(msg)
         fcn = msg['fcn'] if 'fcn' in msg else ''
-
         if fcn in self._commands:
           request = self._commands[fcn]['request']
           answer = request(msg)
@@ -187,6 +193,28 @@ class InteractiveMap():
         pass
     self._app_socket.close()
     _logger.info("Reply socket closed, thread exit")
+
+#--------------------------------------------------------------------#
+# Application reply: 'load_mission'
+  def ask_load_mission(self, mission, drone_name):
+    if self.valid_mission(mission):
+      with self.drone_mission_lock:
+        self.drone_mission[drone_name] = mission
+      return True
+    else:
+      return False
+#--------------------------------------------------------------------#
+# Application reply: 'connect_to_drones'
+  def ask_connect_to_drones(self, drone_number):
+    drone_list = []
+    for i in range(drone_number):
+      answer = self.task_connect_to_drone()
+      if answer[0]:
+        drone_list.append(answer[1])
+      else:
+        return (drone_list, "Failed to connect to drone" + str(i))
+    return (drone_list, "Connected to all drones")
+      
 
 #--------------------------------------------------------------------#
 # Application reply: 'push_dss'
@@ -307,6 +335,7 @@ class InteractiveMap():
       answer = self.crm.get_drone(capabilities)
       if dss.auxiliaries.zmq.is_nack(answer):
         _logger.debug("No drone available - sleeping for 2 seconds")
+        return (False, "No drone available")
         time.sleep(2.0)
       else:
         drone_received = True
@@ -319,6 +348,7 @@ class InteractiveMap():
 
     # Setup info stream to DSS
     self.setup_dss_info_stream(drone_name)
+    return (True, drone_name)
 
   def task_launch_drone(self, height, drone_name):
     #Initialize drone
