@@ -56,7 +56,18 @@ class InteractiveMap():
 
     self.drone_dict = {}
 
+    self.mission_complete = []
+
+    flying_missions = {}
+
+    self.drone_mission = {}
+
     self.crm = dss.client.CRM(_context, crm, app_name='app_interactive_map.py', desc='interactive map mission', app_id=app_id)
+
+    #locks
+    self.mission_complete_lock = threading.Lock()
+    self.drone_mission_lock = threading.Lock()
+    #--------------------------------------------------------------------#
 
     self._alive = True
     self._dss_data_thread = None
@@ -80,6 +91,10 @@ class InteractiveMap():
     # Start the app reply thread
     self._app_reply_thread = threading.Thread(target=self._main_app_reply, daemon=True)
     self._app_reply_thread.start()
+
+    # Start the mission_flier thread
+    #self._mission_flier_thread = threading.Thread(target=self._mission_flier, daemon=True)
+    #self._mission_flier_thread.start()
 
     # Supported commands from ANY to APP
     self._commands = {'push_dss':     {'request': self._request_push_dss}, # Not implemented
@@ -141,12 +156,13 @@ class InteractiveMap():
       _logger.error('Unregister failed: {answer}')
     _logger.info("CRM socket closed")
 
-    # Disconnect drone if drone is alive
-    if self.drone_dict[drone_name].alive:
-      #wait until other DSS threads finished
-      time.sleep(0.5)
-      _logger.info("Closing socket to DSS")
-      self.drone_dict[drone_name].close_dss_socket()
+    # for every drone in drone_dict Disconnect drone if drone is alive
+    for drone_name in self.drone_dict:
+      if self.drone_dict[drone_name].alive:
+        #wait until other DSS threads finished
+        time.sleep(0.5)
+        _logger.info("Closing socket to DSS")
+        self.drone_dict[drone_name].close_dss_socket()
 
     _logger.debug('~ THE END ~')
 
@@ -272,13 +288,23 @@ class InteractiveMap():
 
 
     return mission
-
+  
+#--------------------------------------------------------------------#
+#check if all the required keys for a mission as shown above are present
+  def valid_mission(self, mission):
+    for wp_id in range(0, len(mission)):
+      for key in ['lat', 'lon', 'alt', 'alt_type', 'heading', 'speed']:
+        id_str = "id%d" % wp_id
+        if key not in mission[id_str]:
+          return False
+    return True
+    
 #------------------------TASKS----------------------------------------#
-  def task_connect_to_drone(self):
+  def task_connect_to_drone(self, capabilities=[]):
     drone_received = False
     while self.alive and not drone_received:
       # Get a drone
-      answer = self.crm.get_drone(capabilities=[])
+      answer = self.crm.get_drone(capabilities)
       if dss.auxiliaries.zmq.is_nack(answer):
         _logger.debug("No drone available - sleeping for 2 seconds")
         time.sleep(2.0)
@@ -308,6 +334,65 @@ class InteractiveMap():
       _logger.debug("Waiting for start position from drone...")
       time.sleep(1.0)
 
+  def thread_mission_flier(self):
+    while self.alive:
+        for drone in self.drone_mission:
+          if not self.valid_mission(self.drone_mission[drone]):
+            _logger.error("Invalid mission for drone %s", drone)
+            #TODO: send error to drone manager
+            continue
+          elif drone not in self.flying_missions:
+            self.flying_missions[drone] = threading.Thread(target=self.task_execute_mission, args=(drone), daemon=True)
+            self.flying_missions[drone].start()
+
+  #thread to execute mission
+  def task_execute_mission(self, drone_name):
+    self.drone_dict[drone_name].upload_mission_LLA(self.drone_mission[drone_name])
+    time.sleep(0.5)
+    # Fly waypoints, allow PILOT intervention.
+    start_wp = 0
+    #prevent race condition for different threads trying to access mission_complete
+    with self.mission_complete_lock:
+      self.mission_complete[drone_name] = 'In Progress'
+    while True:
+      try:
+        self.drone_dict[drone_name].fly_waypoints(start_wp)
+      except dss.auxiliaries.exception.Nack as nack:
+        if nack.msg == 'Not flying':
+          with self.mission_complete_lock:
+            self.mission_complete[drone_name] = 'Success'
+          with self.drone_mission_lock:
+            self.mission_list.pop(drone_name)
+          _logger.info("Pilot has landed")
+        else:
+          _logger.info("Fly mission was nacked %s", nack.msg)
+          with self.mission_complete_lock:
+            self.mission_complete[drone_name] = 'Failed'
+          with self.drone_mission_lock:
+            self.mission_list.pop(drone_name)
+        break
+      except dss.auxiliaries.exception.AbortTask:
+        # PILOT took controls
+        (current_wp, _) = self.drone_dict[drone_name].get_currentWP()
+        # Prepare to continue the mission
+        start_wp = current_wp
+        _logger.info("Pilot took controls, awaiting PILOT action")
+        self.drone_dict[drone_name].await_controls()
+        _logger.info("PILOT gave back controls")
+        # Try to continue mission
+        continue
+      else:
+        # Mission is completed
+        with self.mission_complete_lock:
+          self.mission_complete[drone_name] = 'Success'
+        with self.drone_mission_lock:
+            self.mission_list.pop(drone_name)
+        break
+    #Perform (probably don't want this here) rtl
+    self.drone_dict[drone_name].rtl()
+
+
+  
   def task_execute_random_missions(self, drone_name):
     # Compute number of WPs
     t_wp = self.wp_dist / self.default_speed
