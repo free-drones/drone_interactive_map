@@ -20,6 +20,7 @@ _context = zmq.Context()
 #TODO: fix the logger for new and old functions
 #TODO: Fix main so that it is coherent with the new functions and new purpose of the app
 #TODO: Connect to config file
+#TODO: split the dss info threads by drone_name (so that we can have multiple drones)
 #--------------------------------------------------------------------#
 class Waypoint():
   def __init__(self):
@@ -65,15 +66,21 @@ class InteractiveMap():
 
     self.mission_complete = []
 
-    flying_missions = {}
+    self.flying_missions = {}
 
     self.drone_mission = {}
+
+    self.drone_info_stream = {}
+
 
     self.crm = dss.client.CRM(_context, crm, app_name='app_interactive_map.py', desc='interactive map mission', app_id=app_id)
 
     #locks
+    self.drone_dict_lock = threading.Lock()
     self.mission_complete_lock = threading.Lock()
+    self.flying_missions_lock = threading.Lock()
     self.drone_mission_lock = threading.Lock()
+    self.drone_info_stream_lock = threading.Lock()
     #--------------------------------------------------------------------#
 
     self._alive = True
@@ -164,18 +171,20 @@ class InteractiveMap():
     _logger.info("CRM socket closed")
 
     # for every drone in drone_dict Disconnect drone if drone is alive
-    for drone_name in self.drone_dict:
-      if self.drone_dict[drone_name].alive:
-        #wait until other DSS threads finished
-        time.sleep(0.5)
-        _logger.info("Closing socket to DSS")
-        self.drone_dict[drone_name].close_dss_socket()
+    with self.drone_dict_lock:
+      for drone_name in self.drone_dict:
+        if self.drone_dict[drone_name].alive:
+          #wait until other DSS threads finished
+          time.sleep(0.5)
+          _logger.info("Closing socket to DSS")
+          self.drone_dict[drone_name].close_dss_socket()
 
     _logger.debug('~ THE END ~')
 
 #--------------------------------------------------------------------#
 # Application reply thread
   def _main_app_reply(self):
+    '''Main application reply thread'''
     _logger.info(f'Reply socket is listening on: {self._app_socket.port}')
     while self.alive:
       try:
@@ -197,6 +206,7 @@ class InteractiveMap():
 #--------------------------------------------------------------------#
 # Application reply: 'load_mission'
   def ask_load_mission(self, mission, drone_name):
+    '''Loads mission to drone and returns True if successful, False otherwise'''
     if self.valid_mission(mission):
       with self.drone_mission_lock:
         self.drone_mission[drone_name] = mission
@@ -205,15 +215,41 @@ class InteractiveMap():
       return False
 #--------------------------------------------------------------------#
 # Application reply: 'connect_to_drones'
-  def ask_connect_to_drones(self, drone_number):
+  def ask_connect_to_drones(self, number_of_drones):
+    '''Connects to drones and returns a tuple of (list of drones, error message)'''
     drone_list = []
-    for i in range(drone_number):
+    for i in range(number_of_drones):
       answer = self.task_connect_to_drone()
       if answer[0]:
         drone_list.append(answer[1])
       else:
         return (drone_list, "Failed to connect to drone" + str(i))
     return (drone_list, "Connected to all drones")
+
+#--------------------------------------------------------------------#
+# Application reply: 'current_mission'
+  def ask_current_mission(self, drone_name):
+    '''Returns the current mission of the drone'''
+    with self.drone_mission_lock:
+      if drone_name in self.drone_mission:
+        return self.drone_mission[drone_name]
+      else:
+        return None
+  
+#--------------------------------------------------------------------#
+# Application reply: 'drone_flying_mission'
+  def ask_drone_flying_mission(self, drone_name):
+    '''Returns True if drone is flying a mission, False otherwise'''
+    with self.flying_missions_lock:
+      if drone_name in self.flying_missions:
+        return True
+      else:
+        return False
+
+#--------------------------------------------------------------------#
+# Application reply: 'drone_location'
+ # def ask_drone_location(self, drone_name):
+
       
 
 #--------------------------------------------------------------------#
@@ -233,22 +269,26 @@ class InteractiveMap():
 
 #--------------------------------------------------------------------#
   # Setup the DSS info stream thread
-  def setup_dss_info_stream(self, drone_name):
-    #Get info port from DSS
-    answer = self.drone_dict[drone_name]._dss.get_info()
-    info_port = answer['info_pub_port']
-    if info_port:
-      self._dss_info_thread = threading.Thread(
-        target=self._main_info_dss, args=[self.drone_dict[drone_name]._dss.ip, info_port])
-      self._dss_info_thread_active = True
-      self._dss_info_thread.start()
+  def setup_dss_info_stream(self, drone):
+    '''Setup the DSS info stream thread'''
+    with self.drone_dict_lock:
+      answer = drone._dss.get_info()
+      info_port = answer['info_pub_port']
+      with self.drone_info_stream_lock:
+        if info_port:
+          dss_info_thread = threading.Thread(
+            target=self._main_info_dss, args=[drone._dss.ip, info_port])
+          dss_info_thread_active = True
+          dss_info_thread.start()
+          return [dss_info_thread, dss_info_thread_active]
 
 #--------------------------------------------------------------------#
   # The main function for subscribing to info messages from the DSS.
   def _main_info_dss(self, ip, port, drone_name):
     # Enable LLA stream
-    self.drone_dict[drone_name]._dss.data_stream('LLA', True)
-    self.drone_dict[drone_name]._dss.data_stream('battery', True)
+    with self.drone_dict_lock:
+      self.drone_dict[drone_name]._dss.data_stream('LLA', True)
+      self.drone_dict[drone_name]._dss.data_stream('battery', True)
     # Create info socket and start listening thread
     info_socket = dss.auxiliaries.zmq.Sub(_context, ip, port, "info " + self.crm.app_id)
     while self._dss_info_thread_active:
@@ -341,13 +381,17 @@ class InteractiveMap():
         drone_received = True
 
     # Connect to the nth drone, set app_id in socket
-    drone_name = "drone"+ str(len(self.drone_dict))
-    self.drone_dict[drone_name] = dss.client.Client(timeout=2000, exception_handler=None, context=_context)
-    self.drone_dict[drone_name].connect(answer['ip'], answer['port'], app_id=self.crm.app_id)
-    _logger.info("Connected as owner of drone: [%s]", self.drone_dict[drone_name]._dss.dss_id)
+    with self.drone_dict_lock:
+      drone_name = "drone"+ str(len(self.drone_dict))
+      self.drone_dict[drone_name] = dss.client.Client(timeout=2000, exception_handler=None, context=_context)
+      self.drone_dict[drone_name].connect(answer['ip'], answer['port'], app_id=self.crm.app_id)
+      _logger.info("Connected as owner of drone: [%s]", self.drone_dict[drone_name]._dss.dss_id)
 
     # Setup info stream to DSS
-    self.setup_dss_info_stream(drone_name)
+    with self.drone_dict_lock:
+      drone = self.drone_dict[drone_name]
+    with self.drone_info_stream_lock:
+      self.drone_info_stream[drone_name] = self.setup_dss_info_stream(drone)
     return (True, drone_name)
 
   def task_launch_drone(self, height, drone_name):
