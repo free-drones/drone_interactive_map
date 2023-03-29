@@ -116,14 +116,13 @@ var initialActivePictures = []
  * 
  * *** THIS FUNCTION DOES NOT WORK WITH REMOVING WAYPOINTS***
  */
-function waypointCrossingCheck(waypoint) {
+function newWaypointLinesCrossing(waypoint) {
     // vectors to be checked lat=y long=x
-    // vector 1: (a,b) -> (c,d) (neighbour 1, forward) intersects with (p,q) -> (r,s)
-    // vector 2: (a,b) -> (e,f) (neighbour 2, backward) intersects with (p,q) -> (r,s)
+    // vector 1: (a,b) -> (c,d) (neighbour 1, forward in list) intersects with (p,q) -> (r,s)
+    // vector 2: (a,b) -> (e,f) (neighbour 2, backward in list) intersects with (p,q) -> (r,s)
 
     const waypoints = store.getState().areaWaypoints;
-    //console.log(store.areaWaypoints);
-    if(waypoints.length < 3) {
+    if (waypoints.length < 3) {
         return false;
     }
 
@@ -138,6 +137,7 @@ function waypointCrossingCheck(waypoint) {
     const e = waypoints[waypoints.length - 1].lat;
     const f = waypoints[waypoints.length - 1].lng;
 
+    // Do the check for every line on the map.
     for (let i = 0; i < waypoints.length - 1; i++) {
         const p = waypoints[i].lat; 
         const q = waypoints[i].lng;
@@ -151,11 +151,63 @@ function waypointCrossingCheck(waypoint) {
 
 };
 
-/*
-*   If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true.
-**/
+
+function removedWaypointLinesCrossing(index) {
+    // vectors to be checked lat=y long=x
+    // vector 1: (a,b) -> (c,d) intersects with (p,q) -> (r,s)
+
+    const waypoints = store.getState().areaWaypoints;
+    if ((waypoints.length - 1) < 3) {
+        return false;
+    }
+
+    let crossing;
+    let a, b, c, d;
+
+    // Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
+    if (index == 0) {
+        a = waypoints[index + 1].lat; 
+        b = waypoints[index + 1].lng;
+
+        c = waypoints[waypoints.length - 1].lat; 
+        d = waypoints[waypoints.length - 1].lng;
+
+    } else if (index == waypoints.length - 1) {
+        a = waypoints[0].lat; 
+        b = waypoints[0].lng;
+
+        c = waypoints[index - 1].lat; 
+        d = waypoints[index - 1].lng;
+        
+    } else {
+        a = waypoints[index + 1].lat; 
+        b = waypoints[index + 1].lng;
+
+        c = waypoints[index - 1].lat; 
+        d = waypoints[index - 1].lng;
+    }
+
+    // Do the check for every line on the map.
+    for (let i = 0; i < waypoints.length - 1; i++) {
+        const p = waypoints[i].lat; 
+        const q = waypoints[i].lng;
+
+        const r = waypoints[i + 1].lat; 
+        const s = waypoints[i + 1].lng;
+        crossing = crossing || intersctingVectors(a, b, c, d, p, q, r, s);
+    };
+
+    return crossing;
+
+};
+
+
+/** 
+ * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true. 
+*/
+
 function intersctingVectors(a, b, c, d, p, q, r, s) {
-    var det, gamma, lambda;
+    let det, gamma, lambda;
     det = (c - a) * (s - q) - (r - p) * (d - b);
     if (det === 0) {
         return false;
@@ -179,7 +231,7 @@ export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepar
         waypoint.lng !== undefined &&
         (!isNaN(waypoint.lat)) &&
         (!isNaN(waypoint.lng)) 
-        && (!waypointCrossingCheck(waypoint) || reconstructing)
+        && (!newWaypointLinesCrossing(waypoint) || reconstructing)
     ) {
         return {
             payload: waypoint
@@ -191,7 +243,7 @@ export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepar
 });
 
 export const removeAreaWaypoint = createAction('REMOVE_AREA_WAYPOINT', function prepare(index){
-    if ( 0<=index && (!isNaN(index))) {
+    if ( 0<=index && (!isNaN(index)) && !removedWaypointLinesCrossing(index)) {
         return {
             payload: index
         }
