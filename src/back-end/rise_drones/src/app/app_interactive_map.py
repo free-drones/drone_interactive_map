@@ -6,10 +6,12 @@ import threading
 import time
 import traceback
 import numpy as np
+#import zmq from the virtual environment
 import zmq
+import dss
 
-import dss.auxiliaries
-import dss.client
+import rise_drones.src.dss.auxiliaries
+import rise_drones.src.dss.client
 
 _logger = logging.getLogger('dss.app_interactive_map')
 _context = zmq.Context()
