@@ -106,11 +106,14 @@ var initialActivePictures = []
 
 
 
+
+
 /* THIS IS IN THE WRONG PLACE!!!!!!!!!!!!!!!**/
 
 /**
- * Checks if any waypoints have crossing connections.
- * @param {any} waypoint A waypoint that will be added.
+ * Checks if there are waypoints having crossing connections when a new waypoint is added.
+ * 
+ * @param {any} waypoint that will be added and have it connections checked.
  * 
  * Returns true if waypoint lines cross
  */
@@ -152,7 +155,8 @@ function newWaypointLinesCrossing(waypoint) {
 
 /**
  * Checks if any waypoints have crossing connections when waypoint of index is removed.
- * @param {any} index Index of waypoint that will be removed.
+ * 
+ * @param {Integer} index of waypoint that will be removed.
  * 
  * Returns true if waypoint lines cross
  */
