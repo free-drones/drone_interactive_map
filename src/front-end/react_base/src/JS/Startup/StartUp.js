@@ -11,7 +11,7 @@ import Leaflet from 'leaflet';
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
+import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, incorrectArea} from "../Storage.js";
 import { AttentionBorder, IncorrectAreaPopup } from "./AttentionBorder.js";
 import {Check, Delete} from '@mui/icons-material';
 
@@ -214,9 +214,9 @@ function StartUp(props) {
                 DEFINE AREA
             </AttentionBorder>
 
-            <IncorrectAreaPopup>
-                TEST
-            </IncorrectAreaPopup>
+            <div>
+            <b> {incorrectArea ? <IncorrectAreaPopup> Test </IncorrectAreaPopup> : "" } </b>
+            </div>
 
             <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} />
         </div>

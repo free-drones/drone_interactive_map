@@ -7,6 +7,7 @@ import { connect as unboundConnect } from 'react-redux';
 import Axis from 'axis.js';
 
 const DEFAULT_ZOOM_LEVEL = 14;
+export let incorrectArea = false;
 
 /**
  * Sets the structure of a view.
@@ -242,6 +243,10 @@ export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepar
         return {
             payload: waypoint
         }
+    }
+
+    else if ((newWaypointLinesCrossing(waypoint) && !reconstructing)) {
+        incorrectArea = true;
     }
     else {
         throw new Error("Invalid waypoint!");
