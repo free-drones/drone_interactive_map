@@ -33,7 +33,6 @@ function newWaypointLinesCrossing(waypoint, waypoints) {
     // vector 1: (a,b) -> (c,d) (neighbour 1, forward in list) intersects with (p,q) -> (r,s)
     // vector 2: (a,b) -> (e,f) (neighbour 2, backward in list) intersects with (p,q) -> (r,s)
 
-    //const waypoints = IMMMap.props.store.getState().areaWaypoints;
     if (waypoints.length < 3) {
         return false;
     }
@@ -75,7 +74,6 @@ function removedWaypointLinesCrossing(index, waypoints) {
     // vectors to be checked lat=y long=x
     // vector 1: (a,b) -> (c,d) intersects with (p,q) -> (r,s)
 
-    //const waypoints = IMMMap.props.store.getState().areaWaypoints;
     if ((waypoints.length - 1) < 3) {
         return false;
     }
@@ -137,11 +135,7 @@ function intersectingVectors(a, b, c, d, p, q, r, s) {
 
 
 function newWaypointCheck(waypoint, waypoints, reconstructing = false) {
-    if(waypoint.lat !== undefined &&
-        waypoint.lng !== undefined &&
-        (!isNaN(waypoint.lat)) &&
-        (!isNaN(waypoint.lng)) 
-        && (!newWaypointLinesCrossing(waypoint, waypoints) || reconstructing)) {
+    if((!newWaypointLinesCrossing(waypoint, waypoints) || reconstructing)) {
             return true;
         }
     
@@ -149,7 +143,7 @@ function newWaypointCheck(waypoint, waypoints, reconstructing = false) {
 }
 
 function removedWaypointCheck(index, waypoints) {
-    if ( 0<=index && (!isNaN(index)) && !removedWaypointLinesCrossing(index, waypoints)) {
+    if (!removedWaypointLinesCrossing(index, waypoints)) {
             return true;
         }
     
