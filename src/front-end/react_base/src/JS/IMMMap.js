@@ -17,8 +17,9 @@ const markedIcon = '<svg style="font-size: 2.25rem; width: 36px; height: 36px;" 
 // Leaflet icon of pre-rendered Material Design icon
 const marker = Leaflet.divIcon({className: "marker", iconAnchor: Leaflet.point(18, 34), html:markedIcon});
 
-class IMMMap extends React.Component {
+let hasLocationPanned = false;
 
+class IMMMap extends React.Component {
     /**
      * Pans and zooms to the selected area when it has been confirmed
      * @param {*} map 
@@ -116,8 +117,9 @@ class IMMMap extends React.Component {
                 parent.addAreaWaypoint(e)
                 // map.locate()  // This finds the users current position via gps
               },
-              layeradd: () => {
+              zoomlevelschange: () => { // Gets called on load, so use it as a replacement for load
                 parent.fitBounds(map)
+                map.locate();
               },
               zoom: () => {
                 parent.updateBounds(map)
@@ -126,8 +128,11 @@ class IMMMap extends React.Component {
                 parent.updateBounds(map)
               },
               locationfound: (location) => { // Called when user's gps location has been found
-                console.log('location found:', location)
-                map.flyTo(location);
+                if (!hasLocationPanned) {
+                    // Makes sure only to pan to the user's location once
+                    hasLocationPanned = true;
+                    map.panTo(location.latlng);
+                }
               },
               
             })

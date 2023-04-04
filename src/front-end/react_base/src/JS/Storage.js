@@ -11,72 +11,29 @@ const DEFAULT_ZOOM_LEVEL = 14;
 
 const DEFAULT_CONFIG = sessionStorage.getItem("config") ? JSON.parse(sessionStorage.getItem("config")) : frontendConfig;
 
-let startView = {
+const startView = {
     upLeft: {
-        lat: 59.815636,
-        lng: 17.649551
+        lat: 58.402859,
+        lng: 15.5644576
     },
     upRight: {
-        lat: 59.815636,
-        lng: 17.676910
+        lat: 58.402859,
+        lng: 15.5918166
     }, 
     downLeft: {
-        lat: 59.807759,
-        lng: 17.649551
+        lat: 58.394982,
+        lng: 15.5644576
     }, 
     downRight: {
-        lat: 59.807759,
-        lng: 17.676910
+        lat: 58.394982,
+        lng: 15.5918166
     }, 
     center: {
-        lat: 59.812157,
-        lng: 17.660430
+        lat: 58.39938,
+        lng: 15.5753366
     }
 }
 
-/**
- * Sets the structure of the start view based on the users current geographical position.
- */
-export function getPos() {
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const viewLatRadius = 0.0035;
-            const viewLngRadius = 0.012;
-            console.log(position)
-            startView = {
-                upLeft: {
-                    lat: lat - viewLatRadius,
-                    lng: lng - viewLngRadius,
-                },
-                upRight: {
-                    lat: lat - viewLatRadius,
-                    lng: lng + viewLngRadius,
-                },
-                downLeft: {
-                    lat: lat + viewLatRadius,
-                    lng: lng - viewLngRadius,
-                },
-                downRight: {
-                    lat: lat + viewLatRadius,
-                    lng: lng + viewLngRadius,
-                },
-                center: {
-                    lat: lat,
-                    lng: lng
-                }
-            };
-            // setMapPosition(startView)
-            console.log(startView)
-        },
-        (error) => {
-            console.error(error)
-        }
-    );
-    console.log(startView)
-    return startView
-}
 /**
  * Structure for the request queue.
  * 
@@ -225,9 +182,6 @@ export const setZoomLevel = createAction('SET_ZOOM_LEVEL', function prepare(leve
  * Current map view. Stored as stringified JSON.
  */
 export const setMapPosition = createAction('SET_MAP_POSITION', function prepare(view) {
-    console.log("TEST")
-    setTimeout(300)
-    view = getPos()
     if (
         view.upLeft    !== undefined &&
         view.upRight   !== undefined &&
