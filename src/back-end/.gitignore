@@ -13,3 +13,4 @@ log.txt
 Scripts
 pyvenv.cfg
 Include
+.DS_Store
