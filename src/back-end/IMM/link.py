@@ -4,13 +4,22 @@ import dss.auxiliaries
 import dss.client
 import time
 import threading
+#TODO: Get more logging and error handling in place
+#TODO: See to it that everything is thread safe
+#TODO: TEST GOGO
+#TODO: check what the nack msg is for the dss
+#TODO: See if we can fly multiple missions in a row
+#TODO: Figure out a way to overwrite a mission
+#TODO: Clean up the code
+#TODO: Cover any areas where the code might break, or that we have not implemented yet
+#TODO: Figure out which threads need to be daemon threads and which don't, make sure all threads are exited properly
 
 class Link():
     '''This class is used to connect to drones and send missions to them'''
     def __init__(self):
         self.drone_dict = {}
 
-        self.ip = dss.auxiliary.zmq.get_ip() #auto ip for now
+        self.ip = dss.auxiliaries.zmq.get_ip() #auto ip for now
         self.crm = '10.44.170.10:17700' #crm ip and port
 
     def connect_to_drone(self):
@@ -40,17 +49,19 @@ class Link():
     
     def fly_random_mission(self, drone_name):
         '''Takes a drone name and sends a random mission to the drone'''
-        self.drone_dict[drone_name].fly_random_mission()
+        self.drone_dict[drone_name].mission_status = 'flying'
+        fly_thread = threading.Thread(self.drone_dict[drone_name].fly_random_mission(), daemon=True)
+        fly_thread.start()
 
     def get_mission_status(self, drone_name):
-        '''Returns the status of the mission'''
+        '''Returns the status of the mission, 'flying' = mission is in progress, 'waiting' = flying and waiting for a new mission, 'idle' = not flying and idle'''
         return self.drone_dict[drone_name].mission_status
     
     def return_to_home(self, drone_name):
         '''Returns the drone to its launch location'''
         self.drone_dict[drone_name].return_to_home()
     
-    def get_drone_state(self, drone_name):
+    def get_drone_position(self, drone_name):
         '''Returns the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north}'''
         return self.drone_dict[drone_name].get_drone_location()
     
