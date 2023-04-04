@@ -1,7 +1,7 @@
 /**
  * Initializes the app through the start-up sequence.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import IMM_MAP from "../IMMMap.js";
 import Axis from 'axis.js';
 import clsx from 'clsx';
@@ -76,6 +76,8 @@ function StartUp(props) {
         severity : "",
         message : ""
     });
+
+    const centerButton = useRef();
 
     useEffect(() => {
         const newMessage = props.store.messages[props.store.messages.length - 1]
@@ -209,11 +211,15 @@ function StartUp(props) {
                 </DialogActions>
             </Dialog>
 
+            <Button ref={centerButton}>
+                Center!
+            </Button>
+
             <AttentionBorder>
                 DEFINE AREA
             </AttentionBorder>
 
-            <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} />
+            <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} centerButton={centerButton}/>
         </div>
     );
 }

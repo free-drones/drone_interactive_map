@@ -135,6 +135,9 @@ class IMMMap extends React.Component {
                     userPosition = location.latlng;
                     map.panTo(location.latlng);
                 }
+                if (parent.props.centerButton) {
+                    parent.props.centerButton.current.addEventListener("click", () => map.flyTo(userPosition))
+                }
               },
 
             })
