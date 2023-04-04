@@ -13,11 +13,12 @@ import Leaflet from 'leaflet';
 
 // Room Icon pre-rendered + sizing style
 const markedIcon = '<svg style="font-size: 2.25rem; width: 36px; height: 36px;" class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>';
-
+const userPosIcon = '<svg class="svg-icon" style="width: 22px;height: 22px;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 512m-442.7 0a442.7 442.7 0 1 0 885.4 0 442.7 442.7 0 1 0-885.4 0Z" fill="#9BBFFF" /><path d="M512 512m-263 0a263 263 0 1 0 526 0 263 263 0 1 0-526 0Z" fill="#377FFC" /></svg>'
 // Leaflet icon of pre-rendered Material Design icon
 const marker = Leaflet.divIcon({className: "marker", iconAnchor: Leaflet.point(18, 34), html:markedIcon});
 
 let hasLocationPanned = false;
+let userPosition = null;
 
 class IMMMap extends React.Component {
     /**
@@ -131,10 +132,11 @@ class IMMMap extends React.Component {
                 if (!hasLocationPanned) {
                     // Makes sure only to pan to the user's location once
                     hasLocationPanned = true;
+                    userPosition = location.latlng;
                     map.panTo(location.latlng);
                 }
               },
-              
+
             })
             return null
           }
@@ -182,7 +184,18 @@ class IMMMap extends React.Component {
                     `<svg fill="#000000" height="${this.props.store.config.droneIconPixelSize}px" width="${this.props.store.config.droneIconPixelSize}px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1792 1792" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path></g></svg>`})}
                 />
                 : ""}
-
+                {
+                    userPosition !== null ?
+                    <Marker 
+                    position={userPosition}
+                    icon={Leaflet.divIcon({
+                        className: "userIcon",
+                        iconAnchor: Leaflet.point(11, 11),
+                        html: userPosIcon
+                    })}
+                    />
+                    : ""
+                }
                 {this.props.store.activePictures.map((img) => 
                     <ImageOverlay
                         url={img.url}

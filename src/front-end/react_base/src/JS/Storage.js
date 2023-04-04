@@ -200,7 +200,6 @@ export const setMapPosition = createAction('SET_MAP_POSITION', function prepare(
         (!isNaN(view.center.lat))    &&
         (!isNaN(view.center.lng))
     ){
-        console.log(view)
         return{
             payload: view
         }
