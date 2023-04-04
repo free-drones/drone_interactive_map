@@ -7,7 +7,6 @@ import { connect as unboundConnect } from 'react-redux';
 import Axis from 'axis.js';
 
 const DEFAULT_ZOOM_LEVEL = 14;
-export let incorrectArea = false;
 
 /**
  * Sets the structure of a view.
@@ -106,147 +105,19 @@ var initialActivePictures = []
  */
 
 
-
-
-
-/* THIS IS IN THE WRONG PLACE!!!!!!!!!!!!!!!**/
-
-/**
- * Checks if there are waypoints having crossing connections when a new waypoint is added.
- * 
- * @param {any} waypoint that will be added and have it connections checked.
- * 
- * Returns true if waypoint lines cross
- */
-function newWaypointLinesCrossing(waypoint) {
-    // vectors to be checked lat=y long=x
-    // vector 1: (a,b) -> (c,d) (neighbour 1, forward in list) intersects with (p,q) -> (r,s)
-    // vector 2: (a,b) -> (e,f) (neighbour 2, backward in list) intersects with (p,q) -> (r,s)
-
-    const waypoints = store.getState().areaWaypoints;
-    if (waypoints.length < 3) {
-        return false;
-    }
-
-    let crossing;
-
-    const a = waypoint.lat;
-    const b = waypoint.lng;
-
-    const c = waypoints[0].lat; 
-    const d = waypoints[0].lng;
-
-    const e = waypoints[waypoints.length - 1].lat;
-    const f = waypoints[waypoints.length - 1].lng;
-
-    // Do the check for every line on the map.
-    for (let i = 0; i < waypoints.length - 1; i++) {
-        const p = waypoints[i].lat; 
-        const q = waypoints[i].lng;
-
-        const r = waypoints[i + 1].lat; 
-        const s = waypoints[i + 1].lng;
-        crossing = crossing || intersectingVectors(a, b, c, d, p, q, r, s) || intersectingVectors(a, b, e, f, p, q, r, s);
-    };
-
-    return crossing;
-
-};
-
-
-/**
- * Checks if any waypoints have crossing connections when waypoint of index is removed.
- * 
- * @param {Integer} index of waypoint that will be removed.
- * 
- * Returns true if waypoint lines cross
- */
-function removedWaypointLinesCrossing(index) {
-    // vectors to be checked lat=y long=x
-    // vector 1: (a,b) -> (c,d) intersects with (p,q) -> (r,s)
-
-    const waypoints = store.getState().areaWaypoints;
-    if ((waypoints.length - 1) < 3) {
-        return false;
-    }
-
-    let crossing, a, b, c, d;
-
-    // Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
-    if (index == 0) {
-        a = waypoints[index + 1].lat; 
-        b = waypoints[index + 1].lng;
-
-        c = waypoints[waypoints.length - 1].lat; 
-        d = waypoints[waypoints.length - 1].lng;
-
-    } else if (index == waypoints.length - 1) {
-        a = waypoints[0].lat; 
-        b = waypoints[0].lng;
-
-        c = waypoints[index - 1].lat; 
-        d = waypoints[index - 1].lng;
-        
-    } else {
-        a = waypoints[index + 1].lat; 
-        b = waypoints[index + 1].lng;
-
-        c = waypoints[index - 1].lat; 
-        d = waypoints[index - 1].lng;
-    }
-
-    // Do the check for every line on the map.
-    for (let i = 0; i < waypoints.length - 1; i++) {
-        const p = waypoints[i].lat; 
-        const q = waypoints[i].lng;
-
-        const r = waypoints[i + 1].lat; 
-        const s = waypoints[i + 1].lng;
-        crossing = crossing || intersectingVectors(a, b, c, d, p, q, r, s);
-    };
-
-    return crossing;
-
-};
-
-
-/**
- * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true. 
- */
-function intersectingVectors(a, b, c, d, p, q, r, s) {
-    let det, gamma, lambda;
-    det = (c - a) * (s - q) - (r - p) * (d - b);
-    if (det === 0) {
-        return false;
-    } else {
-        lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-        gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-        return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
-    }
-};
-
-
-
-
-
  /**
   * Actions related to waypoints defining the area of interest.
   */
-export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepare(waypoint, reconstructing = false) {
+export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepare(waypoint) {
     if(
         waypoint.lat !== undefined &&
         waypoint.lng !== undefined &&
         (!isNaN(waypoint.lat)) &&
         (!isNaN(waypoint.lng)) 
-        && (!newWaypointLinesCrossing(waypoint) || reconstructing)
     ) {
         return {
             payload: waypoint
         }
-    }
-
-    else if ((newWaypointLinesCrossing(waypoint) && !reconstructing)) {
-        incorrectArea = true;
     }
     else {
         throw new Error("Invalid waypoint!");
@@ -254,7 +125,7 @@ export const addAreaWaypoint = createAction('ADD_AREA_WAYPOINT', function prepar
 });
 
 export const removeAreaWaypoint = createAction('REMOVE_AREA_WAYPOINT', function prepare(index){
-    if ( 0<=index && (!isNaN(index)) && !removedWaypointLinesCrossing(index)) {
+    if ( 0<=index && (!isNaN(index))) {
         return {
             payload: index
         }
