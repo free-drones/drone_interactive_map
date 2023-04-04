@@ -146,7 +146,7 @@ function newWaypointLinesCrossing(waypoint) {
 
         const r = waypoints[i + 1].lat; 
         const s = waypoints[i + 1].lng;
-        crossing = crossing || intersctingVectors(a, b, c, d, p, q, r, s) || intersctingVectors(a, b, e, f, p, q, r, s);
+        crossing = crossing || intersectingVectors(a, b, c, d, p, q, r, s) || intersectingVectors(a, b, e, f, p, q, r, s);
     };
 
     return crossing;
@@ -202,7 +202,7 @@ function removedWaypointLinesCrossing(index) {
 
         const r = waypoints[i + 1].lat; 
         const s = waypoints[i + 1].lng;
-        crossing = crossing || intersctingVectors(a, b, c, d, p, q, r, s);
+        crossing = crossing || intersectingVectors(a, b, c, d, p, q, r, s);
     };
 
     return crossing;
@@ -213,7 +213,7 @@ function removedWaypointLinesCrossing(index) {
 /**
  * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true. 
  */
-function intersctingVectors(a, b, c, d, p, q, r, s) {
+function intersectingVectors(a, b, c, d, p, q, r, s) {
     let det, gamma, lambda;
     det = (c - a) * (s - q) - (r - p) * (d - b);
     if (det === 0) {
