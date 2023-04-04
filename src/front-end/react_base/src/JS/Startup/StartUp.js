@@ -12,7 +12,7 @@ import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
 import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
-import { AttentionBorder } from "./AttentionBorder.js";
+import { AttentionBorder, IncorrectAreaPopup } from "./AttentionBorder.js";
 import {Check, Delete} from '@mui/icons-material';
 
 import Downstream from '../Connection/Downstream.js';
@@ -213,6 +213,10 @@ function StartUp(props) {
             <AttentionBorder>
                 DEFINE AREA
             </AttentionBorder>
+
+            <IncorrectAreaPopup>
+                TEST
+            </IncorrectAreaPopup>
 
             <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} />
         </div>
