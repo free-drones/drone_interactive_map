@@ -6,13 +6,9 @@ import time
 import threading
 #TODO: Get more logging and error handling in place
 #TODO: See to it that everything is thread safe
-#TODO: check what the nack msg is for the dss
-#TODO: See if we can fly multiple missions in a row
-#TODO: Figure out a way to overwrite a mission
-#TODO: Clean up the code
 #TODO: Cover any areas where the code might break, or that we have not implemented yet
 #TODO: Figure out which threads need to be daemon threads and which don't, make sure all threads are exited properly
-#TODO: Why is the next drone only taking off after the first drone reaches 15m?
+#TODO: Why is the next drone only taking off after the first drone reaches 15m? slow i think
 
 class Link():
     '''This class is used to connect to drones and send missions to them'''
@@ -98,7 +94,7 @@ class Link():
         return self.drone_dict[drone_name].get_drone_location()
 
     def get_drone_waypoint(self, drone_name):
-        '''Returns the current waypoint of the drone'''
+        '''Returns the current waypoint of the drone, {‘"lat" : lat , "lon": lon , "alt": new_alt, "alt_type": "amsl", "heading": degrees relative true north,  "speed": speed}'''
         if not self.valid_drone_name(drone_name):
             raise KeyError('Invalid drone name')
         return self.drone_dict[drone_name].get_current_waypoint()
