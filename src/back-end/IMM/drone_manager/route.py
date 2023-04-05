@@ -4,6 +4,7 @@ class Route():
     def __init__(self, nodes, photo_req = None):
         self.nodes = nodes
         self.photo_request = photo_req
+        self.drone = None
     
     # reorder route, should be called after having arrived at the next node
     def update_route(self, reuse_node=True): # :(

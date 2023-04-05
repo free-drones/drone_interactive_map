@@ -9,6 +9,8 @@ import time
 
 PHOTO_NODE_WEIGHT = 3 #The higher the weight, the higher the priority on taking the photo => Drone will get there faster
 WAIT_TIME = 1
+MIN_CHARGE_LEVEL = 20
+FULL_CHARGE_LEVEL = 95
 LOGGER_NAME = "thread_drone_manager"
 _logger = create_logger(LOGGER_NAME)
 
@@ -38,6 +40,10 @@ class DroneManager(Thread):
         while not self.drones:
             self.drones = self.get_crm_drones()
             time.sleep(WAIT_TIME)
+
+        # wait until routes have been received, which happens after area is set by user
+        while not self.routes:
+            time.sleep(WAIT_TIME)
         
         while self.running:
             
@@ -47,7 +53,7 @@ class DroneManager(Thread):
             self.assign_missions()
 
 
-    def set_start_routes(self, route_list):
+    def set_routes(self, route_list):
         self.routes = route_list
 
     # return list of drone objects
@@ -62,17 +68,28 @@ class DroneManager(Thread):
         return len(self.drones)
     
     def create_mission(self, drone):
-        next_node = drone.route.get_next_node()
-        if isinstance(next_node, Route):
-            pass
-        else:
-            drone.current_mission = Mission(drone.next_point)
-        return Mission(drone.next_point)
+        return Mission(drone.route)
 
 
     # Given photo requests, manual mode status, charge status for each drone, area change request, re-assign drones/routes
     def resource_management(self):
-        pass
+
+        for d in self.drones:
+            if self.link.get_drone_status(d)['battery'] < MIN_CHARGE_LEVEL:
+                d.route = None
+                self.link.return_to_home(d)
+        
+        for r in self.routes:
+            # is there a drone that flies this route?
+            if not r.drone:
+                for d in self.drones:
+                    battery_lvl = self.link.get_drone_status(d)['battery']
+                    mission_status = self.link.get_mission_status(d)
+                    if not d.route and battery_lvl <= FULL_CHARGE_LEVEL and mission_status in ["landed", "waiting", "idle"]:
+                        d.route = r
+                        r.drone = d
+                        break
+            
 
         #for r in routes
             #
@@ -87,8 +104,9 @@ class DroneManager(Thread):
 
     def assign_missions(self):
         for drone in self.drones:
-            if not drone.current_mission:
+            if self.link.get_mission_status(drone) in ["landed", "waiting", "idle"]:
                 mission = self.create_mission(drone)
+                drone.current_mission = mission
                 self.link.fly(mission, drone)
 
     

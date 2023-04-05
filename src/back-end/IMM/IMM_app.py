@@ -193,7 +193,7 @@ def on_set_area(data):
 
         route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
         #route_list = Area + Pathfinding functions
-        thread_handler.drone_manager_thread.set_start_routes(route_list)
+        thread_handler.drone_manager_thread.set_routes(route_list)
         
 
 

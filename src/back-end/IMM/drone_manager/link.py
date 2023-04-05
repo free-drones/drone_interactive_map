@@ -10,9 +10,8 @@ class Link():
     def get_mission_status(self, drone):
         return None #status
     
-    def get_drone_position(self, drone):
-        #In docs called state
-        return None #position
+    def get_drone_status(self, drone):
+        return {"battery":95} #
     
     def get_drone_waypoint(self, drone):
         return None #waypoint
