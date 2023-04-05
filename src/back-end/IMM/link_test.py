@@ -9,12 +9,15 @@ def test_link():
     drone_list = link_object.get_list_of_drones()
     for drone in drone_list:
         link_object.fly_random_mission(drone)
+    time.sleep(10)
+    for drone in drone_list:
+        link_object.fly_random_mission(drone)
     while(alive):
-        for drone in drone_list:
-            link_object.get_mission_status(drone)
-            if link_object.get_mission_status(drone) == 'waiting':
-                print("flying next mission")
-                link_object.fly_random_mission(drone)
+        #for drone in drone_list:
+            #link_object.get_mission_status(drone)
+            #if link_object.get_mission_status(drone) == 'waiting':
+                #print("flying next mission")
+                #link_object.fly_random_mission(drone)
         print("sleeping")
         time.sleep(1)
 
