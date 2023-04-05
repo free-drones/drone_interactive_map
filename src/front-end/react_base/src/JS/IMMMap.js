@@ -83,11 +83,21 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
     // Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
     if (index == 0) {
-        a = waypoints[index + 1].lat; 
-        b = waypoints[index + 1].lng;
+        a = waypoints[1].lat; 
+        b = waypoints[1].lng;
 
         c = waypoints[waypoints.length - 1].lat; 
         d = waypoints[waypoints.length - 1].lng;
+
+        // Do the check for every line on the map.
+        for (let i = 1; i < waypoints.length - 1; i++) {
+            const p = waypoints[i].lat; 
+            const q = waypoints[i].lng;
+
+            const r = waypoints[i + 1].lat; 
+            const s = waypoints[i + 1].lng;
+            crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+        };
 
     } else if (index == waypoints.length - 1) {
         a = waypoints[0].lat; 
@@ -95,6 +105,16 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
         c = waypoints[index - 1].lat; 
         d = waypoints[index - 1].lng;
+
+        // Do the check for every line on the map.
+        for (let i = 0; i < waypoints.length - 2; i++) {
+            const p = waypoints[i].lat; 
+            const q = waypoints[i].lng;
+
+            const r = waypoints[i + 1].lat; 
+            const s = waypoints[i + 1].lng;
+            crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+        };
         
     } else {
         a = waypoints[index + 1].lat; 
@@ -102,17 +122,29 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
         c = waypoints[index - 1].lat; 
         d = waypoints[index - 1].lng;
+
+        // Do the check for every line on the map.
+        for (let i = 0; i <= waypoints.length; i++) {
+            if ((i == index) || (i + 1 == index)) {
+                // skip this vector
+            }
+            if (i == waypoints.length) {
+                const p = waypoints[i].lat; 
+                const q = waypoints[i].lng;
+
+                const r = waypoints[0].lat; 
+                const s = waypoints[0].lng;
+                crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+            } else {
+                const p = waypoints[i].lat; 
+                const q = waypoints[i].lng;
+
+                const r = waypoints[i + 1].lat; 
+                const s = waypoints[i + 1].lng;
+                crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+            }
+        };
     }
-
-    // Do the check for every line on the map.
-    for (let i = 0; i < waypoints.length - 1; i++) {
-        const p = waypoints[i].lat; 
-        const q = waypoints[i].lng;
-
-        const r = waypoints[i + 1].lat; 
-        const s = waypoints[i + 1].lng;
-        crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
-    };
 
     return crossing;
 };
