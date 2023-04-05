@@ -18,9 +18,14 @@ const userPosIcon = '<svg class="svg-icon" style="width: 22px;height: 22px;verti
 const marker = Leaflet.divIcon({className: "marker", iconAnchor: Leaflet.point(18, 34), html:markedIcon});
 
 let hasLocationPanned = false;
-let userPosition = null;
 
 class IMMMap extends React.Component {
+
+    constructor(props) {
+        super(props)
+        this.state = { userPosition: null }
+    }
+
     /**
      * Pans and zooms to the selected area when it has been confirmed
      * @param {*} map 
@@ -111,32 +116,30 @@ class IMMMap extends React.Component {
 
         const worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
 
-        function MapEventHandler(props) {
-            const parent = props.parent; // parent is what is referred to as "this" outside of this function
+        const MapEventHandler = () => {
             const map = useMapEvents({
               click: (e) => {
-                parent.addAreaWaypoint(e)
-                // map.locate()  // This finds the users current position via gps
+                this.addAreaWaypoint(e)
               },
               zoomlevelschange: () => { // Gets called on load, so use it as a replacement for load
-                parent.fitBounds(map)
+                this.fitBounds(map)
                 map.locate();
               },
               zoom: () => {
-                parent.updateBounds(map)
+                this.updateBounds(map)
               },
               moveend: () => {
-                parent.updateBounds(map)
+                this.updateBounds(map)
               },
               locationfound: (location) => { // Called when user's gps location has been found
                 if (!hasLocationPanned) {
                     // Makes sure only to pan to the user's location once
                     hasLocationPanned = true;
-                    userPosition = location.latlng;
+                    this.setState({ userPosition: location.latlng });
                     map.panTo(location.latlng);
                 }
-                if (parent.props.centerButton) {
-                    parent.props.centerButton.current.addEventListener("click", () => map.flyTo(userPosition))
+                if (this.props.centerButton) {
+                    this.props.centerButton.current.addEventListener("click", () => map.flyTo(this.state.userPosition))
                 }
               },
 
@@ -154,7 +157,7 @@ class IMMMap extends React.Component {
                 maxBoundsViscosity={0.5}
                 minZoom={10}
             >
-                <MapEventHandler parent={this} />
+                <MapEventHandler />
                 <TileLayer maxNativeZoom={18} maxZoom={22}
                     attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a>     contributors'
                     url={tile_server_url}
@@ -188,9 +191,9 @@ class IMMMap extends React.Component {
                 />
                 : ""}
                 {
-                    userPosition !== null ?
+                    this.state.userPosition !== null ?
                     <Marker 
-                    position={userPosition}
+                    position={this.state.userPosition}
                     icon={Leaflet.divIcon({
                         className: "userIcon",
                         iconAnchor: Leaflet.point(11, 11),
