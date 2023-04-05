@@ -13,7 +13,7 @@ import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
 import {connect, config, setConfigValue, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
-import {Check, Delete} from '@mui/icons-material';
+import {Check, Delete, MyLocation} from '@mui/icons-material';
 
 import Downstream from '../Connection/Downstream.js';
 
@@ -56,6 +56,12 @@ const styles = {
             easing: 'easeOut',
             duration: 'standard',
         })
+    },
+    fabAbove: {
+        bottom: (theme) => theme.spacing(14)
+    },
+    hidden: {
+        visibility: "hidden"
     }
 };
 
@@ -211,9 +217,18 @@ function StartUp(props) {
                 </DialogActions>
             </Dialog>
 
-            <Button ref={centerButton}>
-                Center!
-            </Button>
+
+            <ColorWrapper
+                ref={centerButton}
+                color="#CDCDCD"
+            >
+                <Fab
+                    sx={[styles.fab, styles.fabRight, styles.fabAbove, styles.hidden]}
+                >
+                    <MyLocation />
+                </Fab>
+            </ColorWrapper>
+
 
             <AttentionBorder>
                 DEFINE AREA

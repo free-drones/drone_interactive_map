@@ -135,11 +135,17 @@ class IMMMap extends React.Component {
                 if (!hasLocationPanned) {
                     // Makes sure only to pan to the user's location once
                     hasLocationPanned = true;
-                    this.setState({ userPosition: location.latlng });
                     map.panTo(location.latlng);
+                    // Keeps the user's location up to date
+                    setInterval(() => {
+                        map.locate();
+                    }, 10000);
                 }
+                this.setState({ userPosition: location.latlng });
+                // Shows the button for centering on the user and makes clicking it center on the user
                 if (this.props.centerButton) {
-                    this.props.centerButton.current.addEventListener("click", () => map.flyTo(this.state.userPosition))
+                    this.props.centerButton.current.addEventListener("click", () => map.flyTo(this.state.userPosition));
+                    this.props.centerButton.current.style.visibility = "visible";
                 }
               },
 
