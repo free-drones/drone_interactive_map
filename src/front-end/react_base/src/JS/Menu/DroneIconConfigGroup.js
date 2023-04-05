@@ -16,7 +16,7 @@ class DroneIconConfigGroup extends Component {
                     control={
                         <Slider
                             sx={{ padding: "10px !important" }}
-                            defaultValue={this.props.store.config.droneIconPixelSize}
+                            value={this.props.store.config.droneIconPixelSize}
                             valueLabelDisplay="auto"
                             step={1}
                             min={10}
