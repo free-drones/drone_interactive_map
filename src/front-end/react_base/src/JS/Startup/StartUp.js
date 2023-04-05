@@ -11,7 +11,7 @@ import Leaflet from 'leaflet';
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, showWarning} from "../Storage.js";
+import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, showWarning, showWarningActions, setShowWarning} from "../Storage.js";
 import { AttentionBorder, IncorrectAreaPopup } from "./AttentionBorder.js";
 import {Check, Delete} from '@mui/icons-material';
 
@@ -77,6 +77,7 @@ function StartUp(props) {
         message : ""
     });
 
+    // showWarning is bool for if to show crossing lines warning
     let showWarning = props.store.showWarning;
 
     useEffect(() => {
@@ -101,6 +102,7 @@ function StartUp(props) {
      * Clears waypoints. 
      */
     function clearWaypoints() {
+        props.store.setShowWarning(false);
         props.store.clearAreaWaypoints();
     }
 
@@ -149,7 +151,10 @@ function StartUp(props) {
                 color="accept"
             >
                 <Fab
-                    onClick={() => {setDialogState(true)}}
+                    onClick={() => {
+                        setDialogState(true);
+                        props.store.setShowWarning(false);
+                    }}
                     sx={[styles.fab, styles.fabRight]}
                     disabled={(props.store.areaWaypoints.length<3)}
                 >
@@ -216,9 +221,6 @@ function StartUp(props) {
                 DEFINE AREA
             </AttentionBorder>
 
-
-            
-
             <div>
                 <b> {showWarning ? <IncorrectAreaPopup> Warning: Lines are not allowed to cross </IncorrectAreaPopup> : "" } </b>
             </div>
@@ -229,4 +231,4 @@ function StartUp(props) {
     );
 }
 
-export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, messages, showWarning },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions })(StartUp)
+export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, messages, showWarning },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions, ...showWarningActions })(StartUp)

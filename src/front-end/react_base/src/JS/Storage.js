@@ -404,7 +404,7 @@ export const removeMessage = createAction('REMOVE_MESSAGE');
 export const clearMessages = createAction('CLEAR_MESSAGES');
 
 /**
- * Should show error message, true of false
+ * Action related to crossing lines message (showWarning)
  */
 export const setShowWarning = createAction('SET_SHOW_ERROR', function prepare(shouldShow){
         return {payload: shouldShow};

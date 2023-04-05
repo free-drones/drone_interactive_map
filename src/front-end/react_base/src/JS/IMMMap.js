@@ -176,7 +176,7 @@ class IMMMap extends React.Component {
 
     /**
      * Adds an area waypoint to the map
-     * @param {*} e the click event cotaining click location
+     * @param {*} e the click event containing click location
      */
     addAreaWaypoint(e) {
         const waypoint = {lat: e.latlng.lat, lng: e.latlng.lng};
@@ -185,7 +185,7 @@ class IMMMap extends React.Component {
             this.props.store.setShowWarning(false);
             this.props.store.addAreaWaypoint(waypoint);
         } else{
-            // Showes popup with warning message
+            // Shows popup with crossing lines warning message
             this.props.store.setShowWarning(true);
         }
     }
@@ -195,6 +195,7 @@ class IMMMap extends React.Component {
      * @param {Integer} i 
      */
     markerClick(i) {
+        this.props.store.setShowWarning(false);
         if (i !== this.props.store.areaWaypoints.length - 1) {
             // Restructure waypoints.
             var waypoints = this.props.store.areaWaypoints;
@@ -212,6 +213,9 @@ class IMMMap extends React.Component {
             // Marked node was clicked, remove it
             if(!removedWaypointLinesCrossing(i, this.props.store.areaWaypoints)) {
                 this.props.store.removeAreaWaypoint(i);
+            } else {
+                // Shows popup with crossing lines warning message
+                this.props.store.setShowWarning(true);
             }
         }
     }
