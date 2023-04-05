@@ -18,8 +18,11 @@ const markedIcon = '<svg style="font-size: 2.25rem; width: 36px; height: 36px;" 
 const marker = Leaflet.divIcon({className: "marker", iconAnchor: Leaflet.point(18, 34), html:markedIcon});
 
 
-
-
+/**
+ * ====================================================================================================
+ *                                         Help functions
+ * ====================================================================================================
+ */
 
 /**
  * Checks if there are waypoints having crossing connections when a new waypoint is added.
@@ -55,13 +58,11 @@ function newWaypointLinesCrossing(waypoint, waypoints) {
 
         const r = waypoints[i + 1].lat; 
         const s = waypoints[i + 1].lng;
-        crossing = crossing || intersectingVectors(a, b, c, d, p, q, r, s) || intersectingVectors(a, b, e, f, p, q, r, s);
+        crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s) || hasIntersectingVectors(a, b, e, f, p, q, r, s);
     };
 
     return crossing;
-
 };
-
 
 /**
  * Checks if any waypoints have crossing connections when waypoint of index is removed.
@@ -110,18 +111,16 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
         const r = waypoints[i + 1].lat; 
         const s = waypoints[i + 1].lng;
-        crossing = crossing || intersectingVectors(a, b, c, d, p, q, r, s);
+        crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
     };
 
     return crossing;
-
 };
-
 
 /**
  * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true. 
  */
-function intersectingVectors(a, b, c, d, p, q, r, s) {
+function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
     let det, gamma, lambda;
     det = (c - a) * (s - q) - (r - p) * (d - b);
     if (det === 0) {
@@ -134,21 +133,11 @@ function intersectingVectors(a, b, c, d, p, q, r, s) {
 };
 
 
-function newWaypointCheck(waypoint, waypoints, reconstructing = false) {
-    if((!newWaypointLinesCrossing(waypoint, waypoints) || reconstructing)) {
-            return true;
-        }
-    
-        return false;
-}
-
-function removedWaypointCheck(index, waypoints) {
-    if (!removedWaypointLinesCrossing(index, waypoints)) {
-            return true;
-        }
-    
-        return false;
-}
+/**
+ * ====================================================================================================
+ *                                       IMMMAP class
+ * ====================================================================================================
+ */
 
 
 class IMMMap extends React.Component {
@@ -190,8 +179,10 @@ class IMMMap extends React.Component {
      * @param {*} e the click event cotaining click location
      */
     addAreaWaypoint(e) {
-        if (this.props.allowDefine && newWaypointCheck({lat: e.latlng.lat, lng: e.latlng.lng}, this.props.store.areaWaypoints)) {
-             this.props.store.addAreaWaypoint({lat: e.latlng.lat, lng: e.latlng.lng})
+        const waypoint = {lat: e.latlng.lat, lng: e.latlng.lng};
+
+        if (this.props.allowDefine && !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)) {
+             this.props.store.addAreaWaypoint(waypoint);
         }
     }
 
@@ -215,7 +206,7 @@ class IMMMap extends React.Component {
         }
         else {
             // Marked node was clicked, remove it
-            if(removedWaypointCheck(i, this.props.store.areaWaypoints)) {
+            if(!removedWaypointLinesCrossing(i, this.props.store.areaWaypoints)) {
                 this.props.store.removeAreaWaypoint(i);
             }
         }
