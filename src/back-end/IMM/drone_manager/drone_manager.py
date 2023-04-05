@@ -62,7 +62,11 @@ class DroneManager(Thread):
         return len(self.drones)
     
     def create_mission(self, drone):
-        drone.current_mission = Mission(drone.next_point)
+        next_node = drone.route.get_next_node()
+        if isinstance(next_node, Route):
+            pass
+        else:
+            drone.current_mission = Mission(drone.next_point)
         return Mission(drone.next_point)
 
 
@@ -82,23 +86,10 @@ class DroneManager(Thread):
             #Continue
 
     def assign_missions(self):
-        for d in self.drones:
-            #Handle AUTO mode drones
-            if d.mode == "AUTO":
-                if d.mission.status == "done":
-                    d.current_mission = self.create_mission(d)
-                    d.execute_mission()
-            #Handle MAN mode drones
-            if d.mode == "MAN":
-                pass
-                #Update route after current map position
-            if d.mode == "PHOTO":
-                
-                #d.next_point = self.view_to_nodes(photo_view)
-                #d.current_mission = self.create_mission(d)
-                
-                
-                pass
+        for drone in self.drones:
+            if not drone.current_mission:
+                mission = self.create_mission(drone)
+                self.link.fly(mission, drone)
 
     
     def set_mode(self, mode):
@@ -122,8 +113,8 @@ class DroneManager(Thread):
         pass
 
     # Returns a route covering a photo request
-    def route_from_photo_request(self, view):
-        return self.view_to_route(view, weight=PHOTO_NODE_WEIGHT)
+    def route_from_photo_request(self, req):
+        return self.view_to_route(req, weight=req["weight"])
     
     # currently just takes center point regardless of zoom level
     def view_to_route(coords, weight=1):
@@ -140,20 +131,24 @@ class DroneManager(Thread):
             if next_photo_req["weight"] == 3: #3 is important picture, get it asap!
 
                 closest_drone = min(self.drones, key=lambda d: self.link.get_drone_position(d.id))
-                closest_drone.route.prepend(photo_req_route) # Note: add at index 1, not 0. 0 is the node we are currently moving to
-                                                             # Subnote: is this really how it should be? Maybe we should cancel any mission and just go to photo place?!
-                
+                closest_drone.secondary_route = photo_req_route
+                closest_drone.secondary_route.photo_request = next_photo_req
+
             elif next_photo_req["weight"] == 2: #2 is important but not super prio, append it somewhere!
                 pass
+            
             elif next_photo_req["weight"] == 1: #1 is not important, be efficient and use closest route!
                 
                 photo_route_reference_node = photo_req_route.get_next_node() # picks one node as reference when determining closest route
-                closest_route = min(self.routes, key=lambda r: r.distance_to(photo_route_reference_node))
-                new_route = Route(closest_route)
+                closest_route = min(self.routes, key=lambda r: r.squared_distance_to(photo_route_reference_node))
+                new_route = Route(closest_route, next_photo_req)
                 new_route.append(photo_req_route)
                 photo_route = pathfinding(new_route)
-            
-                self.photo_routes.append(photo_route)
+                for d in self.drones:
+                    if d.route == closest_route:
+                        d.secondary_route = photo_route
+                        break
+                
 
             pass
 
@@ -164,4 +159,9 @@ class DroneManager(Thread):
 class Mission():
     def __init__(self, points):
         self.points = points
+        
+
+    # TODO: this
+    def as_json():
+        return ""
 

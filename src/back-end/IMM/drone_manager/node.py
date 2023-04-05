@@ -7,5 +7,5 @@ class Node():
         self.weight = weight
     
     # TODO: proper lat long distance calculation. Maybe use package "LatLon"
-    def distance_to(self, node):
-        return 0
+    def squared_distance_to(self, node):
+        return ((self.lat - node.lat)**2 + (self.lon - node.lon)**2)

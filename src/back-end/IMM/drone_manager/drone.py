@@ -4,26 +4,26 @@ from IMM.drone_manager.node import Node
 class Drone():
     
     def __init__(self, id, mode="AUTO"):
-        self.id = id
+        self.id = id # Drone "name/id" to identify drones in Link class
         self.mode = mode
         self.route = None
-        self.next_point = None
+
         self.current_mission = None
-    
-    def get_status(self, input = -1): #TODO Make it dss status
-        return input
-    
-    def execute_mission(self):
-        pass
-        # communicate through self.link to send(?) mission to CRM and execute it
+        self.secondary_route = None # Used for photo routes, "side missions" if you will
+        
 
     def get_next_point(self):
-        # If we do not have a photo request mission
-        if not self.next_point:
-            self.next_point = self.route.get_next_node()
+        if self.secondary_route:
+            return self.secondary_route.get_next_node()
+        return self.route.get_next_node()
+
+
+    
+
+        # if not self.next_point:
+        #     self.next_point = self.route.get_next_node()
         
-        is_node = isinstance(self.next_point, Node)
-        self.route.update_route(reuse_node=is_node)
+        # is_node = isinstance(self.next_point, Node)
+        # self.route.update_route(reuse_node=is_node)
         
-        
-        return self.next_point
+        # return self.next_point

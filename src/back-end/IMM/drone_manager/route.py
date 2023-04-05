@@ -1,8 +1,9 @@
 import math
 
 class Route():
-    def __init__(self, nodes):
+    def __init__(self, nodes, photo_req = None):
         self.nodes = nodes
+        self.photo_request = photo_req
     
     # reorder route, should be called after having arrived at the next node
     def update_route(self, reuse_node=True): # :(
@@ -19,10 +20,10 @@ class Route():
     def add_nodes(self, nodes):
         self.nodes.extend(nodes)
 
-    def distance_to(self, node):
+    def squared_distance_to(self, node):
         dist = math.inf
         for n in self.nodes:
-            d = node.distance_to(n)
+            d = node.squared_distance_to(n)
             if d < dist:
                 dist = d
         return dist
