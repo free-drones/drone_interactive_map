@@ -404,6 +404,13 @@ export const removeMessage = createAction('REMOVE_MESSAGE');
 export const clearMessages = createAction('CLEAR_MESSAGES');
 
 /**
+ * Should show error message, true of false
+ */
+export const setShowWarning = createAction('SET_SHOW_ERROR', function prepare(shouldShow){
+        return {payload: shouldShow};
+});
+
+/**
  * ====================================================================================================
  *                                             Reducers
  * ====================================================================================================
@@ -573,6 +580,14 @@ export const _mapState = createReducer("Main", (builder) =>{
     })
 });
 
+export const _showWarning = createReducer(false, (builder) => {
+    builder
+    .addCase(setShowWarning, (state, action) => {
+        const show = action.payload;
+        return show;
+    })
+});
+
 /**
  * ====================================================================================================
  *                                      State mapping functions
@@ -648,7 +663,13 @@ export function mapState(state) {
     });
 }
 
-const states = { areaWaypoints, clientID, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState };
+export function showWarning(state) {
+    return ({
+        showWarning: state.showWarning
+    });
+}
+
+const states = { areaWaypoints, clientID, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState, showWarning };
 
 /**
  * Combine multiple functions into a single.
@@ -699,7 +720,9 @@ export const messagesActions = { addMessage, removeMessage, clearMessages }
 
 export const mapStateActions = {setMapState}
 
-const actions = { areaWaypointActions, clientIDActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions };
+export const showWarningActions = { setShowWarning };
+
+const actions = { areaWaypointActions, clientIDActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions, showWarningActions };
 
 /**
  * Storage
@@ -732,7 +755,8 @@ export const store = configureStore({
         mode: _mode,
         sensor: _sensor,
         messages: _messages,
-        mapState: _mapState
+        mapState: _mapState,
+        showWarning: _showWarning
     }
 });
 

@@ -50,7 +50,7 @@ const styles = {
 
     borderCenter: {
         position: 'absolute',
-        top: "20%",
+        top: "13%",
         left: "50%",
         transform: "translate(-50%, 0)",
         

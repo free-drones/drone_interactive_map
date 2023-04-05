@@ -11,7 +11,7 @@ import Leaflet from 'leaflet';
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
+import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, showWarning} from "../Storage.js";
 import { AttentionBorder, IncorrectAreaPopup } from "./AttentionBorder.js";
 import {Check, Delete} from '@mui/icons-material';
 
@@ -64,18 +64,20 @@ const styles = {
 */
 function StartUp(props) {
 
-    var [redirected, redirect] = useState(false);
+    let [redirected, redirect] = useState(false);
     redirect = redirect.bind(true);
 
-    var [dialogOpen, setDialogState] = useState(false);
+    let [dialogOpen, setDialogState] = useState(false);
 
-    var [clearWaypointsConfirm, setClearwaypointsConfirm] = useState(false);
+    let [clearWaypointsConfirm, setClearwaypointsConfirm] = useState(false);
 
-    var [snackbar, setSnackbar] = useState({
+    let [snackbar, setSnackbar] = useState({
         open : false,
         severity : "",
         message : ""
     });
+
+    let showWarning = props.store.showWarning;
 
     useEffect(() => {
         const newMessage = props.store.messages[props.store.messages.length - 1]
@@ -214,15 +216,17 @@ function StartUp(props) {
                 DEFINE AREA
             </AttentionBorder>
 
+
+            
+
+            <div>
+                <b> {showWarning ? <IncorrectAreaPopup> Warning: Lines are not allowed to cross </IncorrectAreaPopup> : "" } </b>
+            </div>
+ 
+
             <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} />
         </div>
     );
 }
 
-export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, messages },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions })(StartUp)
-
-/**
- * <div>
-                <b> {incorrectArea ? <IncorrectAreaPopup> Test </IncorrectAreaPopup> : "" } </b>
-            </div>
- */
+export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, messages, showWarning },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions })(StartUp)

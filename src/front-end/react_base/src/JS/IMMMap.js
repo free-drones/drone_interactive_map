@@ -2,11 +2,11 @@
  * Class file for map component.
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import { MapContainer , TileLayer, Marker, Polygon, ImageOverlay, useMapEvents } from 'react-leaflet';
 import "../CSS/Map.scss";
 import { connect, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
-import { mapPositionActions, zoomLevelActions, areaWaypointActions, mapStateActions } from './Storage.js'
+import { mapPositionActions, zoomLevelActions, areaWaypointActions, mapStateActions, showWarningActions } from './Storage.js'
 import { viewify } from './Helpers/maphelper.js'
 
 import Leaflet from 'leaflet';
@@ -182,7 +182,11 @@ class IMMMap extends React.Component {
         const waypoint = {lat: e.latlng.lat, lng: e.latlng.lng};
 
         if (this.props.allowDefine && !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)) {
-             this.props.store.addAreaWaypoint(waypoint);
+            this.props.store.setShowWarning(false);
+            this.props.store.addAreaWaypoint(waypoint);
+        } else{
+            // Showes popup with warning message
+            this.props.store.setShowWarning(true);
         }
     }
 
@@ -309,4 +313,4 @@ class IMMMap extends React.Component {
     }
 }
 
-export default connect({ areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures }, {...areaWaypointActions, ...mapPositionActions, ...zoomLevelActions, ...mapStateActions }) (IMMMap);
+export default connect({ areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures }, {...areaWaypointActions, ...mapPositionActions, ...zoomLevelActions, ...mapStateActions, ...showWarningActions }) (IMMMap);
