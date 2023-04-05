@@ -15,7 +15,10 @@
     stroke-width: 0.75px;
 }
 
-.marker:first-child {
+// This selector always selects the first element with the .marker class
+// Selects the first marker, if there are no elements without the marker class preceding the first marker
+// Also selects the first element of the marker class which is preceded by an element without the marker class
+.marker:first-child, :not(.marker) + .marker {
     color: #4caf50;
 }
 
