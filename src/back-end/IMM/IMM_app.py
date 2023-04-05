@@ -191,6 +191,11 @@ def on_set_area(data):
         _logger.debug(f"set_area resp: {response}")
         emit("response", response)
 
+        #route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
+        #route_list = Area + Pathfinding functions
+        route_list = []
+        thread_handler.drone_manager_thread.set_routes(route_list)
+
 
 @socketio.on("request_view")
 def on_request_view(data):
@@ -409,6 +414,8 @@ def on_set_mode(data):
 
         # Update the global mode.
         current_mode = data["arg"]["mode"]
+
+        thread_handler.get_drone_manager_thread().set_mode(current_mode)
 
         response = {}
         response["fcn"] = "ack"
