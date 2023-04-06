@@ -15,10 +15,24 @@
     stroke-width: 0.75px;
 }
 
-.marker:first-child {
+.first-marker {
     color: #4caf50;
 }
 
-.marker:last-child {
+.last-marker {
     color: #f44336;
+}
+
+.userIcon {
+    opacity: 0.8;
+    animation-name: userIcon;
+    animation-duration: 1.2s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    animation-direction: alternate-reverse;
+}
+
+@keyframes userIcon {
+    from {opacity: 0.1;}
+    to {opacity: 0.9;}
 }

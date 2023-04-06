@@ -5,17 +5,15 @@
 import React, {useState} from 'react';
 import TabDrawer from './TabDrawer.js';
 import TabDrawerTab from './TabDrawerTab.js';
-import ListItem from '@mui/material/ListItem';
-import {Button} from '@mui/material';
-import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
+import {Button, Dialog, DialogActions, DialogTitle, DialogContent, ListItem} from '@mui/material';
 import {Navigate} from "react-router-dom";
 import ModeButtonGroup from './ModeButtonGroup.js'
 import SensorModeButtonGroup from './SensorModeButtonGroup.js'
 import UndoIcon from '@mui/icons-material/Undo';
-import { connect, areaWaypoints, areaWaypointActions, requestQueueActions, mapState, mapStateActions, activePicturesActions } from '../Storage.js';
+import { connect, areaWaypoints, areaWaypointActions, requestQueueActions, mapState, mapStateActions, activePicturesActions, userPrio } from '../Storage.js';
 import ModeIcon from './ModeIcon.js'
 import ColorWrapper from '../ColorWrapper.js';
-import { userPrio } from '../Storage.js';
+import DroneIconConfigGroup from './DroneIconConfigGroup.js';
 
 const styles = {
     fullWidthButton : {
@@ -63,6 +61,9 @@ function SettingsDrawer(props) {
                 </ListItem>
                 <ListItem>
                     <SensorModeButtonGroup />
+                </ListItem>
+                <ListItem>
+                    <DroneIconConfigGroup /> 
                 </ListItem>
                 < div style={{flexGrow: 1}} />
                 <ListItem>
@@ -116,4 +117,4 @@ function SettingsDrawer(props) {
     );
 }
 
-export default connect({userPrio, areaWaypoints, mapState},{...areaWaypointActions, ...mapStateActions, ...requestQueueActions, ...activePicturesActions})( SettingsDrawer )
+export default connect({ userPrio, areaWaypoints, mapState },{ ...areaWaypointActions, ...mapStateActions, ...requestQueueActions, ...activePicturesActions })( SettingsDrawer )
