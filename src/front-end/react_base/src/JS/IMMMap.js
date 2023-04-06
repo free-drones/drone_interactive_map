@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { MapContainer , TileLayer, Marker, Polygon, ImageOverlay, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polygon, ImageOverlay, useMapEvents, ScaleControl } from 'react-leaflet';
 import "../CSS/Map.scss";
 import { connect, config, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
 import { mapPositionActions, zoomLevelActions, areaWaypointActions, mapStateActions } from './Storage.js'
@@ -94,7 +94,7 @@ class IMMMap extends React.Component {
         const markers = this.props.store.areaWaypoints.map((pos, i) => 
             <Marker 
                 position={pos}
-                key={JSON.stringify(pos)}
+                key={`marker${i}`}
                 icon={
                     Leaflet.divIcon({
                         className: 
@@ -168,8 +168,10 @@ class IMMMap extends React.Component {
                 maxBounds={this.props.maxBounds}
                 maxBoundsViscosity={0.5}
                 minZoom={10}
+                attributionControl={this.props.store.mapState === "Main"} // Only shows the attribution in Main, since it is covered in StartUp
             >
                 <MapEventHandler />
+                <ScaleControl imperial={false} position="bottomright" />
                 <TileLayer maxNativeZoom={18} maxZoom={22}
                     attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a>     contributors'
                     url={tile_server_url}

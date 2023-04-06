@@ -36,3 +36,10 @@
     from {opacity: 0.1;}
     to {opacity: 0.9;}
 }
+
+.leaflet-control-scale {
+    pointer-events: none;
+    position: fixed;
+    right: 80px;
+    bottom: 20px;
+}
