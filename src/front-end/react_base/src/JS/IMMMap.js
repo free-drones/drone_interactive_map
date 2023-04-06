@@ -157,7 +157,6 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
     let det, gamma, lambda;
     det = (c - a) * (s - q) - (r - p) * (d - b);
     if (det === 0) {
-        console.log("Det = 0");
         return false;
     }
 
@@ -219,14 +218,9 @@ class IMMMap extends React.Component {
         if (this.props.allowDefine && !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)) {
             this.props.store.setShowWarning(false);
             this.props.store.addAreaWaypoint(waypoint);
-            console.log("false lel")
         } else{
             // Shows popup with crossing lines warning message
             this.props.store.setShowWarning(true);
-            console.log("true sadge");
-            console.log("allowDefine: ", this.props.allowDefine);
-            console.log("lines crossing: ", waypoint);
-
         }
     }
 
