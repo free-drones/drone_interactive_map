@@ -33,8 +33,8 @@ const marker = Leaflet.divIcon({className: "marker", iconAnchor: Leaflet.point(1
  */
 function newWaypointLinesCrossing(waypoint, waypoints) {
     // vectors to be checked lat=y long=x
-    // vector 1: (a,b) -> (c,d) (neighbour 1, forward in list) intersects with (p,q) -> (r,s)
-    // vector 2: (a,b) -> (e,f) (neighbour 2, backward in list) intersects with (p,q) -> (r,s)
+    // vector 1: (c,d) -> (a,b) (neighbour 1, forward in list) intersects with (p,q) -> (r,s)
+    // vector 2: (e,f) -> (a,b) (neighbour 2, backward in list) intersects with (p,q) -> (r,s)
 
     if (waypoints.length < 3) {
         return false;
@@ -58,7 +58,7 @@ function newWaypointLinesCrossing(waypoint, waypoints) {
 
         const r = waypoints[i + 1].lat; 
         const s = waypoints[i + 1].lng;
-        crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s) || hasIntersectingVectors(a, b, e, f, p, q, r, s);
+        crossing = crossing || hasIntersectingVectors(c, d, a, b, p, q, r, s) || hasIntersectingVectors(e, f, a, b, p, q, r, s);
     };
 
     return crossing;
@@ -153,12 +153,15 @@ function removedWaypointLinesCrossing(index, waypoints) {
  * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true. 
  */
 function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
+    // det = determenant
     let det, gamma, lambda;
     det = (c - a) * (s - q) - (r - p) * (d - b);
     if (det === 0) {
+        console.log("Det = 0");
         return false;
     }
 
+    //gamma & lambda = lengths to intesecting point
     lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
     gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
     return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
@@ -216,9 +219,14 @@ class IMMMap extends React.Component {
         if (this.props.allowDefine && !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)) {
             this.props.store.setShowWarning(false);
             this.props.store.addAreaWaypoint(waypoint);
+            console.log("false lel")
         } else{
             // Shows popup with crossing lines warning message
             this.props.store.setShowWarning(true);
+            console.log("true sadge");
+            console.log("allowDefine: ", this.props.allowDefine);
+            console.log("lines crossing: ", waypoint);
+
         }
     }
 

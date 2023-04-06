@@ -11,7 +11,7 @@ import Leaflet from 'leaflet';
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, showWarning, showWarningActions, setShowWarning} from "../Storage.js";
+import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, showWarning, showWarningActions} from "../Storage.js";
 import { AttentionBorder, IncorrectAreaPopup } from "./AttentionBorder.js";
 import {Check, Delete} from '@mui/icons-material';
 
