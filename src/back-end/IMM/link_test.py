@@ -1,25 +1,31 @@
 import link
 import time
+import link_range
 
-link_object = link.Link()
+link_object = link_range.LinkRange()
 alive = True
 def test_link():
-    link_object.connect_to_drone()
-    link_object.connect_to_drone()
-    drone_list = link_object.get_list_of_drones()
-    for drone in drone_list:
-        link_object.fly_random_mission(drone)
-    time.sleep(10)
-    for drone in drone_list:
-        link_object.fly_random_mission(drone)
-    while(alive):
+    try:
+        link_object.connect_to_drone()
+        link_object.connect_to_drone()
+        drone_list = link_object.get_list_of_drones()
+        for drone in drone_list:
+            link_object.fly_random_mission(drone)
+        time.sleep(10)
+        for drone in drone_list:
+            link_object.fly_random_mission(drone)
+        while(alive):
         #for drone in drone_list:
             #link_object.get_mission_status(drone)
             #if link_object.get_mission_status(drone) == 'waiting':
                 #print("flying next mission")
                 #link_object.fly_random_mission(drone)
-        print("sleeping")
-        time.sleep(1)
+            print("sleeping")
+            time.sleep(1)
+    except Exception as e:
+        print("uhh i died")
+        link_object.kill()
+        alive = False
 
 
 
