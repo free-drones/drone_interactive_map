@@ -4,14 +4,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import IMM_MAP from "../IMMMap.js";
 import Axis from 'axis.js';
-import clsx from 'clsx';
 
 import Leaflet from 'leaflet';
 
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, config, setConfigValue, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions, userPrio} from "../Storage.js";
+import {connect, config, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions, userPrio} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import {Check, Delete, MyLocation} from '@mui/icons-material';
 
