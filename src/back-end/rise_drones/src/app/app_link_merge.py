@@ -73,339 +73,358 @@ def get_3d_distance(loc1, loc2):
   return (d_northing, d_easting, dalt, d_2d, d_3d, bearing)
 
 class Link():
-    '''This class is used to connect to drones and send missions to them'''
-    def __init__(self):
-        self.drone_dict = {}
+  '''This class is used to connect to drones and send missions to them'''
+  def __init__(self):
+      self.drone_dict = {}
 
-        self.ip = IP                                     # auto ip for now
-        self.crm = '10.44.170.10:17700'                  # crm ip and port
-        self.alive=True
+      self.ip = IP                                     # auto ip for now
+      self.crm = '10.44.170.10:17700'                  # crm ip and port
+      self.alive=True
 
-        # The application sockets
-        # Use ports depending on subnet used to pass RISE firewall
-        # Rep: ANY -> APP
-        self._app_socket = dss.auxiliaries.zmq.Rep(_context,self.ip, label='link', min_port=17700, max_port=17750)
-        print(self._app_socket.port)
-        print(self._app_socket.ip)
-        
-        self._commands = {'connect_to_drone':       {'request': self._request_connect_to_drone},
-                          'get_list_of_drones':     {'request': self._request_get_list_of_drones},
-                          'fly':                    {'request': self._request_fly},
-                          'fly_random_mission':      {'request': self._request_fly_random_mission},
-                          'get_mission_status':     {'request': self._request_get_mission_status},
-                          'get_drone_waypoint':     {'request': self._request_get_drone_waypoint},
-                          'return_to_home':         {'request': self._request_return_to_home},
-                          'get_drone_position':     {'request': self._request_get_drone_position},}
+      # The application sockets
+      # Use ports depending on subnet used to pass RISE firewall
+      # Rep: ANY -> APP
+      self._app_socket = dss.auxiliaries.zmq.Rep(_context,self.ip, label='link', min_port=17700, max_port=17750)
+      print(self._app_socket.port)
+      print(self._app_socket.ip)
+      
+      self._commands = {'connect_to_drone':       {'request': self._request_connect_to_drone},
+                        'get_list_of_drones':     {'request': self._request_get_list_of_drones},
+                        'fly':                    {'request': self._request_fly},
+                        'fly_random_mission':      {'request': self._request_fly_random_mission},
+                        'get_mission_status':     {'request': self._request_get_mission_status},
+                        'get_drone_waypoint':     {'request': self._request_get_drone_waypoint},
+                        'return_to_home':         {'request': self._request_return_to_home},
+                        'get_drone_position':     {'request': self._request_get_drone_position},}
+
+  
+  def main(self):
+    '''Listens for requests from ANY, tries to carry out said requests and replies'''
+    print("i am listening on ip: " ,self._app_socket.ip ," and port: ", self._app_socket.port)
+    _logger.info('Reply socket for link is listening on port: %d', self._app_socket.port)
+    while self.alive:
+      try:
+        print("Waiting for message...")
+        msg = self._app_socket.recv_json()
+        print(f"Received message: {msg}")
+        msg = json.loads(msg)
+        fcn = msg['fcn'] if 'fcn' in msg else ''
+        if fcn in self._commands:
+          request = self._commands[fcn]['request']
+          answer = request(msg)
+        else:
+          answer = dss.auxiliaries.zmq.nack(msg['fcn'], 'Request not supported')
+        answer = json.dumps(answer)
+        print(f"Sending answer: {answer}")
+        self._app_socket.send_json(answer)
+      except KeyboardInterrupt:
+          _logger.warning('Shutdown due to keyboard interrupt')
+          break
+      except:
+        pass
+    self._app_socket.close()
+    _logger.info("Reply socket closed, thread exit")
     
-    #--------------------------------------------------------------------#
-    # Application reply thread
-    def main(self):
-      '''Listens for requests from ANY, tries to carry out said requests and replies'''
-      print("i am listening on ip: " ,self._app_socket.ip ," and port: ", self._app_socket.port)
-      _logger.info('Reply socket for link is listening on port: %d', self._app_socket.port)
-      while self.alive:
-        try:
-          print("Waiting for message...")
-          msg = self._app_socket.recv_json()
-          print(f"Received message: {msg}")
-          msg = json.loads(msg)
-          fcn = msg['fcn'] if 'fcn' in msg else ''
-          if fcn in self._commands:
-            request = self._commands[fcn]['request']
-            answer = request(msg)
-          else:
-            answer = dss.auxiliaries.zmq.nack(msg['fcn'], 'Request not supported')
-          answer = json.dumps(answer)
-          print(f"Sending answer: {answer}")
-          self._app_socket.send_json(answer)
-        except KeyboardInterrupt:
-            _logger.warning('Shutdown due to keyboard interrupt')
-            break
-        except:
-          pass
+
+#-------------------------- Request functions --------------------------#
+  def _request_get_list_of_drones(self, msg):
+    '''Handles get_list_of_drones request and sends the list of drones as a reply.'''
+    # Call the get_list_of_drones function
+    list_of_drones = self.get_list_of_drones()
+
+    # Construct the reply
+    reply = {'status': 'success',
+            'fcn': 'get_list_of_drones',
+            'drone_list': list(list_of_drones)} # Convert the keys view object to a list
+    return reply
+  
+
+  def _request_fly(self, msg):
+    '''Handles the fly request and starts a new thread that flies the specified mission with the specified drone.'''
+    # Extract the required information from the msg
+    mission = msg['mission']
+    drone_name = msg['drone_name']
+
+    if mission is None or drone_name is None:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'Missing required information (mission or drone_name)'}
+        return reply
+
+    try:
+        self.fly(mission, drone_name)
+        reply = {'status': 'success',
+                'fcn': 'fly',
+                'message': f'Mission started for drone {drone_name}'}
+    except KeyError:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'Invalid drone name'}
+    except Exception:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'something went wrong'}
+    return reply
+  
+
+  def _request_fly_random_mission(self, msg):
+    '''Handles the fly request and starts a new thread that flies the specified mission with the specified drone.'''
+    # Extract the required information from the msg
+    drone_name = msg['drone_name']
+
+    if  drone_name is None:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'Missing required information drone_name'}
+        return reply
+
+    try:
+        self.fly_random_mission(drone_name)
+        reply = {'status': 'success',
+                'fcn': 'fly',
+                'message': f'Random mission started for drone {drone_name}'}
+    except KeyError:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'Invalid drone name'}
+    except Exception:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'something went wrong'}
+    return reply
+  
+
+  def _request_get_mission_status(self, msg):
+    '''Handles the get_mission_status request and returns the mission status of the specified drone.'''
+    # Extract the required information from the msg
+    drone_name = msg.get('drone_name')
+
+    if drone_name is None:
+        reply = {'status': 'error',
+            'fcn': 'get_mission_status',
+            'message': 'Missing required information (drone_name)'}
+        return reply
+    try:
+        mission_status = self.get_mission_status(drone_name)
+        reply = {'status': 'success',
+            'fcn': 'get_mission_status',
+            'drone_name': drone_name,
+            'mission_status': mission_status}
+    except KeyError:
+        reply = {'status': 'error',
+            'fcn': 'get_mission_status',
+            'message': 'Invalid drone name'}
+    except Exception:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'something went wrong'}
+    return reply
+
+
+  def _request_connect_to_drone(self, msg):
+    '''Handles the connect_to_drone request and creates a new drone object, adding it to the drone dictionary.'''
+    connected = self.connect_to_drone()
+    if connected:
+        reply = {'status': 'success',
+            'fcn': 'connect_to_drone',
+            'message': 'Drone connected successfully',
+            'drone_name': f'drone{len(self.drone_dict) - 1}'}
+    else:
+        reply = {'status': 'error',
+            'fcn': 'connect_to_drone',
+            'message': 'Failed to connect to drone'}
+    return reply
+  
+
+  def _request_get_drone_waypoint(self, msg):
+    '''Handles the get_drone_waypoint request and returns the current waypoint of the specified drone.'''
+    # Extract the required information from the msg
+    drone_name = msg.get('drone_name')
+
+    if drone_name is None:
+        reply = {'status': 'error',
+                'fcn': 'get_drone_waypoint',
+                'message': 'Missing required information (drone_name)'}
+        return reply
+
+    try:
+        waypoint = self.get_drone_waypoint(drone_name)
+        reply = {'status': 'success',
+                'fcn': 'get_drone_waypoint',
+                'drone_name': drone_name,
+                'drone_waypoint': waypoint}
+    except KeyError:
+        reply = {'status': 'error',
+                'fcn': 'get_drone_waypoint',
+                'message': 'Invalid drone name'}
+    except Exception:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'something went wrong'}
+    return reply
+  
+
+  def _request_return_to_home(self, msg):
+    '''Handles the return_to_home request and returns the specified drone to its launch location.'''
+    # Extract the required information from the msg
+    drone_name = msg.get('drone_name')
+
+    if drone_name is None:
+        reply = {'status': 'error',
+                'fcn': 'return_to_home',
+                'message': 'Missing required information (drone_name)'}
+        return reply
+
+    try:
+        self.return_to_home(drone_name)
+        reply = {'status': 'success',
+                'fcn': 'return_to_home',
+                'message': f'Drone {drone_name} returning to home'}
+    except KeyError:
+        reply = {'status': 'error',
+            'fcn': 'return_to_home',
+            'message': 'Invalid drone name'}
+    except Exception:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'something went wrong'}
+    return reply
+  
+
+  def _request_get_drone_position(self, msg):
+    '''Handles the get_drone_position request and returns the current state of the specified drone.'''
+    # Extract the required information from the msg
+    drone_name = msg.get('drone_name')
+
+    if drone_name is None:
+        reply = {'status': 'error',
+                'fcn': 'get_drone_position',
+                'message': 'Missing required information (drone_name)'}
+        return reply
+
+    try:
+        drone_position = self.get_drone_position(drone_name)
+        reply = {'status': 'success',
+                'fcn': 'get_drone_position',
+                'drone_name': drone_name,
+                'drone_position': drone_position}
+    except KeyError:
+        reply = {'status': 'error',
+                'fcn': 'get_drone_position',
+                'message': 'Invalid drone name'}
+    except Exception:
+        reply = {'status': 'error',
+                'fcn': 'fly',
+                'message': 'something went wrong'}
+    return reply
+  
+  
+# -------------------------- Drone Management -------------------------- # 
+  def connect_to_drone(self):
+    '''Creates a new drone object and adds it to the drone dictionary'''
+    print("i am trying to connect to a drone")
+    drone_name = "drone"+ str(len(self.drone_dict))
+    new_drone = Drone(self.ip, drone_name, self.crm)
+    if new_drone.drone_connected:
+        self.drone_dict[drone_name] = new_drone
+        print("i connected to a drone")
+        return True
+    else:
+        # kill any threads that were created
+        new_drone.kill()
+        return False
+
+
+  def get_list_of_drones(self):
+      '''Returns a list of all drones'''
+      return self.drone_dict.keys()
+  
+
+  def kill(self):
+      '''Kills all drones and clears the drone dictionary, runs on keyboard interrupt'''
+      if not self.drone_dict == {}:
+          for drone in self.drone_dict.values():
+              drone.kill()
+      self.drone_dict = {}
+      self.alive = False
       self._app_socket.close()
-      _logger.info("Reply socket closed, thread exit")
-    #--------------------------------------------------------------------#
-    # Request handlers
-    
-    def _request_get_list_of_drones(self, msg):
-      '''Handles get_list_of_drones request and sends the list of drones as a reply.'''
-      # Call the get_list_of_drones function
-      list_of_drones = self.get_list_of_drones()
 
-      # Construct the reply
-      reply = {'status': 'success',
-              'fcn': 'get_list_of_drones',
-              'drone_list': list(list_of_drones)} # Convert the keys view object to a list
-      return reply
-    
-    def _request_fly(self, msg):
-      '''Handles the fly request and starts a new thread that flies the specified mission with the specified drone.'''
-      # Extract the required information from the msg
-      mission = msg['mission']
-      drone_name = msg['drone_name']
 
-      if mission is None or drone_name is None:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'Missing required information (mission or drone_name)'}
-          return reply
-
-      try:
-          self.fly(mission, drone_name)
-          reply = {'status': 'success',
-                  'fcn': 'fly',
-                  'message': f'Mission started for drone {drone_name}'}
-      except KeyError:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'Invalid drone name'}
-      except Exception:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'something went wrong'}
-      return reply
-    
-    def _request_fly_random_mission(self, msg):
-      '''Handles the fly request and starts a new thread that flies the specified mission with the specified drone.'''
-      # Extract the required information from the msg
-      drone_name = msg['drone_name']
-
-      if  drone_name is None:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'Missing required information drone_name'}
-          return reply
-
-      try:
-          self.fly_random_mission(drone_name)
-          reply = {'status': 'success',
-                  'fcn': 'fly',
-                  'message': f'Random mission started for drone {drone_name}'}
-      except KeyError:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'Invalid drone name'}
-      except Exception:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'something went wrong'}
-      return reply
-    
-    def _request_get_mission_status(self, msg):
-      '''Handles the get_mission_status request and returns the mission status of the specified drone.'''
-      # Extract the required information from the msg
-      drone_name = msg.get('drone_name')
-
-      if drone_name is None:
-          reply = {'status': 'error',
-              'fcn': 'get_mission_status',
-              'message': 'Missing required information (drone_name)'}
-          return reply
-      try:
-          mission_status = self.get_mission_status(drone_name)
-          reply = {'status': 'success',
-              'fcn': 'get_mission_status',
-              'drone_name': drone_name,
-              'mission_status': mission_status}
-      except KeyError:
-          reply = {'status': 'error',
-              'fcn': 'get_mission_status',
-              'message': 'Invalid drone name'}
-      except Exception:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'something went wrong'}
-      return reply
-    
-    def _request_connect_to_drone(self, msg):
-      '''Handles the connect_to_drone request and creates a new drone object, adding it to the drone dictionary.'''
-      connected = self.connect_to_drone()
-      if connected:
-          reply = {'status': 'success',
-              'fcn': 'connect_to_drone',
-              'message': 'Drone connected successfully',
-              'drone_name': f'drone{len(self.drone_dict) - 1}'}
+  def fly(self, mission, drone_name):
+      '''Starts a new thread that flies the specified mission with the specified drone'''
+      if not self.valid_drone_name(drone_name):
+          raise KeyError('Invalid drone name')
+      if self.drone_dict[drone_name].validate_mission(mission):
+          with self.drone_dict[drone_name].mission_status_lock:
+              self.drone_dict[drone_name].mission_status = 'flying'
+          # stop the current mission
+          self.drone_dict[drone_name].stop_threads.set()
+          time.sleep(3)
+          # allows for next mission to be flown
+          self.drone_dict[drone_name].stop_threads.clear()
+          fly_thread = threading.Thread(self.drone_dict[drone_name].fly_mission(mission), daemon=True)
+          fly_thread.start()
       else:
-          reply = {'status': 'error',
-              'fcn': 'connect_to_drone',
-              'message': 'Failed to connect to drone'}
-      return reply
-    
-    def _request_get_drone_waypoint(self, msg):
-      '''Handles the get_drone_waypoint request and returns the current waypoint of the specified drone.'''
-      # Extract the required information from the msg
-      drone_name = msg.get('drone_name')
+          raise Exception('Mission denied: invalid mission')
 
-      if drone_name is None:
-          reply = {'status': 'error',
-                  'fcn': 'get_drone_waypoint',
-                  'message': 'Missing required information (drone_name)'}
-          return reply
 
-      try:
-          waypoint = self.get_drone_waypoint(drone_name)
-          reply = {'status': 'success',
-                  'fcn': 'get_drone_waypoint',
-                  'drone_name': drone_name,
-                  'drone_waypoint': waypoint}
-      except KeyError:
-          reply = {'status': 'error',
-                  'fcn': 'get_drone_waypoint',
-                  'message': 'Invalid drone name'}
-      except Exception:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'something went wrong'}
-      return reply
-    
-    def _request_return_to_home(self, msg):
-      '''Handles the return_to_home request and returns the specified drone to its launch location.'''
-      # Extract the required information from the msg
-      drone_name = msg.get('drone_name')
+  def fly_random_mission(self, drone_name):
+      '''Starts a new thread that flies a random mission with the specified drone'''
+      if not self.valid_drone_name(drone_name):
+          raise KeyError('Invalid drone name')
+      with self.drone_dict[drone_name].mission_status_lock:
+          self.drone_dict[drone_name].mission_status = 'flying'
+      # stop the current mission
+      self.drone_dict[drone_name].stop_threads.set()
+      time.sleep(3)
+      # allows for next mission to be flown
+      fly_thread = threading.Thread(self.drone_dict[drone_name].fly_random_mission(), daemon=True)
+      fly_thread.start()
 
-      if drone_name is None:
-          reply = {'status': 'error',
-                  'fcn': 'return_to_home',
-                  'message': 'Missing required information (drone_name)'}
-          return reply
 
-      try:
-          self.return_to_home(drone_name)
-          reply = {'status': 'success',
-                  'fcn': 'return_to_home',
-                  'message': f'Drone {drone_name} returning to home'}
-      except KeyError:
-          reply = {'status': 'error',
-              'fcn': 'return_to_home',
-              'message': 'Invalid drone name'}
-      except Exception:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'something went wrong'}
-      return reply
-    
-    def _request_get_drone_position(self, msg):
-      '''Handles the get_drone_position request and returns the current state of the specified drone.'''
-      # Extract the required information from the msg
-      drone_name = msg.get('drone_name')
+  def get_mission_status(self, drone_name):
+      '''Returns the status of the mission, 'flying' = mission is in progress, 'waiting' = flying and waiting for a new mission, 
+      'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied'''
+      if not self.valid_drone_name(drone_name):
+          raise KeyError('Invalid drone name')
+      with self.drone_dict[drone_name].mission_status_lock:
+          return self.drone_dict[drone_name].mission_status
 
-      if drone_name is None:
-          reply = {'status': 'error',
-                  'fcn': 'get_drone_position',
-                  'message': 'Missing required information (drone_name)'}
-          return reply
 
-      try:
-          drone_position = self.get_drone_position(drone_name)
-          reply = {'status': 'success',
-                  'fcn': 'get_drone_position',
-                  'drone_name': drone_name,
-                  'drone_position': drone_position}
-      except KeyError:
-          reply = {'status': 'error',
-                  'fcn': 'get_drone_position',
-                  'message': 'Invalid drone name'}
-      except Exception:
-          reply = {'status': 'error',
-                  'fcn': 'fly',
-                  'message': 'something went wrong'}
-      return reply
-    
-    #--------------------------------------------------------------------#
-    # Public functions
-    
-    def connect_to_drone(self):
-      '''Creates a new drone object and adds it to the drone dictionary'''
-      print("i am trying to connect to a drone")
-      drone_name = "drone"+ str(len(self.drone_dict))
-      new_drone = Drone(self.ip, drone_name, self.crm)
-      if new_drone.drone_connected:
-          self.drone_dict[drone_name] = new_drone
-          print("i connected to a drone")
+  def return_to_home(self, drone_name):
+      '''Returns the drone to its launch location'''
+      if not self.valid_drone_name(drone_name):
+          raise KeyError('Invalid drone name')
+      with self.drone_dict[drone_name].mission_status_lock:
+          self.drone_dict[drone_name].mission_status = 'flying'
+      # stop the current mission
+      self.drone_dict[drone_name].stop_threads.set()
+      time.sleep(3)
+      # allows for next mission to be flown
+      home_thread = threading.Thread(self.drone_dict[drone_name].return_to_home(), daemon=True)
+      home_thread.start()
+
+
+  def get_drone_position(self, drone_name):
+      '''Returns the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north}'''
+      if not self.valid_drone_name(drone_name):
+          raise KeyError('Invalid drone name')
+      return self.drone_dict[drone_name].get_drone_location()
+
+
+  def get_drone_waypoint(self, drone_name):
+      '''Returns the current waypoint of the drone, {‘"lat" : lat , "lon": lon , "alt": new_alt, "alt_type": "amsl", "heading": degrees relative true north,  "speed": speed}'''
+      if not self.valid_drone_name(drone_name):
+          raise KeyError('Invalid drone name')
+      return self.drone_dict[drone_name].get_current_waypoint()
+
+
+  def valid_drone_name(self, drone_name):
+      '''Returns true if the drone name is valid'''
+      if drone_name in self.drone_dict:
           return True
       else:
-          new_drone.kill()                                                         # kill any threads that were created
           return False
-
-    def get_list_of_drones(self):
-        '''Returns a list of all drones'''
-        return self.drone_dict.keys()
-    
-    def kill(self):
-        '''Kills all drones and clears the drone dictionary'''
-        if not self.drone_dict == {}:
-            for drone in self.drone_dict.values():
-                drone.kill()
-        self.drone_dict = {}
-        self.alive = False
-        self._app_socket.close()
-
-    def fly(self, mission, drone_name):
-        '''Starts a new thread that flies the specified mission with the specified drone'''
-        if not self.valid_drone_name(drone_name):
-            raise KeyError('Invalid drone name')
-        if self.drone_dict[drone_name].validate_mission(mission):
-            with self.drone_dict[drone_name].mission_status_lock:
-                self.drone_dict[drone_name].mission_status = 'flying'
-            self.drone_dict[drone_name].stop_threads.set()                         # stop the current mission
-            time.sleep(3)
-            self.drone_dict[drone_name].stop_threads.clear()                       # allows for next mission to be flown
-            fly_thread = threading.Thread(self.drone_dict[drone_name].fly_mission(mission), daemon=True)
-            fly_thread.start()
-        else:
-            raise Exception('Mission denied: invalid mission')
-    
-    def fly_random_mission(self, drone_name):
-        '''Starts a new thread that flies a random mission with the specified drone'''
-        if not self.valid_drone_name(drone_name):
-            raise KeyError('Invalid drone name')
-        with self.drone_dict[drone_name].mission_status_lock:
-            self.drone_dict[drone_name].mission_status = 'flying'
-        self.drone_dict[drone_name].stop_threads.set()                         # stop the current mission
-        time.sleep(3)
-        self.drone_dict[drone_name].stop_threads.clear()                       # allows for next mission to be flown
-        fly_thread = threading.Thread(self.drone_dict[drone_name].fly_random_mission(), daemon=True)
-        fly_thread.start()
-
-    def get_mission_status(self, drone_name):
-        '''Returns the status of the mission, 'flying' = mission is in progress, 'waiting' = flying and waiting for a new mission, 
-        'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied'''
-        if not self.valid_drone_name(drone_name):
-            raise KeyError('Invalid drone name')
-        with self.drone_dict[drone_name].mission_status_lock:
-            return self.drone_dict[drone_name].mission_status
-    
-    def return_to_home(self, drone_name):
-        '''Returns the drone to its launch location'''
-        if not self.valid_drone_name(drone_name):
-            raise KeyError('Invalid drone name')
-        with self.drone_dict[drone_name].mission_status_lock:
-            self.drone_dict[drone_name].mission_status = 'flying'
-        self.drone_dict[drone_name].stop_threads.set()                         # stop the current mission
-        time.sleep(1)
-        self.drone_dict[drone_name].stop_threads.clear()                       # allows for next mission to be flown
-        home_thread = threading.Thread(self.drone_dict[drone_name].return_to_home(), daemon=True)
-        home_thread.start()
-    
-    def get_drone_position(self, drone_name):
-        '''Returns the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north}'''
-        if not self.valid_drone_name(drone_name):
-            raise KeyError('Invalid drone name')
-        return self.drone_dict[drone_name].get_drone_location()
-
-    def get_drone_waypoint(self, drone_name):
-        '''Returns the current waypoint of the drone, {‘"lat" : lat , "lon": lon , "alt": new_alt, "alt_type": "amsl", "heading": degrees relative true north,  "speed": speed}'''
-        if not self.valid_drone_name(drone_name):
-            raise KeyError('Invalid drone name')
-        return self.drone_dict[drone_name].get_current_waypoint()
-    
-    def valid_drone_name(self, drone_name):
-        '''Returns true if the drone name is valid'''
-        if drone_name in self.drone_dict:
-            return True
-        else:
-            return False
 
 class Drone():
   # Init
@@ -476,9 +495,6 @@ class Drone():
     # Start class specific threads
     self.connect_to_drone()
     self.setup_dss_info_stream()
-
-    #self.setup_dss_data_stream() # Not implemented
-        #App-specific parameters
     
     # Cheat battery level because it is not implemented in DSS
     self.battery_level = 100.0 
@@ -496,17 +512,16 @@ class Drone():
     #take-off height
     self.takeoff_height = 15.0
 
-#--------------------------------------------------------------------#
+
   @property
   def alive(self):
     '''checks if application is alive'''
     return self._alive
 
-#--------------------------------------------------------------------#
-# This method runs on KeyBoardInterrupt, time to release resources and clean up.
-# Disconnect connected drones and unregister from crm, close ports etc..
+
   def kill(self):
-    '''Kill the application, close sockets, stop threads and unregister from CRM'''
+    '''This method runs on KeyBoardInterrupt, time to release resources and clean up.
+      Disconnect connected drones and unregister from crm, close ports etc..'''
     _logger.info("Closing down...")
     self._alive = False
     # Kill info and data thread
@@ -536,8 +551,7 @@ class Drone():
 
     _logger.debug('~ THE END ~')
 
-#--------------------------------------------------------------------#
-# Application reply thread
+
   def _main_app_reply(self):
     '''Listens for requests from ANY, tries to carry out said requests and replies'''
     _logger.info('Reply socket is listening on port: %d', self._app_socket.port)
@@ -558,15 +572,14 @@ class Drone():
     self._app_socket.close()
     _logger.info("Reply socket closed, thread exit")
 
-#--------------------------------------------------------------------#
-# Application reply: 'push_dss'
+
+#-------------------------- Request functions --------------------------#
   def _request_push_dss(self, msg):
     '''Not implemented'''
     answer = dss.auxiliaries.zmq.nack(msg['fcn'], 'Not implemented')
     return answer
 
-#--------------------------------------------------------------------#
-# Application reply: 'get_info'
+
   def _request_get_info(self, msg):
     '''Returns info about the application, specifically the app_id and the ports for info/data streams'''
     answer = dss.auxiliaries.zmq.ack(msg['fcn'])
@@ -575,8 +588,7 @@ class Drone():
     answer['data_pub_port'] = None
     return answer
 
-#--------------------------------------------------------------------#
-# Setup the DSS info stream thread
+
   def setup_dss_info_stream(self):
     '''Setup the DSS info stream thread'''
     #Get info port from DSS
@@ -586,16 +598,16 @@ class Drone():
         target=self._main_info_dss, args=[self.drone._dss.ip, info_port])
       self._dss_info_thread_active = True
       self._dss_info_thread.start()
-#--------------------------------------------------------------------#
-# await init point
+
+
   def task_await_init_point(self):
     '''Wait for start position from drone'''
     # Wait until info stream up and running
     while self.alive and not self.start_pos_received:
       _logger.debug("Waiting for start position from drone...")
       time.sleep(1.0)
-#--------------------------------------------------------------------#
-# Setup the DSS data stream thread
+
+
   def setup_dss_data_stream(self):
     '''Setup the DSS data stream thread (Not implemented)'''
     #Get data port from DSS
@@ -606,8 +618,6 @@ class Drone():
       self._dss_data_thread_active = True
       self._dss_data_thread.start()
 
-#--------------------------------------------------------------------#
-# The main function for subscribing to info messages from the DSS.
 
   def _main_info_dss(self, ip, port):
     '''The main function for subscribing to info messages from the DSS.'''
@@ -631,11 +641,6 @@ class Drone():
             self.start_pos_received = True
         elif topic == 'battery':
           _logger.debug("Not implemented yet...")
-          #Not supported yet in the DSS
-          #self._battery_level = msg['battery status']
-          #if self._battery_level < self._battery_threshold:
-          # self.keep_flying = False
-          #set keep_flying flag to false when battery lower than threshold
         else:
           _logger.warning("Topic not recognized on info link: %s", topic)
       except:
@@ -643,8 +648,7 @@ class Drone():
     info_socket.close()
     _logger.info("Stopped thread and closed info socket")
 
-#--------------------------------------------------------------------#
-# The main function for subscribing to data messages from the DSS.
+
   def _main_data_dss(self, ip, port):
     '''The main function for subscribing to data messages from the DSS.)'''
     # Create data socket and start listening thread
@@ -667,8 +671,7 @@ class Drone():
         pass
     data_socket.close()
     _logger.info("Stopped thread and closed data socket")
-#--------------------------------------------------------------------#
-# Connect to the drone
+
 
   def connect_to_drone(self, capabilities=['SIM']):
     '''Ask the CRM for a drone with specified capabilities (default simulated ['SIM']) and connect to it'''
@@ -678,7 +681,6 @@ class Drone():
       _logger.info('No available drone')
       self.drone_connected = False
       return
-
     # Connect to the drone, set app_id in socket
     try:
       self.drone.connect(answer['ip'], answer['port'], app_id=self.crm.app_id)
@@ -688,8 +690,8 @@ class Drone():
       _logger.info("Failed to connect as owner, check crm")
       self.drone_connected = False
       return
-  #--------------------------------------------------------------------#
-  #check if all the required keys for a mission are present
+
+
   def valid_mission(self, mission):
     '''Check if all the required keys for a mission are present'''
     for wp_id in range(0, len(mission)):
@@ -699,8 +701,7 @@ class Drone():
           return False
     return True
 
-#--------------------------------------------------------------------#
-#launch drone
+
   def task_launch_drone(self, height):
     '''Go through the launch procedure for the drone'''
     #Initialize drone
@@ -710,16 +711,14 @@ class Drone():
     self.drone.arm_and_takeoff(height)
     self.drone.reset_dss_srtl()
 
-  
-#--------------------------------------------------------------------#
+
   def return_to_home(self):
     '''Start a thread that returns the drone to launch position'''
     mission_rtl = threading.Thread(target=self.fly_rtl, args=(), daemon=True)
     mission_rtl.start()
     _logger.info("Flying home")
 
-#--------------------------------------------------------------------#
-#fly rtl
+
   def fly_rtl(self):
     '''Fly the drone to the launch position and set the mission status to landed'''
     self.drone.rtl()
@@ -728,8 +727,7 @@ class Drone():
         with self.mission_status_lock:
           self.mission_status = 'landed'
 
-#--------------------------------------------------------------------#
-#random mission time
+
   def generate_random_mission(self, n_wps):
     '''Function to construct a new mission based on current position and a
     given area '''
@@ -766,9 +764,8 @@ class Drone():
         "lat" : self.start_pos.lat, "lon": self.start_pos.lon, "alt": new_alt, "alt_type": "amsl", "heading": "course", "speed": self.default_speed
     }
     return mission
-  
-#--------------------------------------------------------------------#
-  #function to fly a mission
+
+
   def fly_mission(self, mission):
     '''Start a thread that flies the given mission'''
     with self.mission_lock:
@@ -778,8 +775,8 @@ class Drone():
     with self.drone_mission_lock:
       self.drone_mission = threading.Thread(target=self.task_execute_mission, args=(mission,), daemon=True)
       self.drone_mission.start()
-#--------------------------------------------------------------------#
-#fly random mission
+
+
   def fly_random_mission(self, n_wps = 10):
     '''Start a thread that flies a random mission of default length 5 waypoints'''
     if not self.drone._dss.get_armed():
@@ -793,19 +790,19 @@ class Drone():
       self.drone_mission = threading.Thread(target=self.task_execute_mission, args=(mission,), daemon=True)
       self.drone_mission.start()
 
-#--------------------------------------------------------------------#
-#function to get state of the drone
+
   def get_drone_state(self):
     '''Get drone state, this will be a dictionary with the following keys: Lat, Lon, ALT, Agl, vel_n, vel_e, vel_d, gnss_state[0-6] (global navigation satellite system), flight_state'''
     return self.drone.get_state()
-#--------------------------------------------------------------------#
-#function to get the current waypoint
+
+
+
   def get_current_waypoint(self):
     '''Get current waypoint in lon, lat, alt'''
     return self.drone.get_currentWP()
-#--------------------------------------------------------------------#
-  #thread to execute mission
-  
+
+
+
   def task_execute_mission(self, mission):
     '''Flies a mission and updates the mission status accordingly'''
     while not self.stop_threads.is_set():
@@ -845,36 +842,15 @@ class Drone():
       with self.mission_status_lock:
         self.mission_status = 'waiting'
 
-#--------------------------------------------------------------------#
-# TEST SECTION
-#--------------------------------------------------------------------#
 
   def main(self):
-    '''test purposes'''
+    '''Main loop of the application'''
     while self.alive():
       time.sleep(1)
 
+
 def _main(app_ip= None, crm = '10.44.170.10:17700', app_id = "app_single"):
-  '''test purposes'''
-  # Parse command-line arguments
-  #parser = argparse.ArgumentParser(description='APP "app_noise"', allow_abbrev=False, add_help=False)
- # parser.add_argument('-h', '--help', action='help', help=argparse.SUPPRESS)
- # parser.add_argument('--app_ip', type=str, help='ip of the app', required=False)
-  #parser.add_argument('--id', type=str, default=None, help='id of this app_noise instance if started by crm')
-  #parser.add_argument('--crm', type=str, help='<ip>:<port> of crm', required=False)
- # parser.add_argument('--log', type=str, default='debug', help='logging threshold')
-  #parser.add_argument('--owner', type=str, help='id of the instance controlling app_noise - not used in this use case')
-  #parser.add_argument('--stdout', action='store_true', help='enables logging to stdout')
-  #args = parser.parse_args()
-  #args.app_ip = dss.auxiliaries.zmq.get_ip()
-  #args.crm = '10.44.170.10:17700'
-
-  # Identify subnet to sort log files in structure
-  #subnet = dss.auxiliaries.zmq.get_subnet(ip=args.app_ip)
-  # Initiate log file
-  #dss.auxiliaries.logging.configure('app_noise', stdout=args.stdout, rotating=True, loglevel=args.log, subdir=subnet)
-
-  # Create the AppNoise class
+  '''Main function to innitialize the application and start the main loop'''
   try:
     app = Link()
   except dss.auxiliaries.exception.NoAnswer:
@@ -899,5 +875,4 @@ def _main(app_ip= None, crm = '10.44.170.10:17700', app_id = "app_single"):
 
 #--------------------------------------------------------------------#
 if __name__ == '__main__':
-  '''test purposes'''
   _main()
