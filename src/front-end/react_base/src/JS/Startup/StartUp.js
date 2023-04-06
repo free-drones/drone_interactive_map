@@ -222,7 +222,20 @@ function StartUp(props) {
             </AttentionBorder>
 
             <div>
-                <b> {showWarning ? <IncorrectAreaPopup> Warning: Lines are not allowed to cross </IncorrectAreaPopup> : "" } </b>
+                {/* A different way to show warning: <b> {showWarning ? <IncorrectAreaPopup> Warning: Lines are not allowed to cross </IncorrectAreaPopup> : "" } </b>*/}
+
+
+                <Snackbar
+                    open={showWarning}
+                    autoHideDuration={3000}
+                    onClose={() => props.store.setShowWarning(false)}
+                    message="Warning: Lines are not allowed to cross"
+                    anchorOrigin={{ 
+                        vertical: 'top',
+                        horizontal: 'center'
+                    }}
+                />
+
             </div>
  
 
