@@ -1,7 +1,7 @@
 /**
  * Initializes the app through the start-up sequence.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import IMM_MAP from "../IMMMap.js";
 import Axis from 'axis.js';
 import clsx from 'clsx';
@@ -11,9 +11,9 @@ import Leaflet from 'leaflet';
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages} from "../Storage.js";
+import {connect, config, setConfigValue, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
-import {Check, Delete} from '@mui/icons-material';
+import {Check, Delete, MyLocation} from '@mui/icons-material';
 
 import Downstream from '../Connection/Downstream.js';
 
@@ -56,6 +56,12 @@ const styles = {
             easing: 'easeOut',
             duration: 'standard',
         })
+    },
+    fabAbove: {
+        bottom: (theme) => theme.spacing(14)
+    },
+    hidden: {
+        visibility: "hidden"
     }
 };
 
@@ -76,6 +82,8 @@ function StartUp(props) {
         severity : "",
         message : ""
     });
+
+    const centerButton = useRef();
 
     useEffect(() => {
         const newMessage = props.store.messages[props.store.messages.length - 1]
@@ -118,7 +126,6 @@ function StartUp(props) {
      * Clickhandler for when area is confirmed. Sets needed states and reroutes to main.
      */
     function defineArea() {
-        
         const setArea = (clientID, areaWaypoints) => Downstream.setArea(clientID, areaWaypoints, Downstream.callbackWrapper((reply) => {
             setDialogState(false);
 
@@ -210,13 +217,26 @@ function StartUp(props) {
                 </DialogActions>
             </Dialog>
 
+
+            <ColorWrapper
+                ref={centerButton}
+                color="#CDCDCD"
+            >
+                <Fab
+                    sx={[styles.fab, styles.fabRight, styles.fabAbove, styles.hidden]}
+                >
+                    <MyLocation />
+                </Fab>
+            </ColorWrapper>
+
+
             <AttentionBorder>
                 DEFINE AREA
             </AttentionBorder>
 
-            <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} />
+            <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} centerButton={centerButton}/>
         </div>
     );
 }
 
-export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, messages },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions })(StartUp)
+export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, config, messages },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions, ...configActions })(StartUp)
