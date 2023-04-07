@@ -102,8 +102,6 @@ def main():
                     polygon.triangles.clear()
                     polygon.node_grid.clear()
                     polygon.segments.clear()
-                if ue.key.mouse.get_pressed():
-                    START_LOCATION = ue.mouse.get_pos()
         ue.display.update()
 
 if __name__ == "__main__":

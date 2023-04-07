@@ -183,9 +183,11 @@ class Node():
         return (self.x, self.y)
     
     def distance_to_squared(self, other_node):
+        """ Return distance between self and another node squared """
         return ((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
     
     def distance_to(self, other_node):
+        """ Return distance between self and another node """
         return np.sqrt((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
     
 class Segment():
@@ -194,7 +196,9 @@ class Segment():
         self.route = []
 
     def plan_route(self, start_location):
+        """ Plan a route using nearest insert algorithm with a segments owned nodes """
         start_neighbour = self.closest_owned_node(start_location)
+        # Insert 'start_location' as a node in the route
         new_route = [start_location, start_neighbour]
         unexplored_nodes = self.owned_nodes[:]
         while (len(new_route) - 1) < len(self.owned_nodes):
@@ -205,6 +209,7 @@ class Segment():
                 for unexplored_node in unexplored_nodes:
                     if unexplored_node in new_route:
                         continue
+                    # Cost to insert 'unexplored_node' between 'node_A' and 'node_B'
                     distance = node_A.distance_to_squared(unexplored_node) + node_B.distance_to_squared(unexplored_node)
                     if distance < min_insert_cost:
                         min_insert_cost = distance
