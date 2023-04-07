@@ -7,7 +7,7 @@ def main():
     WIDTH = 800
     HEIGHT = 600
     
-    SPACING = 5
+    SPACING = 25
     START_LOCATION = seg.Node((100, 100))
     NUM_SEG = 5
     # BYT UT SEN
@@ -39,10 +39,10 @@ def main():
             ue.draw.aaline(surface, BLACK, node(), next())
             ue.draw.circle(surface, RED, node(), 5)
         
-        for triangle in polygon.triangles:
+        """for triangle in polygon.triangles:
             for i, node in enumerate(triangle.nodes()): 
                 next = triangle.nodes()[(i + 1) % 3]
-                ue.draw.aaline(surface, GREEN, node(), next())
+                ue.draw.aaline(surface, GREEN, node(), next())"""
 
         for node in polygon.node_grid:
             ue.draw.circle(surface, BLUE, node(), 2)
@@ -59,6 +59,12 @@ def main():
             end_position = seg.Node((START_LOCATION.x + line_length * np.cos(end_angle), \
                                     START_LOCATION.y + line_length * np.sin(end_angle)))
             ue.draw.aaline(surface, BLUE, START_LOCATION(), end_position())
+
+            for i in range(len(segment.route) - 1):
+                ue.draw.aaline(surface, BLACK, segment.route[i](), segment.route[i+1]())
+                
+            ue.draw.aaline(surface, BLACK, segment.route[0](), segment.route[-1]())
+            
 
         screen.blit(surface, (0,0))
 
@@ -86,7 +92,7 @@ def main():
 
             if event.type == ue.KEYDOWN:
                 if ue.key.get_pressed()[ue.K_s]:
-                    polygon.gogo_gadget(SPACING, START_LOCATION, NUM_SEG)
+                    polygon.create_area_segments(SPACING, START_LOCATION, NUM_SEG)
                 if ue.key.get_pressed()[ue.K_t]:
                     polygon.triangles = polygon.earcut_triangulate()
                 if ue.key.get_pressed()[ue.K_g]:
@@ -96,7 +102,8 @@ def main():
                     polygon.triangles.clear()
                     polygon.node_grid.clear()
                     polygon.segments.clear()
-
+                if ue.key.mouse.get_pressed():
+                    START_LOCATION = ue.mouse.get_pos()
         ue.display.update()
 
 if __name__ == "__main__":
