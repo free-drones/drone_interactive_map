@@ -57,7 +57,7 @@ const theme = createTheme({
 /**
  * Testing flag, set to true if using mockup server.
  */
-const TESTING = false;
+const TESTING = true;
 
 if (TESTING) {
     ServerConnection.initialize(MockupConstants.LOCAL_HOST, MockupConstants.PORT, MockupConstants.NAMESPACE);
