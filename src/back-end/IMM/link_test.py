@@ -1,8 +1,7 @@
 import link
 import time
-import link_range
 
-link_object = link_range.LinkRange()
+link_object = link.Link()
 alive = True
 def test_link():
     try:
