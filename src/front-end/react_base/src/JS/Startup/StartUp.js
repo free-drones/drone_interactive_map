@@ -10,7 +10,7 @@ import Leaflet from 'leaflet';
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, config, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions, userPrio} from "../Storage.js";
+import {connect, config, setConfigValue, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions, showWarning, showWarningActions, userPrio} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import {Check, Delete, MyLocation} from '@mui/icons-material';
 
@@ -69,19 +69,21 @@ const styles = {
 */
 function StartUp(props) {
 
-    var [redirected, redirect] = useState(false);
+    let [redirected, redirect] = useState(false);
     redirect = redirect.bind(true);
 
-    var [dialogOpen, setDialogState] = useState(false);
+    let [dialogOpen, setDialogState] = useState(false);
 
-    var [clearWaypointsConfirm, setClearwaypointsConfirm] = useState(false);
+    let [clearWaypointsConfirm, setClearwaypointsConfirm] = useState(false);
 
-    var [snackbar, setSnackbar] = useState({
+    let [snackbar, setSnackbar] = useState({
         open : false,
         severity : "",
         message : ""
     });
 
+    // showWarning is bool for if to show crossing lines warning
+    let showWarning = props.store.showWarning;
     const centerButton = useRef();
 
     useEffect(() => {
@@ -112,6 +114,7 @@ function StartUp(props) {
      * Clears waypoints. 
      */
     function clearWaypoints() {
+        props.store.setShowWarning(false);
         props.store.clearAreaWaypoints();
     }
 
@@ -160,7 +163,10 @@ function StartUp(props) {
                 color="accept"
             >
                 <Fab
-                    onClick={() => {setDialogState(true)}}
+                    onClick={() => {
+                        setDialogState(true);
+                        props.store.setShowWarning(false);
+                    }}
                     sx={[styles.fab, styles.fabRight]}
                     disabled={(props.store.areaWaypoints.length<3)}
                 >
@@ -240,9 +246,22 @@ function StartUp(props) {
                 DEFINE AREA
             </AttentionBorder>
 
+            <div>
+                <Snackbar
+                    open={showWarning}
+                    autoHideDuration={3000}
+                    onClose={() => props.store.setShowWarning(false)}
+                    message="Warning: Lines are not allowed to cross"
+                    anchorOrigin={{ 
+                        vertical: 'top',
+                        horizontal: 'center'
+                    }}
+                />
+            </div>
+ 
             <IMM_MAP center={props.store.mapPosition.center} zoom={props.store.zoomLevel} allowDefine={true} centerButton={centerButton}/>
         </div>
     );
 }
 
-export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, config, messages, userPrio },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions, ...configActions })(StartUp)
+export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, config, messages, showWarning, userPrio },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions, ...configActions, ...showWarningActions })(StartUp)
