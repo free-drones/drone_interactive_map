@@ -13,8 +13,8 @@ import {
   clientID,
   mapPosition,
   mapPositionActions,
-  requestQueue,
-  requestQueueActions,
+  pictureRequestQueue,
+  pictureRequestQueueActions,
   areaWaypoints,
   areaWaypointActions,
   mapBounds,
@@ -56,7 +56,7 @@ class Main extends React.Component {
       this.props.store.mapPosition,
       this.props.store.sensor,
       callbackWrapper((response) => {
-        this.props.store.addRequest(response.arg.force_que_id);
+        this.props.store.addPictureRequest(response.arg.force_que_id);
       })
     );
   }
@@ -197,7 +197,7 @@ export default connect(
   {
     clientID,
     mapPosition,
-    requestQueue,
+    pictureRequestQueue,
     areaWaypoints,
     mapBounds,
     zoomLevel,
@@ -208,7 +208,7 @@ export default connect(
   },
   {
     ...mapPositionActions,
-    ...requestQueueActions,
+    ...pictureRequestQueueActions,
     ...areaWaypointActions,
     ...mapStateActions,
     ...activePicturesActions,
