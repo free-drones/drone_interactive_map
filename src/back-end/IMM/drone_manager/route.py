@@ -1,12 +1,12 @@
 import math
 
 class Route():
-    def __init__(self, nodes, photo_req = None):
+    def __init__(self, nodes):
         self.nodes = nodes
         self.drone = None
     
     # The following functions are not currently used but will probably be helpful later
-    
+
     # reorder route, should be called after having arrived at the next node
     def update_route(self, reuse_node=True):
         latest_node = self.nodes.pop(0)

@@ -1,20 +1,25 @@
 class Link():
+    # TODO: handle connection errors appropriately, both on initial connection and if it drops after a while
     def __init__(self):
         self.link = None
     
     def fly(self, mission, drone):
         # convert mission from Mission to json representation
         mission_dict = mission.as_mission_dict()
+        drone_name = drone.id
         return None
     
-    def get_mission_status(self, drone):
-        return None #status
-    
     def get_drone_status(self, drone):
-        return {"battery":95} #
+        return None
+    
+    def get_drone_position(self, drone):
+        return None
+    
+    def get_drone_battery(self, drone):
+        return 100
     
     def get_drone_waypoint(self, drone):
-        return None #waypoint
+        return None
     
     def return_to_home(self, drone):
         return None
@@ -23,10 +28,5 @@ class Link():
         pass
 
     def get_list_of_drones(self):
-        return [] # [drone_name]    
+        return []
     
-    def connect(self):
-        #Establish connection with 
-        
-        status=1
-        return status

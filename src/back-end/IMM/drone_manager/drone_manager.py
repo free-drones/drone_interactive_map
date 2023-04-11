@@ -33,15 +33,20 @@ class DroneManager(Thread):
         self.drones = []
         self.routes = []
 
+        # self.link = Link()
+        self.link = None
+
+    def connect(self):
         self.link = Link()
-        self.link.connect()
 
     def run(self):
         """ where the thread runs """
 
         # get drones from CRM, wait until non-zero number of drones
-        while not self.drones:
+        while True:
             self.drones = self.get_crm_drones()
+            if self.drones:
+                break
             time.sleep(WAIT_TIME)
 
         # wait until routes have been received, which happens after area is set by user
@@ -58,7 +63,6 @@ class DroneManager(Thread):
     def set_routes(self, route_list):
         self.routes = route_list
 
-    # return list of drone objects
     def get_crm_drones(self):
         drones = [Drone(id=dname) for dname in self.link.get_list_of_drones()]
         return drones
@@ -76,7 +80,9 @@ class DroneManager(Thread):
         """ Handles assigning drones based on battery and mission status to routes. Drones are sent to charge when needed. """
 
         for d in self.drones:
-            if self.link.get_drone_status(d)['battery'] < MIN_CHARGE_LEVEL:
+            if self.link.get_drone_status(d) != "charging" and self.link.get_drone_battery(d) < MIN_CHARGE_LEVEL:
+                if d.route:
+                    d.route.drone = None
                 d.route = None
                 self.link.return_to_home(d)
         
@@ -84,22 +90,29 @@ class DroneManager(Thread):
             # is there a drone that flies this route?
             if not r.drone:
                 for d in self.drones:
-                    battery_lvl = self.link.get_drone_status(d)['battery']
-                    mission_status = self.link.get_mission_status(d)
-                    if not d.route and battery_lvl <= FULL_CHARGE_LEVEL and mission_status in ["landed", "waiting", "idle"]:
+                    battery_lvl = self.link.get_drone_battery(d)
+                    drone_status = self.link.get_drone_status(d)
+                    if not d.route and battery_lvl >= FULL_CHARGE_LEVEL and drone_status in ["landed", "waiting", "idle"]:
                         d.route = r
                         r.drone = d
                         break
+                # If no available drone is found, there are too many routes currently and resegmentation shall occur
+                if not r.drone:
+                    # area segmentation with # of drones that are "available" – what does that mean? etc
+                    pass
             
 
     def assign_missions(self):
         """ Creates missions and executes them for each drone that have a route to fly """
         for route in self.routes:
-            if self.link.get_mission_status(route.drone) in ["landed", "waiting", "idle"]:
+            success = True
+            if self.link.get_drone_status(route.drone) in ["landed", "waiting", "idle"]:
                 mission = self.create_mission(route.drone)
                 route.drone.current_mission = mission
-                self.link.fly(mission, route.drone)
-
+                success = self.link.fly(mission, route.drone)
+        return success
+        #TODO: Handle routes which could not get a mission
+                
     
     def set_mode(self, mode):
         self.mode = mode

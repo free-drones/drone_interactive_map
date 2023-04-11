@@ -26,6 +26,7 @@ class ThreadHandler():
         self.rds_sub_thread = RDSSubThread(self)
         self.info_fetcher_thread = InfoFetcherThread()
         self.drone_manager_thread = DroneManager()
+        self.drone_manager_thread.connect()
 
     def start_threads(self):
         """Starts the threads"""

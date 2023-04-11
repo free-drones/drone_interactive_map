@@ -6,9 +6,9 @@ class Mission():
         self.route = route
 
     def as_mission_dict(self):
-        mission = []
-        for node in self.route.nodes:
-            mission.append(self.node_to_waypoint_dict(node))
+        mission = {}
+        for i, node in enumerate(self.route.nodes):
+            mission[f"id{i}"] = self.node_to_waypoint_dict(node)
         return mission
     
     def node_to_waypoint_dict(self, node):
