@@ -2,7 +2,7 @@
  * Class file for map component.
  */
 
-import React, {useState} from 'react';
+import React from 'react';
 import { MapContainer , TileLayer, Marker, Polygon, ImageOverlay, useMapEvents } from 'react-leaflet';
 import "../CSS/Map.scss";
 import { connect, config, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
@@ -158,18 +158,18 @@ function vectorHelper(a, b, c, d, waypoints, i) {
  * a, b, c, d, p, q, r, s are integers
  */
 function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
-    // det = determenant
+    // det = determinant
     let det, length_1, length_2;
     det = (c - a) * (s - q) - (r - p) * (d - b);
     if (det === 0) {
         return false;
     }
 
-    // length_2 & length_2 = lengths to intesecting point of vectors
+    // length_2 & length_2 = lengths to intersecting point of vectors
     length_1 = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
     length_2 = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
 
-    // if intersecting point is farther away than original vectors length, then lengths will not be between 0 and 1.
+    // if intersecting point is farther away than original vectors' length, then lengths will not be between 0 and 1.
     return (0 < length_1 && length_1 < 1) && (0 < length_2 && length_2 < 1);
 };
 
