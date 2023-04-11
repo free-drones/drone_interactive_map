@@ -6,17 +6,11 @@ from IMM.drone_manager.mission import Mission
 
 import time
 
-#
-# BACKLOG
-#
-# - write tests with dummy routes and dummy Link comm
-#
-
 
 WAIT_TIME = 1
 MIN_CHARGE_LEVEL = 20
 FULL_CHARGE_LEVEL = 95
-LOGGER_NAME = "thread_drone_manager"
+LOGGER_NAME = "drone_manager"
 _logger = create_logger(LOGGER_NAME)
 
 class DroneManager(Thread):
@@ -33,7 +27,6 @@ class DroneManager(Thread):
         self.drones = []
         self.routes = []
 
-        # self.link = Link()
         self.link = None
 
     def connect(self):
@@ -46,6 +39,7 @@ class DroneManager(Thread):
         while True:
             self.drones = self.get_crm_drones()
             if self.drones:
+                _logger.info("received drones from CRM")
                 break
             time.sleep(WAIT_TIME)
 
@@ -53,6 +47,8 @@ class DroneManager(Thread):
         while not self.routes:
             time.sleep(WAIT_TIME)
         
+        _logger.info("received routes from pathfinding")
+
         while self.running:
             self.resource_management()
             self.assign_missions()
