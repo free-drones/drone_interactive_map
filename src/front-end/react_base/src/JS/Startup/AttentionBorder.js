@@ -46,26 +46,7 @@ const styles = {
         pointerEvents: 'none',
 
         ...((theme) => theme.typography.button)
-    },
-
-    borderCenter: {
-        position: 'absolute',
-        top: "13%",
-        left: "50%",
-        transform: "translate(-50%, 0)",
-        
-        padding: (theme) => theme.spacing(1),
-        //color: 'error.main',
-        boxShadow: (theme) => theme.shadows[5],
-        borderRadius: (theme) => theme.spacing(1),
-        backgroundColor: "rgba(255,255,255,0.75)",
-
-        zIndex: (theme) => theme.zIndex.appBar - 1,
-        pointerEvents: 'none',
-
-        ...((theme) => theme.typography.button)
     }
-    
 };
 
 
@@ -84,26 +65,6 @@ export function AttentionBorder(props) {
                 </Typography>
             </Box>
             <Box sx={styles.borderBox}/>
-        </div>
-    );
-}
-
-/**
- * IncorrectAreaPopup component function.
- */
-export function IncorrectAreaPopup(props) {
-
-    return (
-        <div>
-            <Box
-                sx={styles.borderCenter}
-            >
-                <Typography variant="h4" component="h2" elevation={10}>
-                    {props.children}
-                </Typography>
-            </Box>
-            <Box sx={styles.borderBox}/>
-            
         </div>
     );
 }
