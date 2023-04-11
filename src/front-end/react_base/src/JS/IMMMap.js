@@ -91,12 +91,7 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
         // Do the check for every line on the map.
         for (let i = 1; i < waypoints.length - 1; i++) {
-            const p = waypoints[i].lat; 
-            const q = waypoints[i].lng;
-
-            const r = waypoints[i + 1].lat; 
-            const s = waypoints[i + 1].lng;
-            crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+            crossing = crossing || vectorHelpter(a, b, c, d, waypoints, i);
         };
 
     } else if (index === waypoints.length - 1) {
@@ -108,12 +103,7 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
         // Do the check for every line on the map.
         for (let i = 0; i < waypoints.length - 2; i++) {
-            const p = waypoints[i].lat; 
-            const q = waypoints[i].lng;
-
-            const r = waypoints[i + 1].lat; 
-            const s = waypoints[i + 1].lng;
-            crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+            crossing = crossing || vectorHelpter(a, b, c, d, waypoints, i);
         };
         
     } else {
@@ -136,12 +126,7 @@ function removedWaypointLinesCrossing(index, waypoints) {
                 const s = waypoints[0].lng;
                 crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
             } else {
-                const p = waypoints[i].lat; 
-                const q = waypoints[i].lng;
-
-                const r = waypoints[i + 1].lat; 
-                const s = waypoints[i + 1].lng;
-                crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+                crossing = crossing || vectorHelpter(a, b, c, d, waypoints, i);
             }
         };
     }
@@ -149,21 +134,43 @@ function removedWaypointLinesCrossing(index, waypoints) {
     return crossing;
 };
 
+
 /**
- * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s), return true. 
+ * Configures points  (p, q) and (r, s) to be used in hasIntersectingVectors.
+ * 
+ * a, b, c, d are integers making up points (a, b) and (c, d).
+ * 
+ * @param {*} waypoints 
+ * @param {*} i index of what part of waypoint should be used
+ */
+
+function vectorHelpter(a, b, c, d, waypoints, i) {
+    const p = waypoints[i].lat; 
+    const q = waypoints[i].lng;
+
+    const r = waypoints[i + 1].lat; 
+    const s = waypoints[i + 1].lng;
+    return hasIntersectingVectors(a, b, c, d, p, q, r, s)
+}
+
+/**
+ * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s) then return true.
+ * a, b, c, d, p, q, r, s are integers
  */
 function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
     // det = determenant
-    let det, gamma, lambda;
+    let det, length_1, length_2;
     det = (c - a) * (s - q) - (r - p) * (d - b);
     if (det === 0) {
         return false;
     }
 
-    //gamma & lambda = lengths to intesecting point
-    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+    // length_2 & length_2 = lengths to intesecting point of vectors
+    length_1 = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+    length_2 = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+
+    // if intersecting point is farther away than original vectors length, then lengths will not be between 0 and 1.
+    return (0 < length_1 && length_1 < 1) && (0 < length_2 && length_2 < 1);
 };
 
 
