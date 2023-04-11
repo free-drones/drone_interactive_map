@@ -96,6 +96,8 @@ var initialRequestQueue={
 */
 var initialActivePictures = []
 
+const initialUserPrio = 1;
+
 /**
  * ====================================================================================================
  *                                             Actions
@@ -155,6 +157,21 @@ export const setConfigValue = createAction('SET_CONFIG_VALUE', function prepare(
             key: key,
             value: value
         }
+    }
+});
+
+/**
+ * User Priority, restricted to a number. 
+ * Determines which permissions a user has
+ */
+export const setUserPrio = createAction('SET_USER_PRIO', function prepare(token) {
+    if(!isNaN(token)){
+        return {
+            payload: token
+        }
+    }
+    else {
+        throw new Error("User Prio must be a number.")
     }
 });
 
@@ -452,6 +469,14 @@ export const _clientID = createReducer(null, (builder) => {
     })
 });
 
+export const _userPrio = createReducer(initialUserPrio, (builder) => {
+    builder
+    .addCase(setUserPrio, (state, action) => {
+        const newUserPrio = action.payload;
+        return newUserPrio;
+    })
+});
+
 export const _config = createReducer(DEFAULT_CONFIG, (builder) => {
     builder
         .addCase(setConfigValue, (state, action) => {
@@ -625,6 +650,12 @@ export function clientID(state) {
     });
 }
 
+export function userPrio(state) {
+    return ({
+        userPrio: state.userPrio
+    });
+}
+
 export function config(state) {
     return ({
         config: state.config
@@ -685,14 +716,13 @@ export function mapState(state) {
     });
 }
 
-
 export function showWarning(state) {
     return ({
         showWarning: state.showWarning
     });
 }
 
-const states = { areaWaypoints, clientID, config, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState, showWarning };
+const states = { areaWaypoints, clientID, config, userPrio, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState, showWarning };
 
 /**
  * Combine multiple functions into a single.
@@ -725,6 +755,8 @@ export const areaWaypointActions = { addAreaWaypoint, removeAreaWaypoint, clearA
 
 export const clientIDActions = { setClientID };
 
+export const userPrioActions = { setUserPrio };
+
 export const configActions = { setConfigValue };
 
 export const zoomLevelActions = { setZoomLevel };
@@ -747,7 +779,7 @@ export const mapStateActions = {setMapState}
 
 export const showWarningActions = { setShowWarning };
 
-const actions = { areaWaypointActions, clientIDActions, configActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions, showWarningActions };
+const actions = { areaWaypointActions, clientIDActions, configActions, userPrioActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions, showWarningActions };
 
 /**
  * Storage
@@ -771,7 +803,8 @@ function mergeProps(stateProps, dispatchProps, ownProps) {
 export const store = configureStore({
     reducer: {
         areaWaypoints: _areaWaypoints,
-        clientID: _clientID,    
+        clientID: _clientID,
+        userPrio: _userPrio,   
         config: _config,
         zoomLevel: _zoomLevel,
         mapPosition: _mapPosition,

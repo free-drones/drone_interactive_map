@@ -49,6 +49,13 @@ var validCoordinateRecieve = {
     long: validCoordinateSend.lng
 }
 
+
+
+const validBounds = [
+    [53.123456, 16.123456],
+    [53.123456, 16.123456]
+]
+
 var invalidCoordinate = {
     lant: 5,
     long: 17
@@ -196,7 +203,7 @@ test('send set_area', (done) => {
     downstreamSocket.once("set_area", (request) => {
         try {
             // Validate request
-            expect(request).toEqual({ fcn : "set_area", arg : { client_id : 1, coordinates : [validCoordinateRecieve] }});
+            expect(request).toEqual({ fcn : "set_area", arg : { client_id : 1, coordinates : [validCoordinateRecieve], bounds: validBounds }});
             
             // Emulate server response
             let response = {
@@ -210,7 +217,7 @@ test('send set_area', (done) => {
         }
     });
 
-    Downstream.setArea(1, [validCoordinateSend], () => {
+    Downstream.setArea(1, [validCoordinateSend], validBounds, () => {
         done();
     });
 });

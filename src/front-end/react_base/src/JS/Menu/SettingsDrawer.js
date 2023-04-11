@@ -10,7 +10,7 @@ import {Navigate} from "react-router-dom";
 import ModeButtonGroup from './ModeButtonGroup.js'
 import SensorModeButtonGroup from './SensorModeButtonGroup.js'
 import UndoIcon from '@mui/icons-material/Undo';
-import { connect, areaWaypoints, areaWaypointActions, requestQueueActions, mapState, mapStateActions, activePicturesActions } from '../Storage.js';
+import { connect, areaWaypoints, areaWaypointActions, requestQueueActions, mapState, mapStateActions, activePicturesActions, userPrio } from '../Storage.js';
 import ModeIcon from './ModeIcon.js'
 import ColorWrapper from '../ColorWrapper.js';
 import DroneIconConfigGroup from './DroneIconConfigGroup.js';
@@ -75,6 +75,7 @@ function SettingsDrawer(props) {
                             variant="contained" 
                             onClick={redefineClickHandler}
                             startIcon={<UndoIcon />}
+                            disabled={props.store.userPrio !== 1}
                         >
                             Redefine area
                         </Button>
@@ -116,4 +117,4 @@ function SettingsDrawer(props) {
     );
 }
 
-export default connect({ areaWaypoints, mapState},{...areaWaypointActions, ...mapStateActions, ...requestQueueActions, ...activePicturesActions })( SettingsDrawer )
+export default connect({ userPrio, areaWaypoints, mapState },{ ...areaWaypointActions, ...mapStateActions, ...requestQueueActions, ...activePicturesActions })( SettingsDrawer )

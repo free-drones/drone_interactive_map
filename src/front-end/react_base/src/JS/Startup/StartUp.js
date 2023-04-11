@@ -4,14 +4,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import IMM_MAP from "../IMMMap.js";
 import Axis from 'axis.js';
-import clsx from 'clsx';
 
 import Leaflet from 'leaflet';
 
 import {Button, Fab} from '@mui/material';
 import {Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
 import {Navigate} from "react-router-dom";
-import {connect, config, setConfigValue, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions, showWarning, showWarningActions} from "../Storage.js";
+import {connect, config, setConfigValue, areaWaypointActions, areaWaypoints, mapBounds, mapBoundsActions, mapPosition, zoomLevel, mapPositionActions, mapState, mapStateActions, clientID, clientIDActions, messages, configActions, showWarning, showWarningActions, userPrio} from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import {Check, Delete, MyLocation} from '@mui/icons-material';
 
@@ -98,6 +97,12 @@ function StartUp(props) {
         }
     }, [props.store.messages]);
 
+    useEffect(() => {
+        if (props.store.userPrio !== 1) {
+            redirect(true);
+        }
+    }, [props.store.userPrio, redirect]);
+
     /**
      * Activates confirmation of clearing waypoints.
      */
@@ -129,22 +134,23 @@ function StartUp(props) {
      * Clickhandler for when area is confirmed. Sets needed states and reroutes to main.
      */
     function defineArea() {
-        const setArea = (clientID, areaWaypoints) => Downstream.setArea(clientID, areaWaypoints, Downstream.callbackWrapper((reply) => {
+        
+        const setArea = (clientID, areaWaypoints, bounds) => Downstream.setArea(clientID, areaWaypoints, bounds, Downstream.callbackWrapper((reply) => {
             setDialogState(false);
 
-            let bounds = calculateBounds();
-            props.store.setMapBounds(bounds);
             props.store.setMapState("Main");
             redirect(true);
         }));
 
+        let bounds = calculateBounds();
+        props.store.setMapBounds(bounds);
         if (!Axis.isNumber(props.store.clientID))
             Downstream.connect(Downstream.callbackWrapper((reply) => {
                 props.store.setClientID(reply.arg.client_id);
-                setArea(reply.arg.client_id, props.store.areaWaypoints);
+                setArea(reply.arg.client_id, props.store.areaWaypoints, bounds);
             }));
         else {
-            setArea(props.store.clientID, props.store.areaWaypoints);
+            setArea(props.store.clientID, props.store.areaWaypoints, bounds);
         }
     }
 
@@ -257,4 +263,5 @@ function StartUp(props) {
         </div>
     );
 }
-export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, config, messages, showWarning },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions, ...configActions, ...showWarningActions })(StartUp)
+
+export default connect({ areaWaypoints, mapBounds, mapPosition, zoomLevel, mapState, clientID, config, messages, showWarning, userPrio },{ ...areaWaypointActions, ...mapBoundsActions, ...mapPositionActions, ...mapStateActions, ...clientIDActions, ...configActions, ...showWarningActions })(StartUp)

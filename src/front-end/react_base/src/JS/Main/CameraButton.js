@@ -5,7 +5,7 @@
 import { Fab } from '@mui/material';
 import AddAPhoto from '@mui/icons-material/AddAPhoto'
 import React from 'react';
-
+import { userPrio, connect } from '../Storage.js'
 
 const styles = {
     cameraButton : {
@@ -22,9 +22,13 @@ function CameraButton (props) {
 
     return (
         //Creates a floating object, Fab
-        <Fab sx={styles.cameraButton} onClick={props.clickHandler}>
+        <Fab 
+            sx={styles.cameraButton}
+            onClick={props.clickHandler}
+            disabled={props.store.userPrio !== 1}
+        >
             <AddAPhoto />
         </Fab>
     );
 }
-export default CameraButton
+export default connect({ userPrio })( CameraButton )

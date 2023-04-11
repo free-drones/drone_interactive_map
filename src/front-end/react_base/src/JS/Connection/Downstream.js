@@ -87,14 +87,17 @@ export function disconnect(callback = null) {
 /**
  * Make a define area call downstream.
  * 
+ * @param {Number} clientID Client ID for the connected client
  * @param {Coordinate[]} waypointsList Ordered array of waypoints.
+ * @param {Coordinate[]} bounds List of top left and bottom right coordinates
  * @param {APICallback} callback Optional callback function
  */
-export function setArea(clientID, waypointsList, callback = null) {
+export function setArea(clientID, waypointsList, bounds, callback = null) {
     let message = {
         fcn: 'set_area',
         arg: {
             client_id: clientID,
+            bounds: bounds,
             coordinates: waypointsList.map((coordinate) => translateCoordinate(coordinate))
         }
     };

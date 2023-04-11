@@ -9,6 +9,7 @@ import { connect, mapPosition, mapPositionActions, modeActions, mode } from "../
 import Typography from '@mui/material/Typography';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Radio from '@mui/material/Radio';
+import { userPrio } from '../Storage.js';
 
 class ModeButtonGroup extends Component {
 
@@ -33,20 +34,35 @@ class ModeButtonGroup extends Component {
     }
 
     render() {
-        return (
-            <div >
-                <RadioGroup value={this.props.store.mode} onChange={this.onRadioChange}>
-                    <Typography variant="h5">
-                        Mode:
-                    </Typography>
-                    <FormControlLabel value="MAN" control={<Radio />} label="Manual" />
-                    <FormControlLabel value="AUTO" control={<Radio />} label="Auto" />
-                </RadioGroup>
-            </div>
-        );
+        switch(this.props.store.userPrio) {
+            case 1:
+                return (
+                    <div >
+                    <RadioGroup value={this.props.store.mode} onChange={this.onRadioChange}>
+                        <Typography variant="h5">
+                            Mode:
+                        </Typography>
+                        <FormControlLabel value="MAN" control={<Radio />} label="Manual" />
+                        <FormControlLabel value="AUTO" control={<Radio />} label="Auto" />
+                    </RadioGroup>
+                </div>    
+                );
+            default:
+                return (
+                    <div >
+                    <RadioGroup value={this.props.store.mode} onChange={this.onRadioChange}>
+                        <Typography variant="h5">
+                            Mode:
+                        </Typography>
+                        <FormControlLabel control={<Radio />} label="Manual" disabled />
+                        <FormControlLabel control={<Radio />} label="Auto" disabled />
+                    </RadioGroup>
+                </div>    
+                );
+        }
     }
 }
 
-export default connect({ mapPosition, mode }, { ...mapPositionActions, ...modeActions })(ModeButtonGroup);
+export default connect({ userPrio, mapPosition, mode }, { ...mapPositionActions, ...modeActions })(ModeButtonGroup);
 
 

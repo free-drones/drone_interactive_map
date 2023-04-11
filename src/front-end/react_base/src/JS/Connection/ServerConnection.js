@@ -4,6 +4,8 @@
 
 import io from 'socket.io-client';
 import * as Upstream from './Upstream.js';
+import { store, setUserPrio, areaWaypointActions, setMapBounds, setMapState } from '../Storage.js'
+
 
 /**
  * Loggin flag. For controlling logging of calls behaviour.
@@ -44,6 +46,7 @@ export function initialize(serverIP = SERVER_IP, port = PORT, namespace = "", so
     socket.connect();
     console.log("Stream bound to " + connectionString);
     socket.on("notify", upstreamRequestEventHandler);
+    socket.on("set_prio", userPrioEventHandler);
 }
 
 export function disconnect(){
@@ -68,6 +71,26 @@ function upstreamRequestEventHandler(message) {
             break;
         default:
             throw new Error("Unknown function type '" + message.fcn + "'.");
+    }
+}
+
+/**
+ * Handle a SET_PRIO request from backend.
+ * 
+ * @param {String} message Recieved message
+ */
+function userPrioEventHandler(message) {
+    // If this user is not a high priority user lower userPrio and set the correct area defined by other user
+    if (message.high_priority_client !== store.getState().clientID) {
+        store.dispatch(setUserPrio(5));
+        // Clears any waypoints set by this user
+        store.dispatch(areaWaypointActions.clearAreaWaypoints());
+        // Adds all waypoints set by high priority user
+        for (const waypoint of message.coordinates) { 
+            store.dispatch(areaWaypointActions.addAreaWaypoint({ lat: waypoint.lat, lng: waypoint.long }));
+        }
+        store.dispatch(setMapBounds(message.bounds));
+        store.dispatch(setMapState("Main"));
     }
 }
 

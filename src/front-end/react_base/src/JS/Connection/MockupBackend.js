@@ -10,6 +10,14 @@ const {Server} = require('socket.io');
 var server = new Server(MockupConstants.PORT, { cors: { origin: '*' } });
 var io = server.of(MockupConstants.NAMESPACE);
 
+let client_id_counter = 1;
+
+const prioAndArea = {
+    "high_priority_client": null,
+    "bounds" :[],
+    "coordinates": []
+}
+
 io.on("connect", (socket) => {
     console.log("\n   === Got connection ===   ");
 
@@ -21,7 +29,7 @@ io.on("connect", (socket) => {
             fcn : "ack",
             fcn_name : "init_connection",
             arg : {
-                client_id : 1
+                client_id : client_id_counter++
             }
         }
 
@@ -48,6 +56,7 @@ io.on("connect", (socket) => {
             fcn : "ack",
             fcn_name : "quit"
         }
+        //TODO: Check if user had high prio and set new high prio
 
         socket.emit("response", reply);
     });
@@ -62,6 +71,10 @@ io.on("connect", (socket) => {
         }
 
         socket.emit("response", reply);
+        prioAndArea.high_priority_client = request.arg.client_id;
+        prioAndArea.bounds = request.arg.bounds;
+        prioAndArea.coordinates = request.arg.coordinates;
+        io.emit("set_prio", prioAndArea);
     });
 
     // RequestView
