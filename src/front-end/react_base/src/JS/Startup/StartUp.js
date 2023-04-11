@@ -222,9 +222,6 @@ function StartUp(props) {
             </AttentionBorder>
 
             <div>
-                {/* A different way to show warning: <b> {showWarning ? <IncorrectAreaPopup> Warning: Lines are not allowed to cross </IncorrectAreaPopup> : "" } </b>*/}
-
-
                 <Snackbar
                     open={showWarning}
                     autoHideDuration={3000}
@@ -235,7 +232,6 @@ function StartUp(props) {
                         horizontal: 'center'
                     }}
                 />
-
             </div>
  
 
