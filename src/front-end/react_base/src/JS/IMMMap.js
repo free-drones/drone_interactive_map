@@ -91,7 +91,7 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
         // Do the check for every line on the map.
         for (let i = 1; i < waypoints.length - 1; i++) {
-            crossing = crossing || vectorHelpter(a, b, c, d, waypoints, i);
+            crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
         };
 
     } else if (index === waypoints.length - 1) {
@@ -103,7 +103,7 @@ function removedWaypointLinesCrossing(index, waypoints) {
 
         // Do the check for every line on the map.
         for (let i = 0; i < waypoints.length - 2; i++) {
-            crossing = crossing || vectorHelpter(a, b, c, d, waypoints, i);
+            crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
         };
         
     } else {
@@ -126,7 +126,7 @@ function removedWaypointLinesCrossing(index, waypoints) {
                 const s = waypoints[0].lng;
                 crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
             } else {
-                crossing = crossing || vectorHelpter(a, b, c, d, waypoints, i);
+                crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
             }
         };
     }
@@ -144,13 +144,13 @@ function removedWaypointLinesCrossing(index, waypoints) {
  * @param {*} i index of what part of waypoint should be used
  */
 
-function vectorHelpter(a, b, c, d, waypoints, i) {
+function vectorHelper(a, b, c, d, waypoints, i) {
     const p = waypoints[i].lat; 
     const q = waypoints[i].lng;
 
     const r = waypoints[i + 1].lat; 
     const s = waypoints[i + 1].lng;
-    return hasIntersectingVectors(a, b, c, d, p, q, r, s)
+    return hasIntersectingVectors(a, b, c, d, p, q, r, s);
 }
 
 /**
