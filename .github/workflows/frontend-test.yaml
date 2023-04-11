@@ -24,5 +24,11 @@ jobs:
       - name: Run tests
         working-directory: ./src/front-end/react_base
         run: npm run auto-test
+      - name: ESLint
+        working-directory: ./src/front-end/react_base
+        run: npx eslint src
+      - name: Prettier
+        working-directory: ./src/front-end/react_base
+        run: npx prettier src --check
     env: 
       CI: true
