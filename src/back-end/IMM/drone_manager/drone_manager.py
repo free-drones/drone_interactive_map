@@ -9,11 +9,7 @@ import time
 #
 # BACKLOG
 #
-#
-# – clean up drone, node, route classes to bare minimum (auto)
-# - should main run loop have some sort of delay?
 # - write tests with dummy routes and dummy Link comm
-#
 #
 
 
@@ -54,10 +50,10 @@ class DroneManager(Thread):
             time.sleep(WAIT_TIME)
         
         while self.running:
-            
             self.resource_management()
-
             self.assign_missions()
+
+            time.sleep(WAIT_TIME)
 
 
     def set_routes(self, route_list):
