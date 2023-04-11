@@ -36,7 +36,8 @@
     "test": "react-scripts test",
     "auto-test": "react-scripts test --watchAll=false --coverage --detectOpenHandles --forceExit",
     "eject": "react-scripts eject",
-    "mockup": "node src/JS/Connection/MockupBackend"
+    "mockup": "node src/JS/Connection/MockupBackend",
+    "prettier": "npx prettier src --write --end-of-line auto"
   },
   "eslintConfig": {
     "extends": "react-app"

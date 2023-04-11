@@ -29,6 +29,6 @@ jobs:
         run: npx eslint src
       - name: Prettier
         working-directory: ./src/front-end/react_base
-        run: npx prettier src --check
+        run: npx prettier src --check --end-of-line auto 
     env: 
       CI: true
