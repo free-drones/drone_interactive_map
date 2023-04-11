@@ -7,7 +7,7 @@ const testNamespace = "/UpstreamTest";
 const SERVER_IP = "127.0.0.1";
 const PORT = 4572;
 
-// Set up local respons server.
+// Set up local response server.
 var server = new Server(PORT);
 var io = server.of(testNamespace);
 var upstreamSocket;
@@ -42,7 +42,7 @@ ServerConnection.initialize(
   { forceNew: true }
 );
 
-test("recieve new_pic", (done) => {
+test("receive new_pic", (done) => {
   try {
     upstreamSocket.once("notify", (reply) => {
       // Assert that reply was a valid ack

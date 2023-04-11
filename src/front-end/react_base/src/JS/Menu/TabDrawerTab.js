@@ -1,5 +1,5 @@
 /**
- * TabDraderTab component. Drawer with tab styled activation button.
+ * TabDrawerTab component. Drawer with tab styled activation button.
  */
 
 import React, { useState, useEffect } from "react";
@@ -15,9 +15,9 @@ import List from "@mui/material/List";
 const DRAWER_WIDTH = 200;
 
 /**
- * Tab head extention constant. Amount of extra width added to tab head.
+ * Tab head extension constant. Amount of extra width added to tab head.
  */
-const TAB_HEAD_EXTENTION = 100;
+const TAB_HEAD_EXTENSION = 100;
 
 /**
  * Inter tab padding constant. Specifies the horizontal padding between components.
@@ -89,7 +89,7 @@ function TabDrawerTab(props) {
       case "tabHead":
         return {
           // Make tab head paper wider than actual button, hiding the overflow neatly behind the drawer.
-          width: TAB_HEAD_SIZE + TAB_HEAD_EXTENTION,
+          width: TAB_HEAD_SIZE + TAB_HEAD_EXTENSION,
 
           // Move tab head content (button) to appropriate side of button.
           display: "flex",
@@ -101,11 +101,11 @@ function TabDrawerTab(props) {
           transform:
             "translate(" +
             (props.anchor === "left" ? "-" : "") +
-            TAB_HEAD_EXTENTION +
+            TAB_HEAD_EXTENSION +
             "px, 0)",
 
-          // Match appbar z-index. Drawer har a higher z-index than app-bar by default.
-          zIndex: "appbar",
+          // Match appBar z-index. Drawer har a higher z-index than app-bar by default.
+          zIndex: "appBar",
         };
       case "active":
         return {

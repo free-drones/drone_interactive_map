@@ -1,5 +1,5 @@
 /**
- * Class file for radiobuttons regarding run mode.
+ * Class file for radio buttons regarding run mode.
  */
 
 import React, { Component } from "react";
@@ -15,7 +15,7 @@ import {
 import Typography from "@mui/material/Typography";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
-import { userPrio } from "../Storage.js";
+import { userPriority } from "../Storage.js";
 
 class ModeButtonGroup extends Component {
   constructor() {
@@ -42,7 +42,7 @@ class ModeButtonGroup extends Component {
   };
 
   render() {
-    switch (this.props.store.userPrio) {
+    switch (this.props.store.userPriority) {
       case 1:
         return (
           <div>
@@ -78,6 +78,6 @@ class ModeButtonGroup extends Component {
 }
 
 export default connect(
-  { userPrio, mapPosition, mode },
+  { userPriority, mapPosition, mode },
   { ...mapPositionActions, ...modeActions }
 )(ModeButtonGroup);

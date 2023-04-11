@@ -1,5 +1,5 @@
 /**
- * Custom Material UI wrapper for setting primary color localy.
+ * Custom Material UI wrapper for setting primary color locally.
  * NOTE that this somewhat diverges from the Material Design styling methodology. Therefore, use with care.
  */
 

@@ -3,7 +3,7 @@
  */
 
 import ServerConnection from "./ServerConnection.js";
-import { store, recieveRequest } from "../Storage.js";
+import { store, receiveRequest } from "../Storage.js";
 
 /**
  * Request type. Either "RGB" or "IR"
@@ -14,12 +14,12 @@ import { store, recieveRequest } from "../Storage.js";
  * Handle new image notification.
  *
  * @param {Type} type Image type.
- * @param {Boolean} prioritized If the image was proiritized or not.
+ * @param {Boolean} prioritized If the image was prioritized or not.
  * @param {Int} imageID ID of the new image.
  */
 export function newImage(type, prioritized, imageID) {
   if (prioritized) {
-    store.dispatch(recieveRequest(imageID));
+    store.dispatch(receiveRequest(imageID));
   }
 
   let data = {

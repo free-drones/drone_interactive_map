@@ -61,9 +61,9 @@ function TabDrawer(props) {
   );
 
   /**
-   * Handle tab clicked event. This callback method is passed to children as a prop bound to their corrensponding index.
+   * Handle tab clicked event. This callback method is passed to children as a prop bound to their corresponding index.
    *
-   * @param {Number} index Intex of clicked tab
+   * @param {Number} index Index of clicked tab
    * @param {String} newState New state of clicked tab
    */
   function tabHeadClicked(index, newState) {

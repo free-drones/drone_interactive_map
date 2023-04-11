@@ -1,5 +1,5 @@
 /**
- * AttentionBorder component. Screen wide border for especially attention-needing tasks, like defining area of intrest.
+ * AttentionBorder component. Screen wide border for especially attention-needing tasks, like defining area of interest.
  */
 
 import React from "react";

@@ -98,7 +98,7 @@ var initialRequestQueue = {
 */
 var initialActivePictures = [];
 
-const initialUserPrio = 1;
+const initialUserPriority = 1;
 
 /**
  * ====================================================================================================
@@ -174,15 +174,15 @@ export const setConfigValue = createAction(
  * User Priority, restricted to a number.
  * Determines which permissions a user has
  */
-export const setUserPrio = createAction(
-  "SET_USER_PRIO",
+export const setUserPriority = createAction(
+  "SET_USER_PRIORITY",
   function prepare(token) {
     if (!isNaN(token)) {
       return {
         payload: token,
       };
     } else {
-      throw new Error("User Prio must be a number.");
+      throw new Error("User Priority must be a number.");
     }
   }
 );
@@ -252,8 +252,8 @@ export const addRequest = createAction("ADD_REQUEST", function prepare(id) {
       payload: {
         id: id,
         requestTime: Date.now(),
-        recieveTime: null,
-        recieved: false,
+        receiveTime: null,
+        received: false,
       },
     };
   } else {
@@ -274,8 +274,8 @@ export const removeRequest = createAction(
   }
 );
 
-export const recieveRequest = createAction(
-  "RECIEVE_REQEUST",
+export const receiveRequest = createAction(
+  "RECEIVE_REQUEST",
   function prepare(id) {
     if (!isNaN(id)) {
       return {
@@ -490,10 +490,10 @@ export const _clientID = createReducer(null, (builder) => {
   });
 });
 
-export const _userPrio = createReducer(initialUserPrio, (builder) => {
-  builder.addCase(setUserPrio, (state, action) => {
-    const newUserPrio = action.payload;
-    return newUserPrio;
+export const _userPriority = createReducer(initialUserPriority, (builder) => {
+  builder.addCase(setUserPriority, (state, action) => {
+    const newUserPriority = action.payload;
+    return newUserPriority;
   });
 });
 
@@ -539,7 +539,7 @@ export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
         ],
       };
     })
-    .addCase(recieveRequest, (state, action) => {
+    .addCase(receiveRequest, (state, action) => {
       const index = state.items.map((e) => e.id).indexOf(action.payload);
 
       if (index !== -1) {
@@ -549,8 +549,8 @@ export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
             ...state.items.slice(0, index),
             {
               ...state.items[index],
-              recieved: true,
-              recievedTime: Date.now(),
+              received: true,
+              receivedTime: Date.now(),
             },
             ...state.items.slice(index + 1),
           ],
@@ -600,15 +600,15 @@ export const _mapBounds = createReducer(null, (builder) => {
 
 export const _mode = createReducer("MAN", (builder) => {
   builder.addCase(setMode, (state, action) => {
-    const newmode = action.payload;
-    return newmode;
+    const newMode = action.payload;
+    return newMode;
   });
 });
 
 export const _sensor = createReducer("RGB", (builder) => {
   builder.addCase(setSensor, (state, action) => {
-    const newmode = action.payload;
-    return newmode;
+    const newMode = action.payload;
+    return newMode;
   });
 });
 
@@ -629,8 +629,8 @@ export const _messages = createReducer([], (builder) => {
 
 export const _mapState = createReducer("Main", (builder) => {
   builder.addCase(setMapState, (state, action) => {
-    const newstate = action.payload;
-    return newstate;
+    const newState = action.payload;
+    return newState;
   });
 });
 
@@ -662,9 +662,9 @@ export function clientID(state) {
   };
 }
 
-export function userPrio(state) {
+export function userPriority(state) {
   return {
-    userPrio: state.userPrio,
+    userPriority: state.userPriority,
   };
 }
 
@@ -738,7 +738,7 @@ const states = {
   areaWaypoints,
   clientID,
   config,
-  userPrio,
+  userPriority,
   zoomLevel,
   mapPosition,
   requestQueue,
@@ -785,7 +785,7 @@ export const areaWaypointActions = {
 
 export const clientIDActions = { setClientID };
 
-export const userPrioActions = { setUserPrio };
+export const userPriorityActions = { setUserPriority };
 
 export const configActions = { setConfigValue };
 
@@ -796,7 +796,7 @@ export const mapPositionActions = { setMapPosition };
 export const requestQueueActions = {
   addRequest,
   removeRequest,
-  recieveRequest,
+  receiveRequest: receiveRequest,
   clearRequestQueue,
 };
 
@@ -822,7 +822,7 @@ const actions = {
   areaWaypointActions,
   clientIDActions,
   configActions,
-  userPrioActions,
+  userPriorityActions,
   zoomLevelActions,
   mapPositionActions,
   requestQueueActions,
@@ -856,7 +856,7 @@ export const store = configureStore({
   reducer: {
     areaWaypoints: _areaWaypoints,
     clientID: _clientID,
-    userPrio: _userPrio,
+    userPriority: _userPriority,
     config: _config,
     zoomLevel: _zoomLevel,
     mapPosition: _mapPosition,

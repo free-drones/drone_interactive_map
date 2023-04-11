@@ -122,7 +122,7 @@ function MessagesTab(props) {
           horizontal: "center",
         }}
       >
-        {/* Add all filter options to the menu with togglable buttons. */}
+        {/* Add all filter options to the menu with toggle buttons. */}
         {MESSAGE_TYPES.map((filterKey) => (
           <MenuItem
             key={filterKey}

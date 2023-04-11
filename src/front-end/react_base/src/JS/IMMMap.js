@@ -30,7 +30,7 @@ import {
   mapStateActions,
   showWarningActions,
 } from "./Storage.js";
-import { viewify } from "./Helpers/maphelper.js";
+import { boundsToView } from "./Helpers/maphelper.js";
 
 import Leaflet from "leaflet";
 
@@ -238,7 +238,7 @@ class IMMMap extends React.Component {
     }
 
     this.props.store.setZoomLevel(zoom);
-    this.props.store.setMapPosition(viewify(bounds));
+    this.props.store.setMapPosition(boundsToView(bounds));
   }
 
   /**

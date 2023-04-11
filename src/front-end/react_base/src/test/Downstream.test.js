@@ -13,7 +13,7 @@ const testNamespace = "/DownstreamTest";
 const SERVER_IP = "127.0.0.1";
 const PORT = 4571;
 
-// Set up local respons server.
+// Set up local response server.
 var server = new Server(PORT);
 var io = server.of(testNamespace);
 var downstreamSocket;
@@ -47,7 +47,7 @@ var validCoordinateSend = {
   lng: 16.123456,
 };
 
-var validCoordinateRecieve = {
+var validCoordinateReceived = {
   lat: validCoordinateSend.lat,
   long: validCoordinateSend.lng,
 };
@@ -85,7 +85,7 @@ var validViewSend = {
   },
 };
 
-var validViewRecieve = {
+var validViewReceived = {
   up_left: {
     lat: validViewSend.upLeft.lat,
     long: validViewSend.upLeft.lng,
@@ -145,18 +145,18 @@ test("invalid view", () => {
 
 test("translates coordinate", () => {
   expect(translateCoordinate(validCoordinateSend)).toEqual(
-    validCoordinateRecieve
+    validCoordinateReceived
   );
 });
 
 test("translates view", () => {
-  expect(translateView(validViewSend)).toEqual(validViewRecieve);
+  expect(translateView(validViewSend)).toEqual(validViewReceived);
 });
 
 test("send connect", (done) => {
   downstreamSocket.once("init_connection", (request) => {
     try {
-      // Save request data to be vaidated in callback
+      // Save request data to be validated in callback
       expect(request).toEqual({});
 
       // Emulate server response
@@ -208,7 +208,7 @@ test("send set_area", (done) => {
         fcn: "set_area",
         arg: {
           client_id: 1,
-          coordinates: [validCoordinateRecieve],
+          coordinates: [validCoordinateReceived],
           bounds: validBounds,
         },
       });
@@ -235,7 +235,7 @@ test("send request_view", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "request_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewRecieve },
+        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
       });
 
       // Emulate server response
@@ -263,7 +263,7 @@ test("send request_priority_view", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "request_priority_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewRecieve },
+        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
       });
 
       // Emulate server response
@@ -335,7 +335,7 @@ test("send set_mode (automatic)", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "set_mode",
-        arg: { mode: "AUTO", zoom: validViewRecieve },
+        arg: { mode: "AUTO", zoom: validViewReceived },
       });
 
       // Emulate server response

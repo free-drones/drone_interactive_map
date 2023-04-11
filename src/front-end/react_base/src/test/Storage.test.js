@@ -11,7 +11,7 @@ import Storage, {
   setZoomLevel,
   addRequest,
   removeRequest,
-  recieveRequest,
+  receiveRequest,
   clearRequestQueue,
   addActivePicture,
   removeActivePicture,
@@ -77,7 +77,7 @@ test("sets client ID", () => {
 
 test("sets bad connection token", () => {
   try {
-    Storage.store.dispatch(setClientID("KATT"));
+    Storage.store.dispatch(setClientID("CAT"));
   } catch (e) {
     expect(e.message).toBe("Client ID must be a number.");
   }
@@ -138,7 +138,7 @@ test("sets map position", () => {
     Storage.store.dispatch(
       setMapPosition({
         upLeft: {
-          lat: "katt",
+          lat: "cat",
           lng: 15.609948,
         },
         upRight: {
@@ -198,11 +198,11 @@ test("adds a picture request", () => {
     1
   );
   expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty(
-    "recieved",
+    "received",
     false
   );
   expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty(
-    "recieveTime",
+    "receiveTime",
     null
   );
   expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty(
@@ -214,7 +214,7 @@ test("adds a picture request", () => {
 
 test("adds a bad picture request", () => {
   try {
-    Storage.store.dispatch(addRequest("Katt"));
+    Storage.store.dispatch(addRequest("cat"));
   } catch (e) {
     expect(e.message).toBe("Invalid request ID!");
   }
@@ -227,12 +227,12 @@ test("removes a picture request", () => {
   expect(Storage.store.getState().requestQueue).toEqual({ size: 0, items: [] });
 });
 
-test("recieves a picture request", () => {
+test("receives a picture request", () => {
   Storage.store.dispatch(addRequest(1));
   Storage.store.dispatch(addRequest(4));
   Storage.store.dispatch(addRequest(7));
 
-  Storage.store.dispatch(recieveRequest(4));
+  Storage.store.dispatch(receiveRequest(4));
 
   const index = Storage.store
     .getState()
@@ -246,11 +246,11 @@ test("recieves a picture request", () => {
     4
   );
   expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty(
-    "recieved",
+    "received",
     true
   );
   expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty(
-    "recieveTime"
+    "receiveTime"
   );
   expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty(
     "requestTime"
@@ -358,7 +358,7 @@ test("set mode auto", () => {
 
 test("set bad mode", () => {
   try {
-    Storage.store.dispatch(setMode("KATT"));
+    Storage.store.dispatch(setMode("CAT"));
   } catch (e) {
     expect(e.message).toBe("Mode must be either MAN or AUTO.");
   }

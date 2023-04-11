@@ -33,7 +33,7 @@ import {
   configActions,
   showWarning,
   showWarningActions,
-  userPrio,
+  userPriority,
 } from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import { Check, Delete, MyLocation } from "@mui/icons-material";
@@ -46,7 +46,7 @@ import ClickAwayListener from "@mui/material/ClickAwayListener";
 import ColorWrapper from "../ColorWrapper.js";
 
 /**
- * Elevation of alert snackbars.
+ * Elevation of alert snackbar.
  */
 const ALERT_ELEVATION = 6;
 
@@ -98,7 +98,7 @@ function StartUp(props) {
 
   let [dialogOpen, setDialogState] = useState(false);
 
-  let [clearWaypointsConfirm, setClearwaypointsConfirm] = useState(false);
+  let [clearWaypointsConfirm, setClearWaypointsConfirm] = useState(false);
 
   let [snackbar, setSnackbar] = useState({
     open: false,
@@ -122,16 +122,16 @@ function StartUp(props) {
   }, [props.store.messages]);
 
   useEffect(() => {
-    if (props.store.userPrio !== 1) {
+    if (props.store.userPriority !== 1) {
       redirect(true);
     }
-  }, [props.store.userPrio, redirect]);
+  }, [props.store.userPriority, redirect]);
 
   /**
    * Activates confirmation of clearing waypoints.
    */
-  function toggleClearwaypointsConfirm() {
-    setClearwaypointsConfirm(!clearWaypointsConfirm);
+  function toggleClearWaypointsConfirm() {
+    setClearWaypointsConfirm(!clearWaypointsConfirm);
   }
 
   /**
@@ -155,7 +155,7 @@ function StartUp(props) {
   }
 
   /**
-   * Clickhandler for when area is confirmed. Sets needed states and reroutes to main.
+   * ClickHandler for when area is confirmed. Sets needed states and reroutes to main.
    */
   function defineArea() {
     const setArea = (clientID, areaWaypoints, bounds) =>
@@ -202,11 +202,11 @@ function StartUp(props) {
         </Fab>
       </ColorWrapper>
 
-      <ClickAwayListener onClickAway={() => setClearwaypointsConfirm(false)}>
+      <ClickAwayListener onClickAway={() => setClearWaypointsConfirm(false)}>
         <ColorWrapper color="decline">
           <Fab
             onClick={() => {
-              toggleClearwaypointsConfirm();
+              toggleClearWaypointsConfirm();
               if (clearWaypointsConfirm) clearWaypoints();
             }}
             variant={clearWaypointsConfirm ? "extended" : "round"}
@@ -299,7 +299,7 @@ export default connect(
     config,
     messages,
     showWarning,
-    userPrio,
+    userPriority,
   },
   {
     ...areaWaypointActions,
