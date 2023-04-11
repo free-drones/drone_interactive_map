@@ -149,7 +149,7 @@ class UserSession(_Base):
     end_time        The time when the session ended, given as a Unix timestamp.
                     Nullable.
     drone_mode      The current drone mode used in the session. Should be "AUTO"
-                    for autonomous or "MAN" for manual mode.
+                    for autonomous, "MAN" for manual mode or "PHOTO" for photo mode.
     """
 
     __tablename__ = 'sessions'

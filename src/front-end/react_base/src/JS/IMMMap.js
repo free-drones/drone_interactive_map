@@ -5,7 +5,7 @@
 import React, {useState} from 'react';
 import { MapContainer , TileLayer, Marker, Polygon, ImageOverlay, useMapEvents } from 'react-leaflet';
 import "../CSS/Map.scss";
-import { connect, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
+import { connect, config, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures } from './Storage.js'
 import { mapPositionActions, zoomLevelActions, areaWaypointActions, mapStateActions, showWarningActions } from './Storage.js'
 import { viewify } from './Helpers/maphelper.js'
 
@@ -13,9 +13,9 @@ import Leaflet from 'leaflet';
 
 // Room Icon pre-rendered + sizing style
 const markedIcon = '<svg style="font-size: 2.25rem; width: 36px; height: 36px;" class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>';
+const userPosIcon = '<svg class="svg-icon" style="width: 22px;height: 22px;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 512m-442.7 0a442.7 442.7 0 1 0 885.4 0 442.7 442.7 0 1 0-885.4 0Z" fill="#9BBFFF" /><path d="M512 512m-263 0a263 263 0 1 0 526 0 263 263 0 1 0-526 0Z" fill="#377FFC" /></svg>'
 
-// Leaflet icon of pre-rendered Material Design icon
-const marker = Leaflet.divIcon({className: "marker", iconAnchor: Leaflet.point(18, 34), html:markedIcon});
+let hasLocationPanned = false;
 
 
 /**
@@ -176,6 +176,11 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
 
 class IMMMap extends React.Component {
 
+    constructor(props) {
+        super(props)
+        this.state = { userPosition: null }
+    }
+
     /**
      * Pans and zooms to the selected area when it has been confirmed
      * @param {*} map 
@@ -237,11 +242,8 @@ class IMMMap extends React.Component {
 
             // Remove all waypoints
             this.props.store.clearAreaWaypoints();
-            // Timeout could be replaced by other synchronization for better experience
-            setTimeout(() => {
-                // Add restructured waypoints
-                newWP.forEach(wp => this.props.store.addAreaWaypoint(wp));
-            }, 1);
+            // Add restructured waypoints
+            newWP.forEach(wp => this.props.store.addAreaWaypoint(wp));
         }
         else {
             // Marked node was clicked, remove it
@@ -262,7 +264,18 @@ class IMMMap extends React.Component {
             <Marker 
                 position={pos}
                 key={JSON.stringify(pos)}
-                icon={marker}
+                icon={
+                    Leaflet.divIcon({
+                        className: 
+                            ((i === this.props.store.areaWaypoints.length - 1) ? "last-marker" : // If it is the last marker add special styling
+                            (i === 0) ? "first-marker" : // If it is the first marker add special styling
+                            "") + " marker" // Always use the base marker styling
+                        ,
+                        iconAnchor: Leaflet.point(18, 34), 
+                        html:markedIcon
+                    })
+                }
+                
                 eventHandlers={{ click: () => this.markerClick(i) }}
             />
         );
@@ -278,27 +291,39 @@ class IMMMap extends React.Component {
 
         const worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
 
-        function MapEventHandler(props) {
-            const parent = props.parent; // parent is what is referred to as "this" outside of this function
+        const MapEventHandler = () => {
             const map = useMapEvents({
               click: (e) => {
-                parent.addAreaWaypoint(e)
-                // map.locate()  // This finds the users current position via gps
+                this.addAreaWaypoint(e)
               },
-              layeradd: () => {
-                parent.fitBounds(map)
+              zoomlevelschange: () => { // Gets called on load, so use it as a replacement for load
+                this.fitBounds(map)
+                map.locate();
               },
               zoom: () => {
-                parent.updateBounds(map)
+                this.updateBounds(map)
               },
               moveend: () => {
-                parent.updateBounds(map)
+                this.updateBounds(map)
+              },
+              locationfound: (location) => { // Called when user's gps location has been found
+                if (!hasLocationPanned) {
+                    // Makes sure only to pan to the user's location once
+                    hasLocationPanned = true;
+                    map.panTo(location.latlng);
+                    // Keeps the user's location up to date
+                    setInterval(() => {
+                        map.locate();
+                    }, 10000);
+                }
+                this.setState({ userPosition: location.latlng });
+                // Shows the button for centering on the user and makes clicking it center on the user
+                if (this.props.centerButton) {
+                    this.props.centerButton.current.addEventListener("click", () => map.flyTo(this.state.userPosition));
+                    this.props.centerButton.current.style.visibility = "visible";
+                }
               },
 
-            //   locationfound: (location) => { // Called when user's gps location has been found
-            //     console.log('location found:', location)
-            //   },
-              
             })
             return null
           }
@@ -313,7 +338,7 @@ class IMMMap extends React.Component {
                 maxBoundsViscosity={0.5}
                 minZoom={10}
             >
-                <MapEventHandler parent={this} />
+                <MapEventHandler />
                 <TileLayer maxNativeZoom={18} maxZoom={22}
                     attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a>     contributors'
                     url={tile_server_url}
@@ -337,6 +362,27 @@ class IMMMap extends React.Component {
                     : ""
                 }
 
+                {/* This marker is only here to show the effects of the drone icon configs until the actual drone icons are added */}
+                {this.props.store.config.showDroneIcons ?
+                <Marker 
+                    
+                    position={[59.815636, 17.649551]}
+                    icon={Leaflet.divIcon({className: "tmp", iconAnchor: Leaflet.point(this.props.store.config.droneIconPixelSize / 2, this.props.store.config.droneIconPixelSize / 2), html:
+                    `<svg fill="#000000" height="${this.props.store.config.droneIconPixelSize}px" width="${this.props.store.config.droneIconPixelSize}px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1792 1792" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path></g></svg>`})}
+                />
+                : ""}
+                {
+                    this.state.userPosition !== null ?
+                    <Marker 
+                    position={this.state.userPosition}
+                    icon={Leaflet.divIcon({
+                        className: "userIcon",
+                        iconAnchor: Leaflet.point(11, 11),
+                        html: userPosIcon
+                    })}
+                    />
+                    : ""
+                }
                 {this.props.store.activePictures.map((img) => 
                     <ImageOverlay
                         url={img.url}
@@ -351,4 +397,4 @@ class IMMMap extends React.Component {
     }
 }
 
-export default connect({ areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures }, {...areaWaypointActions, ...mapPositionActions, ...zoomLevelActions, ...mapStateActions, ...showWarningActions }) (IMMMap);
+export default connect({ config, areaWaypoints, zoomLevel, mapPosition, mapState, mapBounds, activePictures }, {...areaWaypointActions, ...mapPositionActions, ...zoomLevelActions, ...mapStateActions, ...showWarningActions }) (IMMMap);

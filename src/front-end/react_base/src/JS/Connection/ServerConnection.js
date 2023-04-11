@@ -13,12 +13,13 @@ const LOGGING = true;
 /**
  * Back-end IP address.
  */
-const SERVER_IP = "pum2020.linkoping-ri.se";
+// const SERVER_IP = "pum2020.linkoping-ri.se";
+const SERVER_IP = "localhost";
 
 /**
  * Back-end port.
  */
-const PORT = 65008;
+const PORT = 8080;
 
 /**
  * Respons time out time in ms.

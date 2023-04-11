@@ -5,37 +5,35 @@
 import { createAction, createReducer, configureStore } from "@reduxjs/toolkit";
 import { connect as unboundConnect } from 'react-redux';
 import Axis from 'axis.js';
+import frontendConfig from '../frontendConfig.json';
 
 const DEFAULT_ZOOM_LEVEL = 14;
 
-/**
- * Sets the structure of a view.
- */
-function getGeodata() {
-    var view = {
-        upLeft: {
-            lat: 59.815636,
-            lng: 17.649551
-        },
-        upRight: {
-            lat: 59.815636,
-            lng: 17.676910
-        }, 
-        downLeft: {
-            lat: 59.807759,
-            lng: 17.649551
-        }, 
-        downRight: {
-            lat: 59.807759,
-            lng: 17.676910
-        }, 
-        center: {
-            lat: 59.812157,
-            lng: 17.660430
-        }
-    };
-    return view;
+const DEFAULT_CONFIG = sessionStorage.getItem("config") ? JSON.parse(sessionStorage.getItem("config")) : frontendConfig;
+
+const startView = {
+    upLeft: {
+        lat: 58.402859,
+        lng: 15.5644576
+    },
+    upRight: {
+        lat: 58.402859,
+        lng: 15.5918166
+    }, 
+    downLeft: {
+        lat: 58.394982,
+        lng: 15.5644576
+    }, 
+    downRight: {
+        lat: 58.394982,
+        lng: 15.5918166
+    }, 
+    center: {
+        lat: 58.39938,
+        lng: 15.5753366
+    }
 }
+
 /**
  * Structure for the request queue.
  * 
@@ -151,6 +149,15 @@ export const setClientID = createAction('SET_CLIENT_ID', function prepare(token)
     }
 });
 
+export const setConfigValue = createAction('SET_CONFIG_VALUE', function prepare(key, value) {
+    return {
+        payload: {
+            key: key,
+            value: value
+        }
+    }
+});
+
 /**
  * Map zoom level, restricted to 0-22.
  */
@@ -175,7 +182,7 @@ export const setZoomLevel = createAction('SET_ZOOM_LEVEL', function prepare(leve
 /**
  * Current map view. Stored as stringified JSON.
  */
-export const setMapPosition = createAction('SET_MAP_POSITION', function prepare(view){
+export const setMapPosition = createAction('SET_MAP_POSITION', function prepare(view) {
     if (
         view.upLeft    !== undefined &&
         view.upRight   !== undefined &&
@@ -445,6 +452,15 @@ export const _clientID = createReducer(null, (builder) => {
     })
 });
 
+export const _config = createReducer(DEFAULT_CONFIG, (builder) => {
+    builder
+        .addCase(setConfigValue, (state, action) => {
+            state[action.payload.key] = action.payload.value;
+            sessionStorage.setItem("config", JSON.stringify(state));
+            return state;
+        })
+});
+
 export const _zoomLevel = createReducer(DEFAULT_ZOOM_LEVEL, (builder) => {
     builder
     .addCase(setZoomLevel, (state, action) => {
@@ -453,7 +469,7 @@ export const _zoomLevel = createReducer(DEFAULT_ZOOM_LEVEL, (builder) => {
     })
 });
 
-export const _mapPosition = createReducer(getGeodata(), (builder) => {
+export const _mapPosition = createReducer(startView, (builder) => {
     builder
     .addCase(setMapPosition, (state, action) => {
         const newPosition = action.payload;
@@ -609,6 +625,12 @@ export function clientID(state) {
     });
 }
 
+export function config(state) {
+    return ({
+        config: state.config
+    });
+}
+
 export function zoomLevel(state) {
     return ({
         zoomLevel: state.zoomLevel
@@ -663,13 +685,14 @@ export function mapState(state) {
     });
 }
 
+
 export function showWarning(state) {
     return ({
         showWarning: state.showWarning
     });
 }
 
-const states = { areaWaypoints, clientID, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState, showWarning };
+const states = { areaWaypoints, clientID, config, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState, showWarning };
 
 /**
  * Combine multiple functions into a single.
@@ -702,6 +725,8 @@ export const areaWaypointActions = { addAreaWaypoint, removeAreaWaypoint, clearA
 
 export const clientIDActions = { setClientID };
 
+export const configActions = { setConfigValue };
+
 export const zoomLevelActions = { setZoomLevel };
 
 export const mapPositionActions = { setMapPosition };
@@ -722,7 +747,7 @@ export const mapStateActions = {setMapState}
 
 export const showWarningActions = { setShowWarning };
 
-const actions = { areaWaypointActions, clientIDActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions, showWarningActions };
+const actions = { areaWaypointActions, clientIDActions, configActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions, showWarningActions };
 
 /**
  * Storage
@@ -746,7 +771,8 @@ function mergeProps(stateProps, dispatchProps, ownProps) {
 export const store = configureStore({
     reducer: {
         areaWaypoints: _areaWaypoints,
-        clientID: _clientID,
+        clientID: _clientID,    
+        config: _config,
         zoomLevel: _zoomLevel,
         mapPosition: _mapPosition,
         requestQueue: _requestQueue,
