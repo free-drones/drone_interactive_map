@@ -6,6 +6,17 @@ from IMM.drone_manager.mission import Mission
 
 import time
 
+#
+# BACKLOG
+#
+#
+# – clean up drone, node, route classes to bare minimum (auto)
+# - should main run loop have some sort of delay?
+# - write tests with dummy routes and dummy Link comm
+#
+#
+
+
 PHOTO_NODE_WEIGHT = 3 #The higher the weight, the higher the priority on taking the photo => Drone will get there faster
 WAIT_TIME = 1
 MIN_CHARGE_LEVEL = 20
