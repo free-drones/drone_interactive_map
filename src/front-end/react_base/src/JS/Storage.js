@@ -883,4 +883,6 @@ export const connect = (mapStateToProps, mapDispatchToProps) => {
   return unboundConnect(mapStateToProps, mapDispatchToProps, mergeProps);
 };
 
-export default { store, connect, ...states, ...actions };
+const storageExports = { store, connect, ...states, ...actions };
+
+export default storageExports;

@@ -18,7 +18,6 @@ import { Navigate } from "react-router-dom";
 import {
   connect,
   config,
-  setConfigValue,
   areaWaypointActions,
   areaWaypoints,
   mapBounds,

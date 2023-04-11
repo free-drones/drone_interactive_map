@@ -40,4 +40,8 @@ export function viewify(bounds) {
   return view;
 }
 
-export default { viewify };
+const mapHelperExports = {
+  viewify,
+};
+
+export default mapHelperExports;

@@ -30,4 +30,6 @@ export function newImage(type, prioritized, imageID) {
   ServerConnection.sendUpstream(data);
 }
 
-export default { newImage };
+const upstreamExports = { newImage };
+
+export default upstreamExports;

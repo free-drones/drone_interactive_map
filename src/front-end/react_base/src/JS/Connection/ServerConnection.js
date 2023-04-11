@@ -166,4 +166,11 @@ function handleNextMessage() {
   if (mesBack !== null && mesBack !== undefined) _sendDownstream(...mesBack);
 }
 
-export default { initialize, disconnect, sendUpstream, sendDownstream };
+const serverConnectionExports = {
+  initialize,
+  disconnect,
+  sendUpstream,
+  sendDownstream,
+};
+
+export default serverConnectionExports;
