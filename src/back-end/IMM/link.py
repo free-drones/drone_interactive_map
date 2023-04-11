@@ -15,35 +15,39 @@ class Socket():
     def __init__(self):
         self.socket = _context.socket(zmq.REQ)
         self.socket.connect('tcp://10.44.170.10:17720') # Replace this port with the actual port number
+        self.mutex = threading.Lock()
     
-    def send_and_recieve(self, data, fcn = None) -> dict:
+    def send_and_recieve(self, data) -> dict:
         '''Sends a message to the drone_application and returns the reply'''
-        try:
-            print(f"sending message: {data}")
-            msg = data
-            #msg = {'fcn': fcn}
-           # msg.update(data)
-            msg_str = json.dumps(msg)
-            self.socket.send_json(msg_str)
-        except zmq.ZMQError as e:
-            print(f"Error sending message: {e}")
-            return None
+        with self.mutex:
+            try:
+                print(f"sending message: {data}")
+                msg = data
+                msg_str = json.dumps(msg)
+                self.socket.send_json(msg_str)
+            except zmq.ZMQError as e:
+                print(f"Error sending message: {e}")
+                return None
 
-        try:
-            print("waiting for reply")
-            reply = self.socket.recv_json()
-            reply = json.loads(reply)
-        except zmq.Again as e:
-            print(f"Error receiving message (timeout): {e}")
-            return None
-        except zmq.ZMQError as e:
-            print(f"Error receiving message: {e}")
-            return None
-        except json.JSONDecodeError as e:
-            print(f"Error decoding received JSON message: {e}")
-            return None
-        print(f"received reply: {reply}")
-        return reply
+            try:
+                print("waiting for reply")
+                reply = self.socket.recv_json()
+                reply = json.loads(reply)
+            except KeyboardInterrupt:
+                print("KeyboardInterrupt")
+                self.socket.close()
+                return None
+            except zmq.Again as e:
+                print(f"Error receiving message (timeout): {e}")
+                return None
+            except zmq.ZMQError as e:
+                print(f"Error receiving message: {e}")
+                return None
+            except json.JSONDecodeError as e:
+                print(f"Error decoding received JSON message: {e}")
+                return None
+            print(f"received reply: {reply}")
+            return reply
     
     def request_success(self, reply):
         if reply['status'] == 'success':
@@ -60,10 +64,12 @@ class Link():
     def __init__(self):
         self.drone_dict = {}
 
+        # Auto detect ip
         self.hostname = socket.gethostname()
-        self.ip = socket.gethostbyname(self.hostname)                                     # auto ip for now
+        self.ip = socket.gethostbyname(self.hostname)
         print(self.ip)
-        self.crm = '10.44.170.10:17700'                                              # crm ip and port
+        # CRM ip:port
+        self.crm = '10.44.170.10:17700'
         self.socket = Socket()
                                            
     def connect_to_drone(self):
@@ -104,8 +110,8 @@ class Link():
             print(reply['message'])
             return False
     
-    def kill(self): #currently obsolete in the new version
-        '''Kills all drones and clears the drone dictionary'''
+    def kill(self):
+        '''Kills socket'''
         print("killing socket")
         self.socket.close()
 
@@ -121,9 +127,9 @@ class Link():
             return False
         
     
-    def fly_random_mission(self, drone):
+    def fly_random_mission(self, drone, n_wps = 10):
         '''Starts a new thread that flies a random mission with the specified drone'''
-        msg = {'fcn': 'fly_random_mission', 'drone_name': drone.id}
+        msg = {'fcn': 'fly_random_mission', 'drone_name': drone.id, 'n_wps': n_wps}
         print("sending fly_random_mission message")
         reply = self.socket.send_and_recieve(msg)
         if self.socket.request_success(reply):
@@ -159,7 +165,7 @@ class Link():
             print(reply['message'])
             return False
     
-    def get_drone_position(self, drone):
+    def get_drone_status(self, drone):
         '''Returns the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north}'''
         msg = {'fcn': 'get_drone_position', 'drone_name': drone.id}
         print("sending get_drone_position message")
@@ -172,7 +178,7 @@ class Link():
             return False
 
     def get_drone_waypoint(self, drone):
-        '''Returns the current waypoint of the drone, {‘"lat" : lat , "lon": lon , "alt": new_alt, "alt_type": "amsl", "heading": degrees relative true north,  "speed": speed}'''
+        '''Returns the current waypoint of the drone, {"lat" : lat , "lon": lon , "alt": new_alt, "alt_type": "amsl", "heading": degrees relative true north,  "speed": speed}'''
         msg = {'fcn': 'get_drone_waypoint', 'drone_name': drone.id}
         print("sending get_drone_waypoint message")
         reply = self.socket.send_and_recieve(msg)
