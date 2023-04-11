@@ -119,8 +119,8 @@ def check_keys_exists(value_dict, key_paths):
 
     for key_path in key_paths:
         if not dig(value_dict, key_path):
-            return False
-    return True
+            return True
+    return False
 
 
 
