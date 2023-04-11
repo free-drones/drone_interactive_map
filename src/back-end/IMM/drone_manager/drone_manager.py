@@ -13,7 +13,6 @@ import time
 #
 
 
-PHOTO_NODE_WEIGHT = 3 #The higher the weight, the higher the priority on taking the photo => Drone will get there faster
 WAIT_TIME = 1
 MIN_CHARGE_LEVEL = 20
 FULL_CHARGE_LEVEL = 95
