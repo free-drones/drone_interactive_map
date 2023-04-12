@@ -39,7 +39,7 @@ afterAll((done) => {
 
 ServerConnection.initialize(SERVER_IP, PORT, testNamespace, { forceNew : true }, { forceNew : true });
 
-test('recieve new_pic', (done) => {
+test('receive new_pic', (done) => {
     try {
         upstreamSocket.once("notify", (reply) => {
             // Assert that reply was a valid ack

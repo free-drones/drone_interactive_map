@@ -4,7 +4,7 @@
 
 import Storage, { addAreaWaypoint, removeAreaWaypoint, clearAreaWaypoints, 
                 setClientID, setMapPosition, setZoomLevel, 
-                addRequest, removeRequest, recieveRequest, clearRequestQueue,
+                addRequest, removeRequest, receiveRequest, clearRequestQueue,
                 addActivePicture, removeActivePicture,
                 setSensor, setMode, setMapBounds
             } from '../JS/Storage.js';
@@ -189,8 +189,8 @@ test('adds a picture request', () => {
     expect(Storage.store.getState().requestQueue.size).toEqual(1);
     expect(Storage.store.getState().requestQueue.items.length).toEqual(1);
     expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty('id', 1);
-    expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty('recieved', false);
-    expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty('recieveTime', null);
+    expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty('received', false);
+    expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty('receiveTime', null);
     expect(Storage.store.getState().requestQueue.items[0]).toHaveProperty('requestTime');
 
     Storage.store.dispatch(removeRequest(0));
@@ -212,20 +212,20 @@ test('removes a picture request', () => {
     expect(Storage.store.getState().requestQueue).toEqual({size: 0, items: []});
 });
 
-test('recieves a picture request', () => {
+test('receives a picture request', () => {
     Storage.store.dispatch(addRequest(1));
     Storage.store.dispatch(addRequest(4));
     Storage.store.dispatch(addRequest(7));
 
-    Storage.store.dispatch(recieveRequest(4));
+    Storage.store.dispatch(receiveRequest(4));
 
     const index = Storage.store.getState().requestQueue.items.map(e => e.id).indexOf(4);
 
     expect(Storage.store.getState().requestQueue.size).toEqual(3);
     expect(Storage.store.getState().requestQueue.items.length).toEqual(3);
     expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty('id', 4);
-    expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty('recieved', true);
-    expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty('recieveTime');
+    expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty('received', true);
+    expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty('receiveTime');
     expect(Storage.store.getState().requestQueue.items[index]).toHaveProperty('requestTime');
 
     Storage.store.dispatch(removeRequest(0));

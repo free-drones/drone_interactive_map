@@ -62,7 +62,7 @@ var messageQueue = [];
 /**
  * Handle a request from backend.
  * 
- * @param {String} message Recieved message
+ * @param {String} message received message
  */
 function upstreamRequestEventHandler(message) {
     switch(message.fcn) {
@@ -77,7 +77,7 @@ function upstreamRequestEventHandler(message) {
 /**
  * Handle a SET_PRIO request from backend.
  * 
- * @param {String} message Recieved message
+ * @param {String} message received message
  */
 function userPrioEventHandler(message) {
     // If this user is not a high priority user lower userPrio and set the correct area defined by other user

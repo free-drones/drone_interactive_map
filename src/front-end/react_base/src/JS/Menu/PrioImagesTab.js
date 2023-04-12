@@ -84,7 +84,7 @@ function PrioImagesTab(props) {
             {[...props.store.requestQueue.items].sort((i1, i2) => i2.requestTime - i1.requestTime).map((item) =>
                 <ListItem key={item.requestTime}>
                     <ListItemIcon sx={styles.thinIcon}>
-                        {item.recieved ? <Check /> : <ChevronRightIcon />}
+                        {item.received ? <Check /> : <ChevronRightIcon />}
                     </ListItemIcon>
                     <ListItemText 
                         disableTypography
@@ -100,11 +100,11 @@ function PrioImagesTab(props) {
                                     {"Request time: " + getFormattedTime(new Date(item.requestTime))}
                                 </Typography>
                                 <Typography variant="subtitle2" display="block" >
-                                    {"Recieved: " + item.recieved}
+                                    {"received: " + item.received}
                                 </Typography>
-                                {item.recieved ? (
+                                {item.received ? (
                                     <Typography variant="subtitle2" display="block" >
-                                        {"Recieve time: " + getFormattedTime(new Date(item.recieveTime))}
+                                        {"receive time: " + getFormattedTime(new Date(item.receiveTime))}
                                     </Typography>) : "" }
                             </div>
                         }

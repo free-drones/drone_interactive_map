@@ -238,8 +238,8 @@ export const addRequest = createAction('ADD_REQUEST', function prepare(id) {
             payload: {
                 id: id,
                 requestTime: Date.now(),
-                recieveTime: null,
-                recieved: false
+                receiveTime: null,
+                received: false
             }
         }
     }
@@ -259,7 +259,7 @@ export const removeRequest = createAction('REMOVE_REQUEST', function prepare(ind
     }
 });
 
-export const recieveRequest = createAction('RECIEVE_REQEUST', function prepare(id) {
+export const receiveRequest = createAction('RECEIVE_REQUEST', function prepare(id) {
     if(!isNaN(id)) {
         return {
             payload: id
@@ -385,7 +385,6 @@ export const setMapState = createAction('SET_MAP_STATE', function prepare(text){
 });
 
 
-
 /**
  * Actions related to Sensor mode (RGB, IR or Map).
  */
@@ -433,6 +432,27 @@ export const clearMessages = createAction('CLEAR_MESSAGES');
 export const setShowWarning = createAction('SET_SHOW_ERROR', function prepare(shouldShow){
         return {payload: shouldShow};
 });
+
+/**
+ *  Actions related to drone position
+ */
+
+export const setDronePosition = createAction('SET_DRONE_POSITION', function prepare(key, value) {
+    return {
+        payload: {
+            key: key,
+            value: value
+        }
+    }
+});
+
+export const removeDronePosition = createAction('REMOVE_DRONE_POSITION', function prepare(key) {
+    return {
+        payload: key
+    }
+});
+
+export const clearDronePositions = createAction('CLEAR_DRONE_POSITION');
 
 /**
  * ====================================================================================================
@@ -516,7 +536,7 @@ export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
             ...state.items.slice(index + 1)
         ]};
     })
-    .addCase(recieveRequest, (state, action) => {
+    .addCase(receiveRequest, (state, action) => {
         const index = state.items.map(e => e.id).indexOf(action.payload);
 
         if (index !== -1) {
@@ -526,8 +546,8 @@ export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
                     ...state.items.slice(0, index),
                     {
                         ...state.items[index],
-                        recieved: true,
-                        recievedTime: Date.now()
+                        received: true,
+                        receivedTime: Date.now()
                     },
                     ...state.items.slice(index + 1)
                 ]
@@ -629,6 +649,24 @@ export const _showWarning = createReducer(false, (builder) => {
     })
 });
 
+export const _dronePositions = createReducer([], (builder) => {
+    builder
+    .addCase(setDronePosition, (state, action) => {
+        state[action.payload.key] = action.payload.value;
+        return state;
+    })
+    .addCase(removeDronePosition, (state, action) => {
+        //if(state[action.payload.key]) {
+            delete state[action.payload.key];
+         //}
+        return state;
+    })
+    .addCase(clearDronePositions, (state, action) => {
+        return [];
+    })
+    
+});
+
 /**
  * ====================================================================================================
  *                                      State mapping functions
@@ -722,7 +760,13 @@ export function showWarning(state) {
     });
 }
 
-const states = { areaWaypoints, clientID, config, userPrio, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState, showWarning };
+export function dronePositions(state) {
+    return ({
+        dronePositions: state.dronePositions
+    });
+}
+
+const states = { areaWaypoints, clientID, config, userPrio, zoomLevel, mapPosition, requestQueue, activePictures, mapBounds, mode, sensor, messages, mapState, showWarning, dronePositions };
 
 /**
  * Combine multiple functions into a single.
@@ -763,7 +807,7 @@ export const zoomLevelActions = { setZoomLevel };
 
 export const mapPositionActions = { setMapPosition };
 
-export const requestQueueActions = { addRequest, removeRequest, recieveRequest, clearRequestQueue };
+export const requestQueueActions = { addRequest, removeRequest, receiveRequest, clearRequestQueue };
 
 export const activePicturesActions = { addActivePicture, removeActivePicture, clearActivePictures };
 
@@ -779,7 +823,9 @@ export const mapStateActions = {setMapState}
 
 export const showWarningActions = { setShowWarning };
 
-const actions = { areaWaypointActions, clientIDActions, configActions, userPrioActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions, showWarningActions };
+export const dronePositionActions = { setDronePosition, removeDronePosition, clearDronePositions };
+
+const actions = { areaWaypointActions, clientIDActions, configActions, userPrioActions, zoomLevelActions, mapPositionActions, requestQueueActions, activePicturesActions, mapBoundsActions, modeActions, sensorActions, messagesActions, mapStateActions, showWarningActions, dronePositionActions };
 
 /**
  * Storage
@@ -815,7 +861,8 @@ export const store = configureStore({
         sensor: _sensor,
         messages: _messages,
         mapState: _mapState,
-        showWarning: _showWarning
+        showWarning: _showWarning,
+        dronePosition: _dronePositions
     }
 });
 

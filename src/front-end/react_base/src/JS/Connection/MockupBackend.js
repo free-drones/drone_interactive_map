@@ -149,13 +149,6 @@ io.on("connect", (socket) => {
         socket.emit("response", reply);
     });
 
-    
- // ------------------- TEST DRONE ICON ---------------------------
-
- const position = {
-    lat: 58.4083,
-    lng: 15.5646
-};
 
 // GetPosition
 socket.on("get_drone_position", (request) => {
@@ -165,7 +158,7 @@ socket.on("get_drone_position", (request) => {
         fcn : "ack",
         fcn_name : "get_drone_position",
         arg : {
-            position
+            position : [58.4083, 15.5646]
         }
     }
     socket.emit("response", reply);

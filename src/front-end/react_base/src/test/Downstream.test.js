@@ -44,7 +44,7 @@ var validCoordinateSend = {
     lng: 16.123456
 }
 
-var validCoordinateRecieve = {
+var validCoordinatereceive = {
     lat: validCoordinateSend.lat,
     long: validCoordinateSend.lng
 }
@@ -84,7 +84,7 @@ var validViewSend = {
     }
 };
 
-var validViewRecieve = {
+var validViewreceive = {
     up_left: {
         lat: validViewSend.upLeft.lat,
         long: validViewSend.upLeft.lng
@@ -143,11 +143,11 @@ test('invalid view', () => {
 });
 
 test('translates coordinate', () => {
-    expect(translateCoordinate(validCoordinateSend)).toEqual(validCoordinateRecieve);
+    expect(translateCoordinate(validCoordinateSend)).toEqual(validCoordinatereceive);
 });
 
 test('translates view', () => {
-    expect(translateView(validViewSend)).toEqual(validViewRecieve);
+    expect(translateView(validViewSend)).toEqual(validViewreceive);
 });
 
 test('send connect', (done) => {
@@ -203,7 +203,7 @@ test('send set_area', (done) => {
     downstreamSocket.once("set_area", (request) => {
         try {
             // Validate request
-            expect(request).toEqual({ fcn : "set_area", arg : { client_id : 1, coordinates : [validCoordinateRecieve], bounds: validBounds }});
+            expect(request).toEqual({ fcn : "set_area", arg : { client_id : 1, coordinates : [validCoordinatereceive], bounds: validBounds }});
             
             // Emulate server response
             let response = {
@@ -226,7 +226,7 @@ test('send request_view', (done) => {
     downstreamSocket.once("request_view", (request) => {
         try {
             // Validate request
-            expect(request).toEqual({ fcn : "request_view", arg : { client_id : 1, type : "RGB", coordinates : validViewRecieve } });
+            expect(request).toEqual({ fcn : "request_view", arg : { client_id : 1, type : "RGB", coordinates : validViewreceive } });
             
             // Emulate server response
             let response = {
@@ -252,7 +252,7 @@ test('send request_priority_view', (done) => {
     downstreamSocket.once("request_priority_view", (request) => {
         try {
             // Validate request
-            expect(request).toEqual({ fcn : "request_priority_view", arg : { client_id : 1, type : "RGB", coordinates: validViewRecieve } });
+            expect(request).toEqual({ fcn : "request_priority_view", arg : { client_id : 1, type : "RGB", coordinates: validViewreceive } });
             
             // Emulate server response
             let response = {
@@ -324,7 +324,7 @@ test('send set_mode (automatic)', (done) => {
     downstreamSocket.once("set_mode", (request) => {
         try {
             // Validate request
-            expect(request).toEqual({ fcn : "set_mode", arg : { mode : "AUTO", zoom : validViewRecieve } });
+            expect(request).toEqual({ fcn : "set_mode", arg : { mode : "AUTO", zoom : validViewreceive } });
 
             // Emulate server response
             let response = {

@@ -1,5 +1,5 @@
 /**
- * Class file for radiobuttons regarding run mode.
+ * Class file for radio buttons regarding run mode.
  */
 
 import React, { Component } from 'react';
