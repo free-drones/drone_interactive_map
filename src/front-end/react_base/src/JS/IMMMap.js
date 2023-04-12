@@ -17,6 +17,7 @@ const markedIcon = '<svg style="font-size: 2.25rem; width: 36px; height: 36px;" 
 const userPosIcon = '<svg class="svg-icon" style="width: 22px;height: 22px;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 512m-442.7 0a442.7 442.7 0 1 0 885.4 0 442.7 442.7 0 1 0-885.4 0Z" fill="#9BBFFF" /><path d="M512 512m-263 0a263 263 0 1 0 526 0 263 263 0 1 0-526 0Z" fill="#377FFC" /></svg>'
 
 let hasLocationPanned = false;
+let dronePosition = null;
 
 
 /**
@@ -186,7 +187,10 @@ class IMMMap extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = { userPosition: null }
+        this.state = { 
+            userPosition: null,
+            dronePosition: [58.408300, 15.564600]
+         }
     }
 
     /**
@@ -243,9 +247,15 @@ class IMMMap extends React.Component {
     componentDidMount() {
         setInterval(() => {
             getDronePosition((response) => {
-                console.log(response);
+                //this.state.dronePosition = response.arg.position;
+                //let newdronelat = this.state.dronePosition[0] + 0.0001
+                //let newdronelong = this.state.dronePosition[1] + 0.0001
+                //this.setState({ dronePosition:  [newdronelat, newdronelong]});
+                console.log("Received position: ", response.arg.position)
+
+                //this.setState({dronePosition: response.arg.position});
             })
-        }, 6000);
+        }, 5000);
     }
 
     /**
@@ -386,9 +396,7 @@ class IMMMap extends React.Component {
                 {/* This marker is only here to show the effects of the drone icon configs until the actual drone icons are added */}
                 {this.props.store.config.showDroneIcons ?
                 <Marker 
-                // position = {lat: 58.4083, lng: 15.5646}
-                //position={[59.815636, 17.649551]}
-                  position = {[69,69]}  
+                  position = {this.state.dronePosition}  
                     icon={Leaflet.divIcon({className: "tmp", iconAnchor: Leaflet.point(this.props.store.config.droneIconPixelSize / 2, this.props.store.config.droneIconPixelSize / 2), html:
                     `<svg fill="#000000" height="${this.props.store.config.droneIconPixelSize}px" width="${this.props.store.config.droneIconPixelSize}px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1792 1792" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path></g></svg>`})}
                 />

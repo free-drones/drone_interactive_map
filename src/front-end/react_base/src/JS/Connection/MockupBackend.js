@@ -158,7 +158,7 @@ socket.on("get_drone_position", (request) => {
         fcn : "ack",
         fcn_name : "get_drone_position",
         arg : {
-            position : [58.4083, 15.5646]
+            position : [58.410807, 15.621373]
         }
     }
     socket.emit("response", reply);
