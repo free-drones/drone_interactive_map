@@ -1,6 +1,5 @@
 import link
 import time
-import link
 '''
 This is a test script for the link module. It is not intended to be run as a part of the main program.
 To run this test, first the crm needs to have simulated drones running. Then start qgroundcontrol and connect to the simulated drones. 

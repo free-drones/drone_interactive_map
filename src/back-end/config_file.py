@@ -40,3 +40,6 @@ CONSOLE_LOG_LEVEL = logging.WARNING
 
 """Minimum log level to write to log file."""
 FILE_LOG_LEVEL = logging.DEBUG
+
+"""Drone application socket url"""
+DRONE_APP_URL = 'tcp://10.44.170.10:17720'
