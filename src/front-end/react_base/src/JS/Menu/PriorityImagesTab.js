@@ -25,7 +25,11 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Redo from "@mui/icons-material/Redo";
 import Check from "@mui/icons-material/Check";
 
-import { connect, pictureRequestQueue, pictureRequestQueueActions } from "../Storage.js";
+import {
+  connect,
+  pictureRequestQueue,
+  pictureRequestQueueActions,
+} from "../Storage.js";
 
 import { clearImageQueue, callbackWrapper } from "../Connection/Downstream";
 import ColorWrapper from "../ColorWrapper.js";

@@ -8,7 +8,11 @@ import TabDrawerTab from "./TabDrawerTab";
 import CameraQueueIcon from "./CameraQueueIcon.js";
 import SmsFailedIcon from "@mui/icons-material/SmsFailed";
 import MessagesTab from "./MessagesTab";
-import { connect, pictureRequestQueue, pictureRequestQueueActions } from "../Storage.js";
+import {
+  connect,
+  pictureRequestQueue,
+  pictureRequestQueueActions,
+} from "../Storage.js";
 import PriorityImagesTab from "./PriorityImagesTab";
 
 function StatusDrawer() {

@@ -224,7 +224,10 @@ test("removes a picture request", () => {
   Storage.store.dispatch(addPictureRequest(2));
   Storage.store.dispatch(removePictureRequest(0));
 
-  expect(Storage.store.getState().pictureRequestQueue).toEqual({ size: 0, items: [] });
+  expect(Storage.store.getState().pictureRequestQueue).toEqual({
+    size: 0,
+    items: [],
+  });
 });
 
 test("receives a picture request", () => {
@@ -241,20 +244,18 @@ test("receives a picture request", () => {
 
   expect(Storage.store.getState().pictureRequestQueue.size).toEqual(3);
   expect(Storage.store.getState().pictureRequestQueue.items.length).toEqual(3);
-  expect(Storage.store.getState().pictureRequestQueue.items[index]).toHaveProperty(
-    "id",
-    4
-  );
-  expect(Storage.store.getState().pictureRequestQueue.items[index]).toHaveProperty(
-    "received",
-    true
-  );
-  expect(Storage.store.getState().pictureRequestQueue.items[index]).toHaveProperty(
-    "receiveTime"
-  );
-  expect(Storage.store.getState().pictureRequestQueue.items[index]).toHaveProperty(
-    "requestTime"
-  );
+  expect(
+    Storage.store.getState().pictureRequestQueue.items[index]
+  ).toHaveProperty("id", 4);
+  expect(
+    Storage.store.getState().pictureRequestQueue.items[index]
+  ).toHaveProperty("received", true);
+  expect(
+    Storage.store.getState().pictureRequestQueue.items[index]
+  ).toHaveProperty("receiveTime");
+  expect(
+    Storage.store.getState().pictureRequestQueue.items[index]
+  ).toHaveProperty("requestTime");
 
   Storage.store.dispatch(removePictureRequest(0));
   Storage.store.dispatch(removePictureRequest(0));
@@ -266,7 +267,10 @@ test("clears the request queue", () => {
   Storage.store.dispatch(addPictureRequest(2));
   Storage.store.dispatch(clearPictureRequestQueue());
 
-  expect(Storage.store.getState().pictureRequestQueue).toEqual({ size: 0, items: [] });
+  expect(Storage.store.getState().pictureRequestQueue).toEqual({
+    size: 0,
+    items: [],
+  });
 });
 
 test("adds an active picture", () => {
