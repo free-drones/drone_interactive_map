@@ -72,7 +72,7 @@ class Link():
         _logger.debug(f"Sending connect_to_drone message: {msg}")
         reply = self.socket.send_and_recieve(msg)
         if self.socket.request_success(reply):
-            _logger.debug(f"Received drone id: {reply['drone_id']}")
+            _logger.debug(f"succesfully connected to drone: {reply['message']}")
             return True
         else:
             _logger.error(f"Error connecting to drone: {reply['message']}")
@@ -84,10 +84,10 @@ class Link():
         _logger.debug(f"Sending connect_to_all_drones message: {msg}")
         reply = self.socket.send_and_recieve(msg)
         if self.socket.request_success(reply):
-            _logger.debug(f"Received drone id: {reply['drone_id']}")
+            _logger.debug(f"connect_to_all_drones success: {reply['message']}")
             return reply["message"]
         else:
-            _logger.error(f"Error connecting to drone: {reply['message']}")
+            _logger.error(f"Error connecting to drones: {reply['message']}")
             return False
     
     def get_list_of_drones(self):
