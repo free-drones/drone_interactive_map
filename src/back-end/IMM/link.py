@@ -1,14 +1,10 @@
-
-import time
 import threading
 import zmq
 import json
 import socket
-#TODO: Get more logging and error handling in place
-#TODO: See to it that everything is thread safe
-#TODO: Cover any areas where the code might break, or that we have not implemented yet
-#TODO: Figure out which threads need to be daemon threads and which don't, make sure all threads are exited properly
-#TODO: Why is the next drone only taking off after the first drone reaches 15m? slow i think
+
+'''This class is used to connect to drones and send missions to them'''
+
 _context = zmq.Context()
 
 class Socket():
@@ -140,9 +136,9 @@ class Link():
             print(reply['message'])
             return False
 
-    def get_mission_status(self, drone):
+    def get_drone_status(self, drone):
         '''Returns the status of the mission, 'flying' = mission is in progress, 'waiting' = flying and waiting for a new mission, 
-        'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied'''
+        'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied, 'charging' = charging'''
         msg = {'fcn': 'get_mission_status', 'drone_name': drone.id}
         print("sending get_mission_status message")
         reply = self.socket.send_and_recieve(msg)
@@ -165,7 +161,7 @@ class Link():
             print(reply['message'])
             return False
     
-    def get_drone_status(self, drone):
+    def get_drone_position(self, drone):
         '''Returns the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north}'''
         msg = {'fcn': 'get_drone_position', 'drone_name': drone.id}
         print("sending get_drone_position message")
@@ -190,9 +186,13 @@ class Link():
             return False
     
     def valid_drone_name(self, drone):
-        '''Returns true if the drone name is valid'''
-        if drone.id in self.drone_dict:
-            print("valid drone name")
-            return True
+        '''Returns True if the drone name is valid, False otherwise'''
+        msg = {'fcn': 'get_valid_drone_name', 'drone_name': drone.id}
+        print("sending valid_drone_name message")
+        reply = self.socket.send_and_recieve(msg)
+        if self.socket.request_success(reply):
+            print("request success for valid_drone_name")
+            return reply['valid']
         else:
+            print(reply['message'])
             return False

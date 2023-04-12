@@ -1,5 +1,15 @@
 import link
 import time
+import link
+'''
+This is a test script for the link module. It is not intended to be run as a part of the main program.
+To run this test, first the crm needs to have simulated drones running. Then start qgroundcontrol and connect to the simulated drones. 
+This will be done by setting the folowing information in "connections" in qgroundcontrol 
+tcp/ip with ip 10.44.170.10 and the port will be the mavproxy process port that is not taken by the dss, 
+you can find this information on c2m2 (in a webbrowser type 10.44.170.10 when connected to openvpn). 
+When this is done and you are connected to the drones, set them to guided mode in qgroundcontrol.
+After that ssh in to the RISE server (for us it is at 10.44.170.10 with openvpn running) and run app_drone_link, then run this script.
+'''
 
 link_object = link.Link()
 alive = True
