@@ -54,7 +54,7 @@ const startView = {
     ]
     }
  */
-var initialPictureRequestQueue = {
+var initialRequestQueue = {
   size: 0,
   items: [],
 };
@@ -244,9 +244,9 @@ export const setMapPosition = createAction(
 /**
  * Actions related to priority picture request queue.
  */
-export const clearPictureRequestQueue = createAction("CLEAR_PICTURE_REQUEST_QUEUE");
+export const clearRequestQueue = createAction("CLEAR_REQUEST_QUEUE");
 
-export const addPictureRequest = createAction("ADD_PICTURE_REQUEST", function prepare(id) {
+export const addRequest = createAction("ADD_REQUEST", function prepare(id) {
   if (!isNaN(id)) {
     return {
       payload: {
@@ -261,7 +261,7 @@ export const addPictureRequest = createAction("ADD_PICTURE_REQUEST", function pr
   }
 });
 
-export const removePictureRequest = createAction(
+export const removeRequest = createAction(
   "REMOVE_REQUEST",
   function prepare(index) {
     if (0 <= index && !isNaN(index)) {
@@ -274,7 +274,7 @@ export const removePictureRequest = createAction(
   }
 );
 
-export const receivePictureRequest = createAction(
+export const receiveRequest = createAction(
   "RECEIVE_REQUEST",
   function prepare(id) {
     if (!isNaN(id)) {
@@ -519,16 +519,16 @@ export const _mapPosition = createReducer(startView, (builder) => {
   });
 });
 
-export const _pictureRequestQueue = createReducer(initialPictureRequestQueue, (builder) => {
+export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
   builder
-    .addCase(addPictureRequest, (state, action) => {
+    .addCase(addRequest, (state, action) => {
       var newState = {
         size: state.size + 1,
         items: [...state.items, action.payload],
       };
       return newState;
     })
-    .addCase(removePictureRequest, (state, action) => {
+    .addCase(removeRequest, (state, action) => {
       const index = action.payload;
       return {
         size: state.size - 1,
@@ -539,7 +539,7 @@ export const _pictureRequestQueue = createReducer(initialPictureRequestQueue, (b
         ],
       };
     })
-    .addCase(receivePictureRequest, (state, action) => {
+    .addCase(receiveRequest, (state, action) => {
       const index = state.items.map((e) => e.id).indexOf(action.payload);
 
       if (index !== -1) {
@@ -560,7 +560,7 @@ export const _pictureRequestQueue = createReducer(initialPictureRequestQueue, (b
       // If ID is not found, make no change
       return state;
     })
-    .addCase(clearPictureRequestQueue, (state) => {
+    .addCase(clearRequestQueue, (state) => {
       var newState = { size: 0, items: [] };
       return newState;
     });
@@ -686,9 +686,9 @@ export function mapPosition(state) {
   };
 }
 
-export function pictureRequestQueue(state) {
+export function requestQueue(state) {
   return {
-    pictureRequestQueue: state.pictureRequestQueue,
+    requestQueue: state.requestQueue,
   };
 }
 
@@ -741,7 +741,7 @@ const states = {
   userPriority,
   zoomLevel,
   mapPosition,
-  pictureRequestQueue,
+  requestQueue,
   activePictures,
   mapBounds,
   mode,
@@ -793,11 +793,11 @@ export const zoomLevelActions = { setZoomLevel };
 
 export const mapPositionActions = { setMapPosition };
 
-export const pictureRequestQueueActions = {
-  addPictureRequest,
-  removePictureRequest,
-  receivePictureRequest,
-  clearPictureRequestQueue,
+export const requestQueueActions = {
+  addRequest,
+  removeRequest,
+  receiveRequest: receiveRequest,
+  clearRequestQueue,
 };
 
 export const activePicturesActions = {
@@ -825,7 +825,7 @@ const actions = {
   userPriorityActions,
   zoomLevelActions,
   mapPositionActions,
-  pictureRequestQueueActions,
+  requestQueueActions,
   activePicturesActions,
   mapBoundsActions,
   modeActions,
@@ -860,7 +860,7 @@ export const store = configureStore({
     config: _config,
     zoomLevel: _zoomLevel,
     mapPosition: _mapPosition,
-    pictureRequestQueue: _pictureRequestQueue,
+    requestQueue: _requestQueue,
     activePictures: _activePictures,
     mapBounds: _mapBounds,
     mode: _mode,

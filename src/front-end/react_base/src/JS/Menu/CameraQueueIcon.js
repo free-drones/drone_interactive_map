@@ -4,13 +4,13 @@
 import React, { Component } from "react";
 import Badge from "@mui/material/Badge";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import { connect, pictureRequestQueue } from "../Storage.js";
+import { connect, requestQueue } from "../Storage.js";
 
 class CameraQueueIcon extends Component {
   render() {
     return (
       <Badge
-        badgeContent={this.props.store.pictureRequestQueue.size}
+        badgeContent={this.props.store.requestQueue.size}
         color="primary"
         anchorOrigin={{ vertical: "top", horizontal: "left" }}
         showZero
@@ -21,4 +21,4 @@ class CameraQueueIcon extends Component {
   }
 }
 
-export default connect({ pictureRequestQueue }, {})(CameraQueueIcon);
+export default connect({ requestQueue }, {})(CameraQueueIcon);

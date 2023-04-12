@@ -27,7 +27,7 @@ import Check from "@mui/icons-material/Check";
 
 import { connect, requestQueue, requestQueueActions } from "../Storage.js";
 
-import { clearImageQueue, callbackWrapper } from "../Connection/Downstream";
+import { clearImageQueue, callbackWrapper } from "../Connection/Downstream.js";
 import ColorWrapper from "../ColorWrapper.js";
 
 const styles = {
