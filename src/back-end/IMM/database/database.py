@@ -197,6 +197,7 @@ class Client(_Base):
 
     id = Column(Integer, primary_key=True)
     session_id = Column(Integer, ForeignKey('sessions.id'), nullable=False)
+    is_prio_client = Column(Boolean, nullable=False, default=False)
     __up_left_lat = Column(Float, nullable=True)
     __up_left_long = Column(Float, nullable=True)
     __up_right_lat = Column(Float, nullable=True)

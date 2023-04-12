@@ -148,7 +148,7 @@ def on_set_area(data):
     """
 
     _logger.debug(f"Received set_area API call with data: {data}")
-    keys_exists = check_keys_exists(data, [("arg", "coordinates"), ("arg", "client_id")],)
+    keys_exists = check_keys_exists(data, [("arg", "coordinates"), ("arg", "client_id"), ("arg", "bounds")],)
 
     if keys_exists:
         if not check_client_id(data["arg"]["client_id"], "set_area", _logger):
@@ -191,6 +191,18 @@ def on_set_area(data):
         _logger.debug(f"set_area resp: {response}")
         emit("response", response)
 
+        # broadcast set area and which user has priority to all connected
+        set_prio_response = {
+            "high_priority_client": data["arg"]["client_id"],
+            "bounds": data["arg"]["bounds"],
+            "coordinates": data["arg"]["coordinates"]
+        }
+        with session_scope() as session:
+            client = session.get(Client, data["arg"]["client_id"])
+            user_session_id = client.session.id
+        _logger.debug(f"sending set_prio: {set_prio_response}")
+        emit("set_prio", set_prio_response, room=user_session_id)
+
 
 @socketio.on("request_view")
 def on_request_view(data):
@@ -201,6 +213,9 @@ def on_request_view(data):
     Keyword arguments:
     data -- Will specify the current VIEW. See internal document (API.md) for details.
     """
+
+    
+
     _logger.debug(f"Received request_view API call with data: {data}")
     # Check arguments
     keys_exists = check_keys_exists(data, [("arg", "coordinates"), ("arg", "client_id")])
