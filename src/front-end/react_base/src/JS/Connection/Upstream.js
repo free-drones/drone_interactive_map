@@ -3,7 +3,7 @@
  */
 
 import ServerConnection from "./ServerConnection.js";
-import { store, receiveRequest } from "../Storage.js";
+import { store, receivePictureRequest } from "../Storage.js";
 
 /**
  * Request type. Either "RGB" or "IR"
@@ -19,7 +19,7 @@ import { store, receiveRequest } from "../Storage.js";
  */
 export function newImage(type, prioritized, imageID) {
   if (prioritized) {
-    store.dispatch(receiveRequest(imageID));
+    store.dispatch(receivePictureRequest(imageID));
   }
 
   let data = {

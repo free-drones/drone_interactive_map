@@ -25,7 +25,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Redo from "@mui/icons-material/Redo";
 import Check from "@mui/icons-material/Check";
 
-import { connect, requestQueue, requestQueueActions } from "../Storage.js";
+import { connect, pictureRequestQueue, pictureRequestQueueActions } from "../Storage.js";
 
 import { clearImageQueue, callbackWrapper } from "../Connection/Downstream";
 import ColorWrapper from "../ColorWrapper.js";
@@ -83,7 +83,7 @@ function PriorityImagesTab(props) {
 
       <List>
         {/* Sort requests on request time, then add all to list */}
-        {[...props.store.requestQueue.items]
+        {[...props.store.pictureRequestQueue.items]
           .sort((i1, i2) => i2.requestTime - i1.requestTime)
           .map((item) => (
             <ListItem key={item.requestTime}>
@@ -143,7 +143,7 @@ function PriorityImagesTab(props) {
               onClick={() =>
                 clearImageQueue(
                   callbackWrapper(() => {
-                    props.store.clearRequestQueue();
+                    props.store.clearPictureRequestQueue();
                     setDialogState(false);
                   })
                 )
@@ -159,6 +159,6 @@ function PriorityImagesTab(props) {
 }
 
 export default connect(
-  { requestQueue },
-  { ...requestQueueActions }
+  { pictureRequestQueue },
+  { ...pictureRequestQueueActions }
 )(PriorityImagesTab);
