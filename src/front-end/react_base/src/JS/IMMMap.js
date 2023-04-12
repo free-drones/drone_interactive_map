@@ -189,7 +189,7 @@ class IMMMap extends React.Component {
         super(props)
         this.state = { 
             userPosition: null,
-            dronePosition: [58.3947753, 15.5789432]
+            dronePosition: null
          }
     }
 
@@ -394,7 +394,7 @@ class IMMMap extends React.Component {
                 }
 
                 {/* This marker is only here to show the effects of the drone icon configs until the actual drone icons are added */}
-                {this.props.store.config.showDroneIcons ?
+                {(this.props.store.config.showDroneIcons && this.state.dronePosition) ?
                 <Marker 
                   position = {this.state.dronePosition}  
                     icon={Leaflet.divIcon({className: "tmp", iconAnchor: Leaflet.point(this.props.store.config.droneIconPixelSize / 2, this.props.store.config.droneIconPixelSize / 2), html:
