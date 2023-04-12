@@ -149,16 +149,18 @@ io.on("connect", (socket) => {
         socket.emit("response", reply);
     });
 
+let simulatedDronePosition = [58.3947753, 15.5789432]
+
 
 // GetPosition
 socket.on("get_drone_position", (request) => {
     console.log("get_drone_position call");
-
+    simulatedDronePosition[0] = simulatedDronePosition[0] + 0.00004
     let reply = {
         fcn : "ack",
         fcn_name : "get_drone_position",
         arg : {
-            position : [58.410807, 15.621373]
+            position : simulatedDronePosition
         }
     }
     socket.emit("response", reply);

@@ -189,7 +189,7 @@ class IMMMap extends React.Component {
         super(props)
         this.state = { 
             userPosition: null,
-            dronePosition: [58.408300, 15.564600]
+            dronePosition: [58.3947753, 15.5789432]
          }
     }
 
@@ -251,11 +251,11 @@ class IMMMap extends React.Component {
                 //let newdronelat = this.state.dronePosition[0] + 0.0001
                 //let newdronelong = this.state.dronePosition[1] + 0.0001
                 //this.setState({ dronePosition:  [newdronelat, newdronelong]});
-                console.log("Received position: ", response.arg.position)
+                //console.log("Received position: ", response.arg.position)
 
-                //this.setState({dronePosition: response.arg.position});
+                this.setState({dronePosition: response.arg.position});
             })
-        }, 5000);
+        }, 500);
     }
 
     /**
