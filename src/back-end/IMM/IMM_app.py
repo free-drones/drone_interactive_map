@@ -12,13 +12,14 @@ from config_file import SERVER_PORT, SERVER_LOG_OUTPUT, SERVER_CORS_ALLOWED_ORIG
 from flask import Flask, jsonify, request, send_from_directory, send_file, abort
 import time
 from flask_socketio import SocketIO, join_room, emit
-from IMM.database.database import session_scope, UserSession, Client, Drone, Coordinate, Image, PrioImage, func, \
+from IMM.database.database import session_scope, UserSession, Client, Drone, Coordinate, Image, PrioImage, AreaVertex, func, \
     coordinate_from_json, use_production_db
 from config_file import BACKEND_BASE_URL
 from utility.helper_functions import is_overlapping, get_path_from_root, check_keys_exists, create_logger
 import os
 from IMM.error_handler import check_client_id, check_coordinates_list, check_coords_in_list, check_coord_dict, \
     check_type, check_mode, emit_error_response
+from sqlalchemy import select
 
 """Initiate the flask application and the socketIO wrapper"""
 app = Flask(__name__)
@@ -157,6 +158,7 @@ def on_set_area(data):
             return
         if not check_coords_in_list(data["arg"]["coordinates"], "set_area", _logger):
             return
+        # TODO: do a similar check for bounds argument as well
 
         sessionID = None
         with session_scope() as session:
@@ -164,11 +166,29 @@ def on_set_area(data):
 
             if client is not None:
                 sessionID = client.session_id  # Save ID so it's accesible outside scope.
+
+                stmt = select(Client).where(Client.session_id == sessionID and Client.is_prio_user == True)
+                prioritized_user = session.execute(stmt).first()
+
+                if not prioritized_user or prioritized_user.id == client.id:
+                    client.is_prio_user = True
+                    high_priority_client_id = data["arg"]["client_id"]
+                    reply_bounds = data["arg"]["bounds"]
+                    reply_coordinates = data["arg"]["coordinates"]
+                    
+                    AreaVertex()
+                    # TODO: save to db
+                    #...
+                else:
+                    high_priority_client_id = prioritized_user.id
+                    reply_bounds = 0#retrieve from db
+                    reply_coordinates = 0#...
             else:
                 client_id=data["arg"]["client_id"]
                 emit_error_response("set_area", f"Could not retrieve a client with that ID {client_id}, try calling 'init_connection' again.", _logger)
                 return
 
+        # Send set_area to RDS, for some reason
         request_to_rds = {}
         request_to_rds["fcn"] = "set_area"
         request_to_rds["arg"] = {}
@@ -184,6 +204,7 @@ def on_set_area(data):
         request_to_rds["arg"]["coordinates"] = coordinates_to_rds
         thread_handler.get_rds_pub_thread().add_request(request_to_rds)
 
+        # Send acknowledgement to frontend
         response = {}
         response["fcn"] = "ack"
         response["fcn_name"] = "set_area"
@@ -191,17 +212,15 @@ def on_set_area(data):
         _logger.debug(f"set_area resp: {response}")
         emit("response", response)
 
-        # broadcast set area and which user has priority to all connected
+        # Broadcast set area and which user has priority to all connected frontend users for this user session
         set_prio_response = {
-            "high_priority_client": data["arg"]["client_id"],
-            "bounds": data["arg"]["bounds"],
-            "coordinates": data["arg"]["coordinates"]
+            "high_priority_client": high_priority_client_id,
+            "bounds": reply_bounds,
+            "coordinates": reply_coordinates
         }
-        with session_scope() as session:
-            client = session.get(Client, data["arg"]["client_id"])
-            user_session_id = client.session.id
+        
         _logger.debug(f"sending set_prio: {set_prio_response}")
-        emit("set_prio", set_prio_response, room=user_session_id)
+        emit("set_prio", set_prio_response, room=sessionID)
 
 
 @socketio.on("request_view")

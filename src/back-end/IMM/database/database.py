@@ -191,6 +191,9 @@ class Client(_Base):
                     current view. Nullable.
     center          A Coordinate describing the center point of the current
                     view. Nullable.
+    
+    is_prio_client  A Boolean that indicates whether the client has high priority
+                    for this UserSession, meaning it can reset area etc
     """
 
     __tablename__ = 'clients'
