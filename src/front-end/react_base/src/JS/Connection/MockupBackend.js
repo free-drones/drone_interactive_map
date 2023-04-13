@@ -161,7 +161,10 @@ io.on("connect", (socket) => {
   socket.on("get_drones", (request) => {
     console.log("get_drones call");
 
-    //simulatedDronePosition[0] = simulatedDronePosition[0] + 0.00004
+    simulatedDronePosition[0][0] = simulatedDronePosition[0][0] + 0.00006;
+    simulatedDronePosition[1][0] = simulatedDronePosition[1][0] - 0.00004;
+    simulatedDronePosition[0][1] = simulatedDronePosition[0][1] - 0.0006;
+    simulatedDronePosition[1][1] = simulatedDronePosition[1][1] + 0.0007;
     let reply = {
       fcn: "ack",
       fcn_name: "get_drones",

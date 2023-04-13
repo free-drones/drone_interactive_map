@@ -210,7 +210,7 @@ class IMMMap extends React.Component {
     this.state = {
       userPosition: null,
       dronePositions: null,
-      droneRotation: 0,
+      oldDronePositions: null,
     };
   }
 
@@ -331,8 +331,23 @@ class IMMMap extends React.Component {
     return markers;
   }
 
+
+  // Calculate drone icon rotation
+  droneAngle(oldPoint, newPoint){
+    // Rotate base value: -45 for drone icons to point straight up.
+    return (Math.atan2(newPoint[1] - oldPoint[1], newPoint[0] - oldPoint[0]) * 180 / Math.PI) - 45;
+  }
+
+
   droneFactory() {
-    console.log("swag");
+    
+    // if old/new drone position list will cause error, skip updating the rotations
+    // TODO MAYBE FIX SO THAT DRONES DON'T POINT UP WHEN THIS IF STATEMENT HAPPENS. 
+    // ADD A LIST, AND READ FROM IT IN STATES AND DON'T UPDATE IT WHEN THIS HAPPENS?
+    if (!this.state.oldDronePositions || (this.state.dronePositions.length !== this.state.oldDronePositions.length)){
+        this.state.oldDronePositions = this.state.dronePositions;
+    }
+
     const drones = this.state.dronePositions.map((pos, i) => (
       <Marker
         position={pos}
@@ -343,14 +358,11 @@ class IMMMap extends React.Component {
             this.props.store.config.droneIconPixelSize / 2,
             this.props.store.config.droneIconPixelSize / 2
           ),
-
-          // Rotate base value: -45 for drone icons to point straight up.
-
           html: `<svg fill="#000000" 
                     height="${this.props.store.config.droneIconPixelSize}px" 
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
-                    transform="rotate(${this.state.droneRotation - 45})"  
+                    transform="rotate(${this.droneAngle(this.state.oldDronePositions[i], this.state.dronePositions[i])})"  
                     xmlns="http://www.w3.org/2000/svg" 
                     xmlns:xlink="http://www.w3.org/1999/xlink" 
                     viewBox="0 0 1792 1792" 
@@ -362,6 +374,7 @@ class IMMMap extends React.Component {
         })}
       />
     ));
+    this.state.oldDronePositions = this.state.dronePositions;
     return drones;
   }
 
@@ -470,23 +483,11 @@ class IMMMap extends React.Component {
           ""
         )}
 
-        {/*Draws markers*/}
+        {/* Draws markers */}
         {this.props.allowDefine ? this.markerFactory() : ""}
 
         {/* Draw drone icons. */}
-        {this.props.store.config.showDroneIcons && this.state.dronePositions
-          ? this.droneFactory()
-          : /* 
-                    <Marker 
-                    position = {this.state.dronePositions}
-                    icon={Leaflet.divIcon({
-                        className: "tmp", 
-                        iconAnchor: Leaflet.point(this.props.store.config.droneIconPixelSize / 2, this.props.store.config.droneIconPixelSize / 2), 
-                        html: `<svg fill="#000000" height="${this.props.store.config.droneIconPixelSize}px" width="${this.props.store.config.droneIconPixelSize}px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1792 1792" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path></g></svg>`
-                })}
-                />
-                */
-            ""}
+        {this.props.store.config.showDroneIcons && this.state.dronePositions ? this.droneFactory() : ""}
 
         {
           /* Draw user position. */
