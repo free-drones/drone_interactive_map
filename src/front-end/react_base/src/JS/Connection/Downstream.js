@@ -198,8 +198,8 @@ export function getInfo(callback = null) {
  * 
  * @param {APICallback} callback Optional callback function
  */
-export function getDronePosition(callback = null) {
-    ServerConnection.sendDownstream('get_drone_position', {}, callback);
+export function getDrones(callback = null) {
+    ServerConnection.sendDownstream('get_drones', {}, callback);
 }
 
 

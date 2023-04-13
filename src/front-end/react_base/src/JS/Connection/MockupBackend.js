@@ -149,16 +149,19 @@ io.on("connect", (socket) => {
         socket.emit("response", reply);
     });
 
-let simulatedDronePosition = [58.3947753, 15.5789432]
+// "fake" drone starting position, replace with real drone data later
 
+let simulatedDronePosition = [[58.394630, 15.575143],[58.394630, 15.577143]]
+//let simulatedDronePosition = [[58.3947753, 15.5789432]]
 
 // GetPosition
-socket.on("get_drone_position", (request) => {
-    console.log("get_drone_position call");
-    simulatedDronePosition[0] = simulatedDronePosition[0] + 0.00004
+socket.on("get_drones", (request) => {
+    console.log("get_drones call");
+
+    //simulatedDronePosition[0] = simulatedDronePosition[0] + 0.00004
     let reply = {
         fcn : "ack",
-        fcn_name : "get_drone_position",
+        fcn_name : "get_drones",
         arg : {
             position : simulatedDronePosition
         }
@@ -177,7 +180,6 @@ socket.on("get_drone_position", (request) => {
                 ETA : 9999999
             }
         }
-
         socket.emit("response", reply);
     });
 })
