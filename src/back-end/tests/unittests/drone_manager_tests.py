@@ -4,6 +4,7 @@ from IMM.drone_manager.route import Route
 from IMM.drone_manager.node import Node
 from IMM.drone_manager.drone import Drone
 from IMM.drone_manager.drone_manager import DroneManager
+from IMM.drone_manager.helper_functions import generate_dummy_route
 
 FULL_CHARGE_LEVEL = 95
 
@@ -13,7 +14,7 @@ class TestHelper(unittest.TestCase):
         self.drone1, self.drone2, self.drone3 = Drone("drone1"), Drone("drone2"), Drone("drone3")
         self.drone_manager.drones = [self.drone1, self.drone2, self.drone3]
         self.drone_manager.link = _LinkDummy()
-        self.r1, self.r2 = _generate_route(offset=0), _generate_route(offset=1)
+        self.r1, self.r2 = generate_dummy_route(offset=0), generate_dummy_route(offset=1)
         self.drone_manager.routes = [self.r1, self.r2]
 
     def tearDown(self):
@@ -23,7 +24,7 @@ class TestHelper(unittest.TestCase):
         """
         Creates a mission with a route and checks that the convertion to a Rise Drone System-style mission dictionary is correct
         """
-        route = _generate_route()
+        route = generate_dummy_route()
         mission = Mission(route)
         mission_dict = mission.as_mission_dict()
         correct_mission_dict = {
@@ -110,19 +111,6 @@ class TestHelper(unittest.TestCase):
 
         self.assertEqual(self.r1.drone.current_mission.route, self.r1)
         self.assertEqual(self.r2.drone.current_mission.route, self.r2)
-        
-    
-def _generate_route(offset=0):
-    """ Generate a Route object with offset to the north by approximately offset kilometers (offset vs ) """
-    route_simple = [
-        f"{58.407910+offset*0.01}, {15.596624}",
-        f"{58.408582+offset*0.01}, {15.596526}",
-        f"{58.408631+offset*0.01}, {15.597775}",
-        f"{58.407848+offset*0.01}, {15.597987}"
-    ]
-
-    route_nodes = [Node(as_string=pos) for pos in route_simple]
-    return Route(nodes=route_nodes)
 
 
 class _LinkDummy():
