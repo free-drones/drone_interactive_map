@@ -30,3 +30,5 @@ class Link():
     def get_list_of_drones(self):
         return []
     
+    def connect_to_all_drones(self):
+        return None
