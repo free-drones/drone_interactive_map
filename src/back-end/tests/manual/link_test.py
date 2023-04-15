@@ -1,4 +1,4 @@
-import IMM.link as link
+from IMM.drone_manager.link import Link
 import time
 '''
 This is a test script for the link module. It is not intended to be run as a part of the main program.
@@ -10,7 +10,7 @@ When this is done and you are connected to the drones, set them to guided mode i
 After that ssh in to the RISE server (for us it is at 10.44.170.10 with openvpn running) and run app_drone_link, then run this script.
 '''
 
-link_object = link.Link()
+link_object = Link()
 alive = True
 class Drone():
     def __init__(self, drone_name) -> None:
