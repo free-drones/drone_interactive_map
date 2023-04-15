@@ -1,4 +1,4 @@
-import link
+import IMM.link as link
 import time
 '''
 This is a test script for the link module. It is not intended to be run as a part of the main program.

@@ -31,6 +31,7 @@ class DroneManager(Thread):
 
     def connect(self):
         self.link = Link()
+        self.link.connect_to_all_drones()
 
     def run(self):
         """ where the thread runs """

@@ -135,8 +135,8 @@ class Link():
     def get_drone_status(self, drone):
         '''Gets the status of the mission, 'flying' = mission is in progress, 'waiting' = flying and waiting for a new mission, 
         'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied, 'charging' = charging'''
-        msg = {'fcn': 'get_mission_status', 'drone_name': drone.id}
-        _logger.debug(f"Sending get_mission_status message: {msg}")
+        msg = {'fcn': 'get_drone_status', 'drone_name': drone.id}
+        _logger.debug(f"Sending get_drone_status message: {msg}")
         reply = self.socket.send_and_recieve(msg)
         if self.socket.request_success(reply):
             _logger.debug(f"Received mission status: {reply['mission_status']}")
@@ -192,3 +192,6 @@ class Link():
         else:
             _logger.error(f"Error getting valid drone name: {reply['message']}")
             return False
+    
+    def get_drone_battery(self, drone):
+        return 100
