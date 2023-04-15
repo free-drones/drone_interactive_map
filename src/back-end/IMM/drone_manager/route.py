@@ -27,4 +27,8 @@ class Route():
                 dist = d
         return dist
         
-    
+    def __repr__(self):
+        output = "\n"
+        for node in self.nodes:
+            output += f"{node}\n"
+        return output

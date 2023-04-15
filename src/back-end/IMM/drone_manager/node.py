@@ -19,3 +19,6 @@ class Node():
     def _str_to_node(self, string):
         lat, lon = string.split(", ")
         self.lat, self.lon = float(lat), float(lon)
+
+    def __repr__(self):
+        return f"{str(self.lat).ljust(9, '0')}, {str(self.lon).ljust(9, '0')}"
