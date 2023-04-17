@@ -131,15 +131,13 @@ export function requestView(clientID, view, type, callback = null) {
  * Make a prioritized image request downstream.
  *
  * @param {View} view Current view
- * @param {Type} type Wanted image type
  * @param {APICallback} callback Optional callback function
  */
-export function requestPriorityView(clientID, view, type, callback = null) {
+export function requestPriorityView(clientID, view, callback = null) {
   let message = {
     fcn: "request_priority_view",
     arg: {
       client_id: clientID,
-      type: type,
       coordinates: translateView(view),
     },
   };

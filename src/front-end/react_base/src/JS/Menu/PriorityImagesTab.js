@@ -87,7 +87,7 @@ function PriorityImagesTab(props) {
 
       <List>
         {/* Sort requests on request time, then add all to list */}
-        {[...props.store.pictureRequestQueue.items]
+        {[...props.store.pictureRequestQueue]
           .sort((i1, i2) => i2.requestTime - i1.requestTime)
           .map((item) => (
             <ListItem key={item.requestTime}>

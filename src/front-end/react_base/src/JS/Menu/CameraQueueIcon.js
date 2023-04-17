@@ -10,7 +10,7 @@ class CameraQueueIcon extends Component {
   render() {
     return (
       <Badge
-        badgeContent={this.props.store.pictureRequestQueue.size}
+        badgeContent={this.props.store.pictureRequestQueue.length}
         color="primary"
         anchorOrigin={{ vertical: "top", horizontal: "left" }}
         showZero

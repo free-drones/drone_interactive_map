@@ -20,6 +20,29 @@ import Storage, {
   setMapBounds,
 } from "../JS/Storage.js";
 
+const exampleView = {
+  upLeft: {
+    lat: 58.409049,
+    lng: 15.609948,
+  },
+  upRight: {
+    lat: 58.409049,
+    lng: 15.609948,
+  },
+  downLeft: {
+    lat: 58.409049,
+    lng: 15.609948,
+  },
+  downRight: {
+    lat: 58.409049,
+    lng: 15.609948,
+  },
+  center: {
+    lat: 58.409049,
+    lng: 15.609948,
+  },
+};
+
 test("adds waypoint to list", () => {
   Storage.store.dispatch(addAreaWaypoint({ lat: 1, lng: 2 }));
   expect(Storage.store.getState().areaWaypoints).toEqual([{ lat: 1, lng: 2 }]);
@@ -84,53 +107,9 @@ test("sets bad connection token", () => {
 });
 
 test("sets map position", () => {
-  Storage.store.dispatch(
-    setMapPosition({
-      upLeft: {
-        lat: 58.409049,
-        lng: 15.609948,
-      },
-      upRight: {
-        lat: 58.409049,
-        lng: 15.609948,
-      },
-      downLeft: {
-        lat: 58.409049,
-        lng: 15.609948,
-      },
-      downRight: {
-        lat: 58.409049,
-        lng: 15.609948,
-      },
-      center: {
-        lat: 58.409049,
-        lng: 15.609948,
-      },
-    })
-  );
+  Storage.store.dispatch(setMapPosition(exampleView));
 
-  expect(Storage.store.getState().mapPosition).toEqual({
-    upLeft: {
-      lat: 58.409049,
-      lng: 15.609948,
-    },
-    upRight: {
-      lat: 58.409049,
-      lng: 15.609948,
-    },
-    downLeft: {
-      lat: 58.409049,
-      lng: 15.609948,
-    },
-    downRight: {
-      lat: 58.409049,
-      lng: 15.609948,
-    },
-    center: {
-      lat: 58.409049,
-      lng: 15.609948,
-    },
-  });
+  expect(Storage.store.getState().mapPosition).toEqual(exampleView);
 });
 
 test("sets map position", () => {
@@ -189,23 +168,22 @@ test("sets low zoom level", () => {
 });
 
 test("adds a picture request", () => {
-  Storage.store.dispatch(addPictureRequest(1));
+  Storage.store.dispatch(addPictureRequest(1, exampleView));
 
-  expect(Storage.store.getState().pictureRequestQueue.size).toEqual(1);
-  expect(Storage.store.getState().pictureRequestQueue.items.length).toEqual(1);
-  expect(Storage.store.getState().pictureRequestQueue.items[0]).toHaveProperty(
+  expect(Storage.store.getState().pictureRequestQueue.length).toEqual(1);
+  expect(Storage.store.getState().pictureRequestQueue[0]).toHaveProperty(
     "id",
     1
   );
-  expect(Storage.store.getState().pictureRequestQueue.items[0]).toHaveProperty(
+  expect(Storage.store.getState().pictureRequestQueue[0]).toHaveProperty(
     "received",
     false
   );
-  expect(Storage.store.getState().pictureRequestQueue.items[0]).toHaveProperty(
+  expect(Storage.store.getState().pictureRequestQueue[0]).toHaveProperty(
     "receiveTime",
     null
   );
-  expect(Storage.store.getState().pictureRequestQueue.items[0]).toHaveProperty(
+  expect(Storage.store.getState().pictureRequestQueue[0]).toHaveProperty(
     "requestTime"
   );
 
@@ -214,48 +192,46 @@ test("adds a picture request", () => {
 
 test("adds a bad picture request", () => {
   try {
-    Storage.store.dispatch(addPictureRequest("cat"));
+    Storage.store.dispatch(addPictureRequest("cat", exampleView));
   } catch (e) {
     expect(e.message).toBe("Invalid request ID!");
   }
 });
 
 test("removes a picture request", () => {
-  Storage.store.dispatch(addPictureRequest(2));
+  Storage.store.dispatch(addPictureRequest(2, exampleView));
   Storage.store.dispatch(removePictureRequest(0));
 
-  expect(Storage.store.getState().pictureRequestQueue).toEqual({
-    size: 0,
-    items: [],
-  });
+  expect(Storage.store.getState().pictureRequestQueue).toEqual([]);
 });
 
 test("receives a picture request", () => {
-  Storage.store.dispatch(addPictureRequest(1));
-  Storage.store.dispatch(addPictureRequest(4));
-  Storage.store.dispatch(addPictureRequest(7));
+  Storage.store.dispatch(addPictureRequest(1, exampleView));
+  Storage.store.dispatch(addPictureRequest(4, exampleView));
+  Storage.store.dispatch(addPictureRequest(7, exampleView));
 
   Storage.store.dispatch(receivePictureRequest(4));
 
   const index = Storage.store
     .getState()
-    .pictureRequestQueue.items.map((e) => e.id)
+    .pictureRequestQueue.map((e) => e.id)
     .indexOf(4);
 
-  expect(Storage.store.getState().pictureRequestQueue.size).toEqual(3);
-  expect(Storage.store.getState().pictureRequestQueue.items.length).toEqual(3);
-  expect(
-    Storage.store.getState().pictureRequestQueue.items[index]
-  ).toHaveProperty("id", 4);
-  expect(
-    Storage.store.getState().pictureRequestQueue.items[index]
-  ).toHaveProperty("received", true);
-  expect(
-    Storage.store.getState().pictureRequestQueue.items[index]
-  ).toHaveProperty("receiveTime");
-  expect(
-    Storage.store.getState().pictureRequestQueue.items[index]
-  ).toHaveProperty("requestTime");
+  expect(Storage.store.getState().pictureRequestQueue.length).toEqual(3);
+  expect(Storage.store.getState().pictureRequestQueue[index]).toHaveProperty(
+    "id",
+    4
+  );
+  expect(Storage.store.getState().pictureRequestQueue[index]).toHaveProperty(
+    "received",
+    true
+  );
+  expect(Storage.store.getState().pictureRequestQueue[index]).toHaveProperty(
+    "receiveTime"
+  );
+  expect(Storage.store.getState().pictureRequestQueue[index]).toHaveProperty(
+    "requestTime"
+  );
 
   Storage.store.dispatch(removePictureRequest(0));
   Storage.store.dispatch(removePictureRequest(0));
@@ -263,14 +239,11 @@ test("receives a picture request", () => {
 });
 
 test("clears the request queue", () => {
-  Storage.store.dispatch(addPictureRequest(1));
-  Storage.store.dispatch(addPictureRequest(2));
+  Storage.store.dispatch(addPictureRequest(1, exampleView));
+  Storage.store.dispatch(addPictureRequest(2, exampleView));
   Storage.store.dispatch(clearPictureRequestQueue());
 
-  expect(Storage.store.getState().pictureRequestQueue).toEqual({
-    size: 0,
-    items: [],
-  });
+  expect(Storage.store.getState().pictureRequestQueue).toEqual([]);
 });
 
 test("adds an active picture", () => {

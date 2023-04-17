@@ -6,6 +6,7 @@
 import React from "react";
 import IMMMap from "../IMMMap.js";
 import CameraButton from "./CameraButton.js";
+import Crosshair from "./Crosshair.js";
 import { Navigate } from "react-router-dom";
 
 import {
@@ -54,9 +55,11 @@ class Main extends React.Component {
     requestPriorityView(
       this.props.store.clientID,
       this.props.store.mapPosition,
-      this.props.store.sensor,
       callbackWrapper((response) => {
-        this.props.store.addPictureRequest(response.arg.force_que_id);
+        this.props.store.addPictureRequest(
+          response.arg.force_que_id,
+          this.props.store.mapPosition
+        );
       })
     );
   }
@@ -188,6 +191,7 @@ class Main extends React.Component {
           allowDefine={false}
         />
         <CameraButton clickHandler={this.cameraClickHandler} />
+        <Crosshair />
       </div>
     );
   }

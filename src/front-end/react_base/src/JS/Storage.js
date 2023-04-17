@@ -54,10 +54,7 @@ const startView = {
     ]
     }
  */
-var initialPictureRequestQueue = {
-  size: 0,
-  items: [],
-};
+
 /* Elements are structured like following example:
 {
     "type" : #Choice "RGB/IR",
@@ -250,7 +247,7 @@ export const clearPictureRequestQueue = createAction(
 
 export const addPictureRequest = createAction(
   "ADD_PICTURE_REQUEST",
-  function prepare(id) {
+  function prepare(id, view) {
     if (!isNaN(id)) {
       return {
         payload: {
@@ -258,6 +255,7 @@ export const addPictureRequest = createAction(
           requestTime: Date.now(),
           receiveTime: null,
           received: false,
+          view: view,
         },
       };
     } else {
@@ -524,55 +522,42 @@ export const _mapPosition = createReducer(startView, (builder) => {
   });
 });
 
-export const _pictureRequestQueue = createReducer(
-  initialPictureRequestQueue,
-  (builder) => {
-    builder
-      .addCase(addPictureRequest, (state, action) => {
-        var newState = {
-          size: state.size + 1,
-          items: [...state.items, action.payload],
-        };
-        return newState;
-      })
-      .addCase(removePictureRequest, (state, action) => {
-        const index = action.payload;
-        return {
-          size: state.size - 1,
-          items: [
-            //Removes item "index" from id list.
-            ...state.items.slice(0, index),
-            ...state.items.slice(index + 1),
-          ],
-        };
-      })
-      .addCase(receivePictureRequest, (state, action) => {
-        const index = state.items.map((e) => e.id).indexOf(action.payload);
+export const _pictureRequestQueue = createReducer([], (builder) => {
+  builder
+    .addCase(addPictureRequest, (state, action) => {
+      const newState = [...state, action.payload];
+      return newState;
+    })
+    .addCase(removePictureRequest, (state, action) => {
+      const index = action.payload;
+      return [
+        //Removes item "index" from id list.
+        ...state.slice(0, index),
+        ...state.slice(index + 1),
+      ];
+    })
+    .addCase(receivePictureRequest, (state, action) => {
+      const index = state.map((e) => e.id).indexOf(action.payload);
 
-        if (index !== -1) {
-          return {
-            size: state.size,
-            items: [
-              ...state.items.slice(0, index),
-              {
-                ...state.items[index],
-                received: true,
-                receivedTime: Date.now(),
-              },
-              ...state.items.slice(index + 1),
-            ],
-          };
-        }
+      if (index !== -1) {
+        return [
+          ...state.slice(0, index),
+          {
+            ...state[index],
+            received: true,
+            receivedTime: Date.now(),
+          },
+          ...state.slice(index + 1),
+        ];
+      }
 
-        // If ID is not found, make no change
-        return state;
-      })
-      .addCase(clearPictureRequestQueue, (state) => {
-        var newState = { size: 0, items: [] };
-        return newState;
-      });
-  }
-);
+      // If ID is not found, make no change
+      return state;
+    })
+    .addCase(clearPictureRequestQueue, (state) => {
+      return [];
+    });
+});
 
 export const _activePictures = createReducer(
   initialActivePictures,
