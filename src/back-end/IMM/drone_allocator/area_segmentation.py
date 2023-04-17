@@ -64,8 +64,8 @@ class Triangle():
 
 
 class Polygon():
-    def __init__(self, nodes):
-        self.nodes = nodes
+    def __init__(self, node_dict):
+        self.nodes = [Node(node["lat" ], node["long"]) for node in node_dict]
         self.bounding_box = {}
         self.triangles = []
         self.node_grid = []
@@ -186,31 +186,45 @@ class Polygon():
         pass
 
 class Node():
-    def __init__(self, position, start_location=None):
-        self.x = position[0]
-        self.y = position[1]
-        self.angle_to_start = start_location if start_location else None
-    
+    def __init__(self, position):
+        self.lat = position[0]
+        self.lon = position[1]
+        self.angle_to_start = None
+
     def angle_to(self, other_node):
         """ Return the angle in radians of the node instance to the 'other_node' """
-        return np.arctan2(other_node.y - self.y, other_node.x - self.x)
+        lat1, lon1 = self.to_radians()
+        lat2, lon2 = other_node.to_radians()
+        delta_lon = lon2 - lon1
+        y = np.sin(delta_lon) * np.cos(lat2)
+        x = np.cos(lat1) * np.sin(lat2) - np.sin(lat1) * np.cos(lat2) * np.cos(delta_lon)
+        theta = np.arctan2(y, x)
+        bearing = (theta + 2*np.pi) % (2*np.pi)
+        return bearing
 
     def __call__(self):
         """ Return the coordinates as a tuple when a node object is called """
-        return (self.x, self.y)
-    
-    def distance_to_squared(self, other_node):
-        """ Return distance between self and another node squared """
-        return ((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
+        return (self.lat, self.long)
     
     def distance_to(self, other_node):
         """ Return distance between self and another node """
-        return np.sqrt((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
+        R = 6371 # Radius of the earth in kilometers
+        lat1, lon1 = self.to_radians()
+        lat2, lon2 = other_node.to_radians()
+        return np.arccos(np.sin(lat1)*np.sin(lat2) + 
+                         np.cos(lat1)*np.cos(lat2)*np.cos(lon2 - lon1)) * R
+    
+    def to_radians(self):
+        """ Return latitude and longitude as radians """
+        return map(np.radians, [self.lat, self.lon])
     
 class Segment():
     def __init__(self, owned_nodes):
         self.owned_nodes = owned_nodes
         self.route = []
+
+    def route_dict(self):
+        return [{"lat": node.x, "long": node.y} for node in self.route]
 
     def plan_route(self, start_location):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
@@ -227,7 +241,7 @@ class Segment():
                     if unexplored_node in new_route:
                         continue
                     # Cost to insert 'unexplored_node' between 'node_A' and 'node_B'
-                    distance = node_A.distance_to_squared(unexplored_node) + node_B.distance_to_squared(unexplored_node)
+                    distance = node_A.distance_to(unexplored_node) + node_B.distance_to(unexplored_node)
                     if distance < min_insert_cost:
                         min_insert_cost = distance
                         insert_index = i

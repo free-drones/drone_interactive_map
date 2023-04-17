@@ -195,12 +195,13 @@ def on_set_area(data):
         #route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
         #route_list = Area + Pathfinding functions
         NODE_SPACING = 1
-        START_LOCATION = (data[0]["lat"], data[0]["long"])
+        START_LOCATION = (data[0]["lat"], data[0]["long"]) # TODO: Find a more reasonable approach to find start_location
 
         drone_manager_thread = thread_handler.get_drone_manager_thread()
         num_seg = len(drone_manager_thread.drones)
-        area_segmentation.Polygon.create_area_segments(NODE_SPACING, START_LOCATION, num_seg)
-        route_list = []
+        polygon = area_segmentation.Polygon(data) 
+        polygon.create_area_segments(NODE_SPACING, START_LOCATION, num_seg)
+        route_list = [segment.route_dict() for segment in polygon.segments]
         thread_handler.drone_manager_thread.set_routes(route_list)
 
 
