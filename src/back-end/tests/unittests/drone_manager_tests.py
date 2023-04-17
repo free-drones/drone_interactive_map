@@ -5,8 +5,12 @@ from IMM.drone_manager.node import Node
 from IMM.drone_manager.drone import Drone
 from IMM.drone_manager.drone_manager import DroneManager
 from IMM.drone_manager.helper_functions import generate_dummy_route
+import os
 
 FULL_CHARGE_LEVEL = 95
+
+# Use mockup RDS link
+os.environ["LINK_MOCKUP"] = "True"
 
 class TestHelper(unittest.TestCase):
     def setUp(self):

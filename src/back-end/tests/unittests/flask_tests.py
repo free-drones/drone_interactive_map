@@ -10,6 +10,9 @@ from utility.helper_functions import get_path_from_root
 from IMM.IMM_app import *
 import IMM.database.database as dbx
 
+# Use mockup RDS link
+os.environ["LINK_MOCKUP"] = "True"
+
 example_coordinates =  {"up_left":
                             {
                                 "lat": 59.0,

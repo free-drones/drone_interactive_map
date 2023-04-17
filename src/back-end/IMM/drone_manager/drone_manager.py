@@ -1,7 +1,8 @@
 from threading import Thread
 from utility.helper_functions import create_logger
 from IMM.drone_manager.drone import Drone
-from IMM.drone_manager.link import Link
+from IMM.drone_manager.link import Link as LinkDummy
+from IMM.drone_manager.link_dummy import Link
 from IMM.drone_manager.mission import Mission
 
 import time
@@ -14,7 +15,7 @@ LOGGER_NAME = "drone_manager"
 _logger = create_logger(LOGGER_NAME)
 
 class DroneManager(Thread):
-    def __init__(self):
+    def __init__(self, mockup_link = False):
         """
         Initiates the thread.
 
@@ -28,8 +29,11 @@ class DroneManager(Thread):
         self.routes = []
 
         self.link = None
+        self.use_dummy_link = mockup_link
 
     def connect(self):
+        if self.use_dummy_link:
+            self.link = LinkDummy()
         self.link = Link()
         self.link.connect_to_all_drones()
 
