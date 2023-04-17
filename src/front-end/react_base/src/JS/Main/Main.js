@@ -51,14 +51,15 @@ class Main extends React.Component {
   /**
    * On click event for camera button.
    */
-  cameraClickHandler() {
+  cameraClickHandler(isUrgent) {
     requestPriorityView(
       this.props.store.clientID,
       this.props.store.mapPosition,
       callbackWrapper((response) => {
         this.props.store.addPictureRequest(
           response.arg.force_que_id,
-          this.props.store.mapPosition
+          this.props.store.mapPosition,
+          isUrgent
         );
       })
     );
@@ -72,7 +73,6 @@ class Main extends React.Component {
       requestView(
         this.props.store.clientID,
         this.props.store.mapPosition,
-        this.props.store.sensor,
         callbackWrapper((response) => {
           // Get IDs of currently active pictures.
           const currentImageIDs = this.props.store.activePictures.map(

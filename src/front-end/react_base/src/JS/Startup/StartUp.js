@@ -147,9 +147,11 @@ function StartUp(props) {
    */
   function calculateBounds() {
     let bounds = Leaflet.latLngBounds(props.store.areaWaypoints);
+    const paddingX = 3 * (bounds.getEast() - bounds.getWest());
+    const paddingY = 3 * (bounds.getSouth() - bounds.getNorth());
 
-    let topLeft = [bounds.getNorth(), bounds.getWest()];
-    let bottomRight = [bounds.getSouth(), bounds.getEast()];
+    let topLeft = [bounds.getNorth() - paddingY, bounds.getWest() - paddingX];
+    let bottomRight = [bounds.getSouth() + paddingY, bounds.getEast() + paddingX];
 
     return [topLeft, bottomRight];
   }

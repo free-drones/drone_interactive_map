@@ -13,10 +13,6 @@ export const MODE = {
   manual: "MAN",
 };
 
-/**
- * Image type. Either "RGB" or "IR"
- * @typedef {String} Mode
- */
 
 /**
  * Request mode. Either "auto" or "man"

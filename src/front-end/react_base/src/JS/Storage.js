@@ -247,7 +247,7 @@ export const clearPictureRequestQueue = createAction(
 
 export const addPictureRequest = createAction(
   "ADD_PICTURE_REQUEST",
-  function prepare(id, view) {
+  function prepare(id, view, isUrgent) {
     if (!isNaN(id)) {
       return {
         payload: {
@@ -256,6 +256,7 @@ export const addPictureRequest = createAction(
           receiveTime: null,
           received: false,
           view: view,
+          isUrgent: isUrgent,
         },
       };
     } else {
