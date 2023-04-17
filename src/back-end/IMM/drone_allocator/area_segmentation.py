@@ -73,7 +73,7 @@ class Polygon():
     
     def create_area_segments(self, node_spacing, start_location, num_seg):
         """ This is the main function to perform area segmentation and calls the necessary helper functions in correct order
-            Create area segments of the polygon instance using the following steps:
+            Create area segments of the polygon instance:
                 1. Triangulate the polygon
                 2. Define the polygons bounding box
                 3. Create a node grid inside the polygon
@@ -82,7 +82,14 @@ class Polygon():
         self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
         self.node_grid = self.create_node_grid(node_spacing, start_location)
+        self.update_area_segments(node_spacing, start_location, num_seg)
+ 
+    def update_area_segments(self, node_spacing, start_location, num_seg):
+        """ Create new segments with the given node spacing, start location, and number of segments """
+        self.set_node_angles(start_location)
         self.segments = self.create_segments(num_seg)
+        for seg in self.segments:
+            seg.plan_route(start_location)
 
 
     def earcut_triangulate(self):
@@ -155,6 +162,15 @@ class Polygon():
                     chosen_nodes = (node_a, node_b)
                     max_separation = angular_separation
         return start_location.angle_to(chosen_nodes[0])
+    
+    def set_node_angles(self, start_location):
+        def node_angle(angle_a, angle_b): # TODO: Move to util class or whatever
+            return np.mod(angle_b - angle_a + np.pi, 2*np.pi) - np.pi
+        max_diff_ang = self.max_diff_angle(start_location)
+        for node in self.node_grid:
+            node.angle_to_start = start_location.angle_to(node)
+ 
+        self.node_grid.sort(key=lambda n: node_angle(n.angle_to_start, max_diff_ang), reverse=False)
 
     @staticmethod
     def is_clockwise(nodes):
