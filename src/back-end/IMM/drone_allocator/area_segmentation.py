@@ -48,11 +48,14 @@ class Triangle():
         """ Return True if the given point is within the triangle """
         if not self.check_bounding_box(point):
             return False
+        # Calculate the area of each sub-triangle created by the point and each pairwise combination of point a, b and c.
+        # The point is inside the triangle if the sum of these areas is the same as the area of the triangle itself.
         ABC_area = Triangle.area(self.a, self.b, self.c)
         PBC_area = Triangle.area(point, self.b, self.c)
         PAC_area = Triangle.area(point, self.a, self.c)
         PAB_area = Triangle.area(point, self.a, self.b)
         
+        # ABC is the original triangle and PBC, PAC, PAB are the sub-triangles created with the parameter 'point'.
         return ABC_area == PBC_area + PAC_area + PAB_area
 
     def nodes(self):
@@ -70,7 +73,7 @@ class Polygon():
     
     def create_area_segments(self, node_spacing, start_location, num_seg):
         """ This is the main function to perform area segmentation and calls the necessary helper functions in correct order
-            Create area segments of the polygon instance:
+            Create area segments of the polygon instance using the following steps:
                 1. Triangulate the polygon
                 2. Define the polygons bounding box
                 3. Create a node grid inside the polygon
@@ -84,11 +87,11 @@ class Polygon():
 
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
-        nodes = np.array([node() for node in self.nodes]).reshape(-1, 2)
-        rings = np.array([len(nodes)])
-        result = earcut.triangulate_int32(nodes, rings)
+        nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
+        rings = np.array([len(nodes)]) # Used to describe the geometry of the polygon. Can be used to define holes inside the polygon. (We don't)
+        result = earcut.triangulate_int32(nodes, rings) # List of node indices defining the triangles
         triangles = []
-        for i in range(0, len(result), 3):
+        for i in range(0, len(result), 3): # Iterate over all such found triangles to create the triangle objects.
             triangle = Triangle([self.nodes[result[i]], self.nodes[result[i+1]], self.nodes[result[i+2]]])
             triangles.append(triangle)
 
@@ -176,11 +179,11 @@ class Node():
         self.angle_to_start = start_location if start_location else None
     
     def angle_to(self, other_node):
-        """ Return the angle of the node instance to the 'other_node' """
+        """ Return the angle in radians of the node instance to the 'other_node' """
         return np.arctan2(other_node.y - self.y, other_node.x - self.x)
 
     def __call__(self):
-        """ Return the coordinates when a node object is called """
+        """ Return the coordinates as a tuple when a node object is called """
         return (self.x, self.y)
 
 class Segment():
