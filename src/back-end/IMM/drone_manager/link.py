@@ -75,7 +75,10 @@ class Link():
             _logger.debug(f"succesfully connected to drone: {reply['message']}")
             return True
         else:
-            _logger.error(f"Error connecting to drone: {reply['message']}")
+            if reply['status'] == 'denied':
+                _logger.info(f"msg denied: {reply['message']}")
+            else:
+                _logger.error(f"Error connecting to drone: {reply['message']}")
             return False
         
     def connect_to_all_drones(self):
@@ -87,7 +90,10 @@ class Link():
             _logger.debug(f"connect_to_all_drones success: {reply['message']}")
             return reply["message"]
         else:
-            _logger.error(f"Error connecting to drones: {reply['message']}")
+            if reply['status'] == 'denied':
+                _logger.info(f"msg denied: {reply['message']}")
+            else:
+                _logger.error(f"Error connecting to drones: {reply['message']}")
             return False
     
     def get_list_of_drones(self):

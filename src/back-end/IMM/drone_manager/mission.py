@@ -1,5 +1,6 @@
 from IMM.drone_manager.route import Route
 from IMM.drone_manager.node import Node
+from IMM.drone_manager.dm_config import DRONE_SPEED
 
 class Mission():
     def __init__(self, route):
@@ -18,4 +19,5 @@ class Mission():
             "alt": node.alt,
             "alt_type": "amsl",
             "heading": "course",
+            "speed": DRONE_SPEED
         }
