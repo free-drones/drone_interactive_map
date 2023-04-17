@@ -91,7 +91,6 @@ class Polygon():
         for seg in self.segments:
             seg.plan_route(start_location)
 
-
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
         nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
@@ -146,8 +145,6 @@ class Polygon():
             total_node_count += num_nodes
         return segments
 
-
-
     def max_diff_angle(self, start_location):
         """ Calculate the difference between (start_location, a) and (start_location, b) for
          each node combination (a and b), and return the angle from the pair with the greatest difference """
@@ -184,7 +181,7 @@ class Polygon():
             signed_area += (x2 - x1) * (y2 + y1)
 
         return signed_area <= 0
-
+        
     def __repr__(self):
         pass
 
@@ -201,7 +198,56 @@ class Node():
     def __call__(self):
         """ Return the coordinates as a tuple when a node object is called """
         return (self.x, self.y)
-
+    
+    def distance_to_squared(self, other_node):
+        """ Return distance between self and another node squared """
+        return ((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
+    
+    def distance_to(self, other_node):
+        """ Return distance between self and another node """
+        return np.sqrt((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
+    
 class Segment():
     def __init__(self, owned_nodes):
         self.owned_nodes = owned_nodes
+        self.route = []
+
+    def plan_route(self, start_location):
+        """ Plan a route using nearest insert algorithm with a segments owned nodes """
+        start_neighbour = self.closest_owned_node(start_location)
+        # Insert 'start_location' as a node in the route
+        new_route = [start_location, start_neighbour]
+        unexplored_nodes = self.owned_nodes[:]
+        while (len(new_route) - 1) < len(self.owned_nodes):
+            min_insert_cost = float('inf')
+            for i in range(len(new_route) - 1):
+                node_A = new_route[i]
+                node_B = new_route[i+1]
+                for unexplored_node in unexplored_nodes:
+                    if unexplored_node in new_route:
+                        continue
+                    # Cost to insert 'unexplored_node' between 'node_A' and 'node_B'
+                    distance = node_A.distance_to_squared(unexplored_node) + node_B.distance_to_squared(unexplored_node)
+                    if distance < min_insert_cost:
+                        min_insert_cost = distance
+                        insert_index = i
+                        insert_node = unexplored_node
+            new_route.insert(insert_index + 1, insert_node)
+            unexplored_nodes.remove(insert_node)
+        self.route = new_route
+                        
+
+    def closest_owned_node(self, node):
+        """ Returns the node closest to 'node' among 'owned_nodes' """
+        min_dist = float('inf')
+        closest_node = node
+        for comp_node in self.owned_nodes:
+            if comp_node is closest_node:
+                continue
+            distance = comp_node.distance_to(node)
+            if distance < min_dist:
+                min_dist = distance
+                closest_node = comp_node
+        return closest_node
+
+    
