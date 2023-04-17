@@ -9,11 +9,6 @@ from IMM.threads.thread_rds_sub import RDSSubThread
 from IMM.threads.thread_gui_pub import GUIPubThread
 from IMM.threads.thread_info_fetcher import InfoFetcherThread
 from IMM.drone_manager.drone_manager import DroneManager
-import os
-
-LINK_MOCKUP = False
-if "LINK_MOCKUP" in os.environ:
-    LINK_MOCKUP = True
 
 class ThreadHandler():
     """Regularly fetches information from the RDS and processes client requests"""
@@ -29,8 +24,7 @@ class ThreadHandler():
         self.gui_pub_thread = GUIPubThread(self, socketio)
         self.rds_sub_thread = RDSSubThread(self)
         self.info_fetcher_thread = InfoFetcherThread()
-        self.drone_manager_thread = DroneManager(mockup_link = LINK_MOCKUP)
-        self.drone_manager_thread.connect()
+        self.drone_manager_thread = DroneManager()
 
     def start_threads(self):
         """Starts the threads"""
@@ -39,6 +33,7 @@ class ThreadHandler():
         self.gui_pub_thread.start()
         self.info_fetcher_thread.start()
         self.drone_manager_thread.start()
+        self.drone_manager_thread.connect()
 
     def stop_threads(self):
         """Stops the threads. Used for debugging."""
