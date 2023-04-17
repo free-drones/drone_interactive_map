@@ -19,6 +19,7 @@ from utility.helper_functions import is_overlapping, get_path_from_root, check_k
 import os
 from IMM.error_handler import check_client_id, check_coordinates_list, check_coords_in_list, check_coord_dict, \
     check_type, check_mode, emit_error_response
+from IMM.drone_allocator import area_segmentation
 
 """Initiate the flask application and the socketIO wrapper"""
 app = Flask(__name__)
@@ -193,6 +194,12 @@ def on_set_area(data):
 
         #route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
         #route_list = Area + Pathfinding functions
+        NODE_SPACING = 1
+        START_LOCATION = (data[0]["lat"], data[0]["long"])
+
+        drone_manager_thread = thread_handler.get_drone_manager_thread()
+        num_seg = len(drone_manager_thread.drones)
+        area_segmentation.Polygon.create_area_segments(NODE_SPACING, START_LOCATION, num_seg)
         route_list = []
         thread_handler.drone_manager_thread.set_routes(route_list)
 
