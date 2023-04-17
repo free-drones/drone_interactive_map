@@ -235,7 +235,7 @@ test("send request_view", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "request_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
+        arg: { client_id: 1, coordinates: validViewReceived },
       });
 
       // Emulate server response
@@ -252,7 +252,7 @@ test("send request_view", (done) => {
     }
   });
 
-  Downstream.requestView(1, validViewSend, Downstream.TYPE.rgb, () => {
+  Downstream.requestView(1, validViewSend, () => {
     done();
   });
 });
@@ -263,7 +263,7 @@ test("send request_priority_view", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "request_priority_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
+        arg: { client_id: 1, coordinates: validViewReceived },
       });
 
       // Emulate server response
@@ -280,7 +280,7 @@ test("send request_priority_view", (done) => {
     }
   });
 
-  Downstream.requestPriorityView(1, validViewSend, Downstream.TYPE.rgb, () => {
+  Downstream.requestPriorityView(1, validViewSend, () => {
     done();
   });
 });

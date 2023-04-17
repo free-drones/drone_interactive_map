@@ -6,14 +6,6 @@ import ServerConnection from "./ServerConnection.js";
 import Storage from "../Storage.js";
 
 /**
- * Image type constant.
- */
-export const TYPE = {
-  rgb: "RGB",
-  ir: "IR",
-};
-
-/**
  * Image mode constant.
  */
 export const MODE = {
@@ -111,15 +103,13 @@ export function setArea(clientID, waypointsList, bounds, callback = null) {
  * Make a request view call downstream.
  *
  * @param {View} view Current view
- * @param {Type} type Wanted image type
  * @param {APICallback} callback Optional callback function
  */
-export function requestView(clientID, view, type, callback = null) {
+export function requestView(clientID, view, callback = null) {
   let message = {
     fcn: "request_view",
     arg: {
       client_id: clientID,
-      type: type,
       coordinates: translateView(view),
     },
   };
@@ -303,7 +293,6 @@ export function callbackWrapper(callback = null) {
 }
 
 const downstreamExports = {
-  TYPE,
   MODE,
   connect,
   checkAlive,
