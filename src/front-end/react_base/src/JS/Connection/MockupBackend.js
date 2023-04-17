@@ -159,6 +159,7 @@ io.on("connect", (socket) => {
       status: "Auto"
     },
 
+    
     drone2: {
       location: {
         lat: 58.39463, 
@@ -167,10 +168,19 @@ io.on("connect", (socket) => {
       status: "Auto"
     },
     
+    
     drone3: {
       location: {
         lat: 58.39463, 
         lng: 15.579143
+      },
+      status: "Auto"
+    },
+
+    drone4: {
+      location: {
+        lat: 58.39463, 
+        lng: 15.581143
       },
       status: "Auto"
     },
@@ -180,13 +190,15 @@ io.on("connect", (socket) => {
   socket.on("get_drones", (request) => {
     console.log("get_drones call");
 
-    simulatedDrones.drone1.location.lat += 0.0006;
-    simulatedDrones.drone2.location.lat -= 0.0004;
-    simulatedDrones.drone3.location.lat -= 0.0003;
+    simulatedDrones.drone1.location.lat -= 0.0006;
+    simulatedDrones.drone2.location.lat -= 0.0003;
+    simulatedDrones.drone3.location.lat += 0.0003;
+    simulatedDrones.drone4.location.lat += 0.0003;
 
-    simulatedDrones.drone1.location.lng += 0.0006;
-    simulatedDrones.drone2.location.lng += 0.0004;
+    simulatedDrones.drone1.location.lng -= 0.0006;
+    simulatedDrones.drone2.location.lng += 0.0003;
     simulatedDrones.drone3.location.lng -= 0.0003;
+    simulatedDrones.drone4.location.lng += 0.0003;
 
     let reply = {
       fcn: "ack",

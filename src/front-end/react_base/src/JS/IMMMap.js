@@ -33,7 +33,7 @@ import {
 import { viewify } from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
 
-import Leaflet, { control } from "leaflet";
+import Leaflet, { control, icon } from "leaflet";
 
 // Room Icon pre-rendered + sizing style
 const markedIcon =
@@ -275,7 +275,7 @@ class IMMMap extends React.Component {
         //console.log("Received position: ", response.arg.position)
         this.setState({ drones: response.arg.drones});
       });
-    }, 1000);
+    }, 1600);
   }
 
   /**
@@ -340,9 +340,18 @@ class IMMMap extends React.Component {
     return markers;
   }
 
+  // Calculate drone color
+  droneColor(key){
+    if (key == "drone1"){ return "#FF0000"}       // RED 
+    else if (key == "drone2"){return "#CC00FF"}   // PURPLE 
+    else if (key == "drone3"){return "#000000" }  // BLACK 
+    else if (key == "drone4"){ return "#0000FF"}  // BLUE
+    return "#ffffff";
+  }
+
 
   // Calculate drone icon rotation
-  droneAngle(oldPoint, newPoint){
+  droneAngle(oldPoint, newPoint, key){
     // compensate for rotation of original icon (45 degrees)
     let iconRotationCompensation = 45;
     
@@ -353,10 +362,14 @@ class IMMMap extends React.Component {
     if (this.state.userPosition) {
       latitudeScaleFactor = 1/Math.cos(this.state.userPosition.lat*Math.PI / 180);
     }
+
+    // TODO: FIX PROBLEM WHERE latSCALE MAKES DRONE ICONS ROTATE WEIRD, AND/ OR MAKE A IF STATEMENT SO IT GOES THE RIGHT WAY (iconRotationCompensation makes things weird).
+    let angle = (Math.atan2( (newPoint.lat - oldPoint.lat) / latitudeScaleFactor, (newPoint.lng - oldPoint.lng)) * 180 / Math.PI) - iconRotationCompensation;
     
-    let angle = (Math.atan2(newPoint.lat - oldPoint.lat, (newPoint.lng - oldPoint.lng) * latitudeScaleFactor) * 180 / Math.PI) - iconRotationCompensation;
+    console.log("Drone: ", key, "with rotation: ", angle, " degrees ")
     return angle;
   }
+  
 
 
   droneFactory() {
@@ -367,9 +380,10 @@ class IMMMap extends React.Component {
         this.state.oldDrones = this.state.drones;
     }
 
-    const drones = this.state.Object.keys(drones).map((pos, i) => (
+    const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
       <Marker
-        position={pos}
+        
+        position={[drone.location.lat, drone.location.lng]}
         key={`drone${i}`}
         icon={Leaflet.divIcon({
           className: "tmp",
@@ -377,11 +391,13 @@ class IMMMap extends React.Component {
             this.props.store.config.droneIconPixelSize / 2,
             this.props.store.config.droneIconPixelSize / 2
           ),
-          html: `<svg fill="#000000" 
+          html: `<svg fill=${this.droneColor(key)}
+                    stroke= "black" 
+                    d="M5 40 l215 0"
                     height="${this.props.store.config.droneIconPixelSize}px" 
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
-                    transform="rotate(${this.droneAngle(this.state.oldDrones[i], this.state.drones.drone[i])})"  
+                    transform="rotate(${this.droneAngle(this.state.oldDrones[key].location, drone.location, key)})"   
                     xmlns="http://www.w3.org/2000/svg" 
                     xmlns:xlink="http://www.w3.org/1999/xlink" 
                     viewBox="0 0 1792 1792" 
