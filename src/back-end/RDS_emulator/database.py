@@ -48,7 +48,8 @@ class _Database:
         echo        True if the engine should print SQL commands sent to the
                     DBMS, else False. (default False)
         """
-
+        
+        
         self.__engine = create_engine('sqlite:///' + file_path, echo=echo)
         _Base.metadata.create_all(bind=self.__engine)
         self.__session_maker = sessionmaker(bind=self.__engine)
@@ -156,3 +157,4 @@ def rds_session_scope():
         raise
     finally:
         pass
+2

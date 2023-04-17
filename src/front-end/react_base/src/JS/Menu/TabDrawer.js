@@ -2,36 +2,35 @@
  * TabDrawer. Styled multi-drawer component with tab styled activation buttons.
  */
 
-import React from 'react';
-import { useState } from 'react';
+import React from "react";
+import { useState } from "react";
 
-import { makeStyles } from '@material-ui/core/styles';
+import ClickAwayListener from "@mui/material/ClickAwayListener";
+import Portal from "@mui/material/Portal";
+import { Box } from "@mui/system";
 
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import Portal from '@material-ui/core/Portal';
+const styles = {
+  // Page wrapper hides unwanted overflow from overextending tabs heads
+  pageWrapper: {
+    height: "100%",
+    width: "100%",
 
-const useStyles = makeStyles((theme) => ({
-    // Page wrapper hides unwanted overflow from overextending tabs heads
-    pageWrapper: {
-        height: '100%',
-        width: '100%',
+    position: "absolute",
 
-        position: 'absolute',
-        
-        left: 0,
-        top: 0,
-        
-        overflow: 'hidden',
-        pointerEvents: 'none',
+    left: 0,
+    top: 0,
 
-        zIndex: theme.zIndex.appBar,
+    overflow: "hidden",
+    pointerEvents: "none",
 
-        // Re-enable click events for all children
-        '& > *': {
-            pointerEvents: 'auto'
-        }
-    }
-}));
+    zIndex: "appBar",
+
+    // Re-enable click events for all children
+    "& > *": {
+      pointerEvents: "auto",
+    },
+  },
+};
 
 /**
  * @typedef {Object} Properties
@@ -42,64 +41,61 @@ const useStyles = makeStyles((theme) => ({
 
 /**
  * Tab drawer. Contains and maintains TabDrawerTabs. Automatically gives them indexes and states, as well as groups them together.
- * 
+ *
  * @param {Properties} props Passed properties.
  */
 function TabDrawer(props) {
-    const classes = useStyles(props)
-    
-    // Set up default states
-    var [states, setStates] = useState(new Array(props.children.length).fill('dormant'));
+  // Set up default states
+  var [states, setStates] = useState(
+    new Array(props.children.length).fill("dormant")
+  );
 
-    // Map correct props to all children
-    const children = React.Children.map(props.children, (child, index) => 
-        React.cloneElement(child, {
-            index: index,
-            anchor: props.anchor,
-            state: states[index],
-            tabHeadCallback: (newState) => tabHeadClicked(index, newState)
-        })
-    );
+  // Map correct props to all children
+  const children = React.Children.map(props.children, (child, index) =>
+    React.cloneElement(child, {
+      index: index,
+      anchor: props.anchor,
+      state: states[index],
+      tabHeadCallback: (newState) => tabHeadClicked(index, newState),
+    })
+  );
 
-    /**
-     * Handle tab clicked event. This callback method is passed to children as a prop bound to their corrensponding index.
-     * 
-     * @param {Number} index Intex of clicked tab
-     * @param {String} newState New state of clicked tab
-     */
-    function tabHeadClicked(index, newState) {
-        let newStates = Array(children.length);
+  /**
+   * Handle tab clicked event. This callback method is passed to children as a prop bound to their corresponding index.
+   *
+   * @param {Number} index Index of clicked tab
+   * @param {String} newState New state of clicked tab
+   */
+  function tabHeadClicked(index, newState) {
+    let newStates = Array(children.length);
 
-        if (newState === 'dormant') {
-            newStates.fill('dormant');
-        }
-        else if (newState === 'active') {
-            newStates.fill('passive');
-            newStates[index] = 'active';
-        }
-
-        setStates(newStates);
+    if (newState === "dormant") {
+      newStates.fill("dormant");
+    } else if (newState === "active") {
+      newStates.fill("passive");
+      newStates[index] = "active";
     }
 
-    /**
-     * Handle click away event. Automatically closes open drawers when another element is clicked.
-     * Controlled by the 'persistent' property.
-     */
-    function handleClickAway() {
-        if (!props.persistent) {
-            setStates(new Array(children.length).fill('dormant'));
-        }
-    }
+    setStates(newStates);
+  }
 
-    return (
-        <Portal>
-            <ClickAwayListener onClickAway={handleClickAway}>
-                <div className={classes.pageWrapper}>
-                    { children }
-                </div>
-            </ClickAwayListener>
-        </Portal>
-    );
+  /**
+   * Handle click away event. Automatically closes open drawers when another element is clicked.
+   * Controlled by the 'persistent' property.
+   */
+  function handleClickAway() {
+    if (!props.persistent) {
+      setStates(new Array(children.length).fill("dormant"));
+    }
+  }
+
+  return (
+    <Portal>
+      <ClickAwayListener onClickAway={handleClickAway}>
+        <Box sx={styles.pageWrapper}>{children}</Box>
+      </ClickAwayListener>
+    </Portal>
+  );
 }
 
-export default TabDrawer
+export default TabDrawer;

@@ -48,11 +48,14 @@ class Triangle():
         """ Return True if the given point is within the triangle """
         if not self.check_bounding_box(point):
             return False
+        # Calculate the area of each sub-triangle created by the point and each pairwise combination of point a, b and c.
+        # The point is inside the triangle if the sum of these areas is the same as the area of the triangle itself.
         ABC_area = Triangle.area(self.a, self.b, self.c)
         PBC_area = Triangle.area(point, self.b, self.c)
         PAC_area = Triangle.area(point, self.a, self.c)
         PAB_area = Triangle.area(point, self.a, self.b)
         
+        # ABC is the original triangle and PBC, PAC, PAB are the sub-triangles created with the parameter 'point'.
         return ABC_area == PBC_area + PAC_area + PAB_area
 
     def nodes(self):
@@ -79,17 +82,22 @@ class Polygon():
         self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
         self.node_grid = self.create_node_grid(node_spacing, start_location)
+        self.update_area_segments(node_spacing, start_location, num_seg)
+ 
+    def update_area_segments(self, node_spacing, start_location, num_seg):
+        """ Create new segments with the given node spacing, start location, and number of segments """
+        self.set_node_angles(start_location)
         self.segments = self.create_segments(num_seg)
         for seg in self.segments:
             seg.plan_route(start_location)
 
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
-        nodes = np.array([node() for node in self.nodes]).reshape(-1, 2)
-        rings = np.array([len(nodes)])
-        result = earcut.triangulate_int32(nodes, rings)
+        nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
+        rings = np.array([len(nodes)]) # Used to describe the geometry of the polygon. Can be used to define holes inside the polygon. (We don't)
+        result = earcut.triangulate_int32(nodes, rings) # List of node indices defining the triangles
         triangles = []
-        for i in range(0, len(result), 3):
+        for i in range(0, len(result), 3): # Iterate over all such found triangles to create the triangle objects.
             triangle = Triangle([self.nodes[result[i]], self.nodes[result[i+1]], self.nodes[result[i+2]]])
             triangles.append(triangle)
 
@@ -151,6 +159,15 @@ class Polygon():
                     chosen_nodes = (node_a, node_b)
                     max_separation = angular_separation
         return start_location.angle_to(chosen_nodes[0])
+    
+    def set_node_angles(self, start_location):
+        def node_angle(angle_a, angle_b): # TODO: Move to util class or whatever
+            return np.mod(angle_b - angle_a + np.pi, 2*np.pi) - np.pi
+        max_diff_ang = self.max_diff_angle(start_location)
+        for node in self.node_grid:
+            node.angle_to_start = start_location.angle_to(node)
+ 
+        self.node_grid.sort(key=lambda n: node_angle(n.angle_to_start, max_diff_ang), reverse=False)
 
     @staticmethod
     def is_clockwise(nodes):
@@ -175,11 +192,11 @@ class Node():
         self.angle_to_start = start_location if start_location else None
     
     def angle_to(self, other_node):
-        """ Return the angle of the node instance to the 'other_node' """
+        """ Return the angle in radians of the node instance to the 'other_node' """
         return np.arctan2(other_node.y - self.y, other_node.x - self.x)
 
     def __call__(self):
-        """ Return the coordinates when a node object is called """
+        """ Return the coordinates as a tuple when a node object is called """
         return (self.x, self.y)
     
     def distance_to_squared(self, other_node):

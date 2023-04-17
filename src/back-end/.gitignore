@@ -10,3 +10,6 @@ htmlcov/
 virenv
 *.JPG
 log.txt
+Scripts
+pyvenv.cfg
+Include

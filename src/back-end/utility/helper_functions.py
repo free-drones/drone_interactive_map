@@ -13,14 +13,25 @@ def get_path_from_root(path):
     """Returns the full path to the specified (relative) path.
 
     Keyword arguments:
-    path -- A string containing the path from the project root folder.
+    path -- A string containing the path from the project root folder. Separator '/'
 
     Returns a string containg the full path from root of the device running IMM.
     """
     res = os.path.dirname(__file__)  # Get the path to the directory where this file is located.
-    # path_list = [".."] + path.split("/")
-    res += "/.." + path
-    return res
+    path_to_wd = res.split(os.sep)[:-1]
+
+    # os.path for windows does not insert a file path separator after drive names since drives 
+    # have their own current directories. A file separator is therefore added after the drive name 
+    # so the drive's root is used.
+    # TODO: implement this more robustly
+    if len(path_to_wd[0]) == 2 and ":" in path_to_wd[0]:
+        path_to_wd[0] = path_to_wd[0] + os.sep
+    else:
+        path_to_wd[0] = os.sep + path_to_wd[0]
+
+    path_to_file = path.split("/")
+    return os.path.join(*path_to_wd, *path_to_file)
+
 
 def coordinates_list_to_json(coordinates):
     """Convert a coordinate list to json format.
@@ -81,17 +92,17 @@ def dig(value_dict, key_path):
     key_path -- A list containing the keys in the path that will be checked
                 in value_dict.
 
-    Returns a boolean that says if the keys existed or not.
+    Returns a boolean which is true if the key path existed and false if not.
     """
 
     if not key_path:
         return False
 
     elif isinstance(key_path, str) and key_path in value_dict:
-        return False
+        return True
 
     elif key_path[0] not in value_dict.keys():
-        return True
+        return False
     else:
         return dig(value_dict[key_path[0]], key_path[1:])
 
@@ -103,14 +114,13 @@ def check_keys_exists(value_dict, key_paths):
     value_dict -- A dict containing the values to be checked.
     key_paths -- A list containing the paths of keys that will be checked in value_dict.
 
-    Returns a boolean that says if all key paths existed or not.
+    Returns a boolean which is true if all key paths existed and false if not.
     """
 
     for key_path in key_paths:
-        invalid = dig(value_dict, key_path)
-        if invalid:
-            return False
-    return True
+        if not dig(value_dict, key_path):
+            return True
+    return False
 
 
 
@@ -157,7 +167,7 @@ def is_overlapping(square1, square2):
 
 
 def polygon_contains_point(in_point, in_polygon):
-    """Returns true if point is within polygon
+    """Returns true if point is within polygon (NOTE: the polygon must be a quadrilateral, *not* a general polygon)
 
     This function takes a point as (x,y) and
     a list as [bottom_left, top_left, top_right, bottom_right]

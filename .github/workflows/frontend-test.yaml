@@ -1,0 +1,34 @@
+name: Frontend Tests
+
+on: [push, pull_request]
+
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install node packages
+        working-directory: ./src/front-end/react_base
+        run: npm ci --legacy-peer-deps
+      - name: Run tests
+        working-directory: ./src/front-end/react_base
+        run: npm run auto-test
+      - name: ESLint
+        working-directory: ./src/front-end/react_base
+        run: npx eslint src
+      - name: Prettier
+        working-directory: ./src/front-end/react_base
+        run: npx prettier src --check --end-of-line auto 
+    env: 
+      CI: true

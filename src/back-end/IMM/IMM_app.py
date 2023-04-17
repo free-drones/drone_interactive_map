@@ -45,7 +45,7 @@ def send_image_to_gui(image_id):
     root_dir = os.path.dirname(os.getcwd())
     full_path = os.path.join(root_dir, "back-end", "IMM", "images")
     with session_scope() as session:
-        image = session.query(Image).get(image_id)
+        image = session.get(Image, image_id)
         if image is not None:
             try:
                 return send_from_directory(full_path, image.file_name)
@@ -160,7 +160,7 @@ def on_set_area(data):
 
         sessionID = None
         with session_scope() as session:
-            client = session.query(Client).get(data["arg"]["client_id"])
+            client = session.get(Client, data["arg"]["client_id"])
 
             if client is not None:
                 sessionID = client.session_id  # Save ID so it's accesible outside scope.
@@ -191,6 +191,11 @@ def on_set_area(data):
         _logger.debug(f"set_area resp: {response}")
         emit("response", response)
 
+        #route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
+        #route_list = Area + Pathfinding functions
+        route_list = []
+        thread_handler.drone_manager_thread.set_routes(route_list)
+
 
 @socketio.on("request_view")
 def on_request_view(data):
@@ -216,7 +221,7 @@ def on_request_view(data):
         requested_view = data["arg"]["coordinates"]
         client_id = data["arg"]["client_id"]
         with session_scope() as session:
-            client = session.query(Client).get(client_id)
+            client = session.get(Client, client_id)
             if client is not None:
                 sessionID = client.session_id  # Save ID so it's accesible outside scope.
             else:
@@ -309,7 +314,7 @@ def on_request_priority_view(data):
         prio_imageID = None
         client_id = data["arg"]["client_id"]
         with session_scope() as session:
-            client = session.query(Client).get(client_id)
+            client = session.get(Client, client_id)
             if client is not None:
                 sessionID = client.session_id  # Save ID so it's accesible outside scope.
             else:
@@ -409,6 +414,8 @@ def on_set_mode(data):
 
         # Update the global mode.
         current_mode = data["arg"]["mode"]
+
+        thread_handler.get_drone_manager_thread().set_mode(current_mode)
 
         response = {}
         response["fcn"] = "ack"

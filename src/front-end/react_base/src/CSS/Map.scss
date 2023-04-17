@@ -1,24 +1,49 @@
 // Basic setup for the leaflet container
 .leaflet-container {
-    width: 100vw;
-    height: 100vh;
+  width: 100vw;
+  height: 100vh;
 }
 
 .map {
-    z-index: 0;
+  z-index: 0;
 }
 
 .marker {
-    -webkit-filter: drop-shadow( 2px 9px 5px rgba(50, 50, 50, 0.5));
-    filter: drop-shadow( 2px 9px 5px rgba(50, 50, 50, 0.5));
-    stroke: #FFFFFF;
-    stroke-width: 0.75px;
+  -webkit-filter: drop-shadow(2px 9px 5px rgba(50, 50, 50, 0.5));
+  filter: drop-shadow(2px 9px 5px rgba(50, 50, 50, 0.5));
+  stroke: #ffffff;
+  stroke-width: 0.75px;
 }
 
-.marker:first-child {
-    color: #4caf50;
+.first-marker {
+  color: #4caf50;
 }
 
-.marker:last-child {
-    color: #f44336;
+.last-marker {
+  color: #f44336;
+}
+
+.userIcon {
+  opacity: 0.8;
+  animation-name: userIcon;
+  animation-duration: 1.2s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes userIcon {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+.leaflet-control-scale {
+  pointer-events: none;
+  position: fixed;
+  right: 80px;
+  bottom: 20px;
 }
