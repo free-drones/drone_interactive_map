@@ -209,8 +209,9 @@ class IMMMap extends React.Component {
     super(props);
     this.state = {
       userPosition: null,
-      dronePositions: null,
-      oldDronePositions: null,
+      drones: null,
+      oldDrones: null,
+      timerID: null,
     };
   }
 
@@ -269,13 +270,21 @@ class IMMMap extends React.Component {
    * Drone position update, componentDidMount runs once on startup.
    */
   componentDidMount() {
-    setInterval(() => {
+    this.state.timerID = setInterval(() => {
       getDrones((response) => {
         //console.log("Received position: ", response.arg.position)
-        this.setState({ dronePositions: response.arg.position });
+        this.setState({ drones: response.arg.drones});
       });
-    }, 2000);
+    }, 1000);
   }
+
+  /**
+   * Remove double timer from componentDidMount
+   */
+  componentWillUnmount() {
+    clearInterval(this.state.timerID);
+  }
+
 
   /**
    * Restructures the waypoint list so that the clicked markers waypoint is the first in the list and the waypoint that is added next is its neighbor.
@@ -334,21 +343,31 @@ class IMMMap extends React.Component {
 
   // Calculate drone icon rotation
   droneAngle(oldPoint, newPoint){
-    // Rotate base value: -45 for drone icons to point straight up.
-    return (Math.atan2(newPoint[1] - oldPoint[1], newPoint[0] - oldPoint[0]) * 180 / Math.PI) - 45;
+    // compensate for rotation of original icon (45 degrees)
+    let iconRotationCompensation = 45;
+    
+    // latitude scale factor for Linköping in Sweden
+    let latitudeScaleFactor = 1.91;
+    
+    // If we have the user position we can use it to calculate scale factor
+    if (this.state.userPosition) {
+      latitudeScaleFactor = 1/Math.cos(this.state.userPosition.lat*Math.PI / 180);
+    }
+    
+    let angle = (Math.atan2(newPoint.lat - oldPoint.lat, (newPoint.lng - oldPoint.lng) * latitudeScaleFactor) * 180 / Math.PI) - iconRotationCompensation;
+    return angle;
   }
 
 
   droneFactory() {
     
-    // if old/new drone position list will cause error, skip updating the rotations
-    // TODO MAYBE FIX SO THAT DRONES DON'T POINT UP WHEN THIS IF STATEMENT HAPPENS. 
-    // ADD A LIST, AND READ FROM IT IN STATES AND DON'T UPDATE IT WHEN THIS HAPPENS?
-    if (!this.state.oldDronePositions || (this.state.dronePositions.length !== this.state.oldDronePositions.length)){
-        this.state.oldDronePositions = this.state.dronePositions;
+    // if old/new drone list will cause error, skip updating the rotations
+    // TODO: FIX SO THAT OLD DRONE STATE UPDATES EACH TICK. MAYBE BY HAVING A LIST OF ANGLES.
+    if (!this.state.oldDrones || (this.state.drones.length !== this.state.oldDrones.length)){
+        this.state.oldDrones = this.state.drones;
     }
 
-    const drones = this.state.dronePositions.map((pos, i) => (
+    const drones = this.state.Object.keys(drones).map((pos, i) => (
       <Marker
         position={pos}
         key={`drone${i}`}
@@ -362,7 +381,7 @@ class IMMMap extends React.Component {
                     height="${this.props.store.config.droneIconPixelSize}px" 
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
-                    transform="rotate(${this.droneAngle(this.state.oldDronePositions[i], this.state.dronePositions[i])})"  
+                    transform="rotate(${this.droneAngle(this.state.oldDrones[i], this.state.drones.drone[i])})"  
                     xmlns="http://www.w3.org/2000/svg" 
                     xmlns:xlink="http://www.w3.org/1999/xlink" 
                     viewBox="0 0 1792 1792" 
@@ -374,7 +393,6 @@ class IMMMap extends React.Component {
         })}
       />
     ));
-    this.state.oldDronePositions = this.state.dronePositions;
     return drones;
   }
 
@@ -487,7 +505,7 @@ class IMMMap extends React.Component {
         {this.props.allowDefine ? this.markerFactory() : ""}
 
         {/* Draw drone icons. */}
-        {this.props.store.config.showDroneIcons && this.state.dronePositions ? this.droneFactory() : ""}
+        {this.props.store.config.showDroneIcons && this.state.drones ? this.droneFactory() : ""}
 
         {
           /* Draw user position. */

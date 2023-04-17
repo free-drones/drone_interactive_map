@@ -149,29 +149,50 @@ io.on("connect", (socket) => {
     socket.emit("response", reply);
   });
 
-  // "fake" drone starting position, replace with real drone data later
+  // "fake" drone data for testing GUI
+  const simulatedDrones = {
+    drone1: {
+      location: {
+        lat: 58.39463, 
+        lng: 15.575143
+      },
+      status: "Auto"
+    },
 
-  let simulatedDronePosition = [
-    [58.39463, 15.575143],
-    [58.39463, 15.577143],
-  ];
-  //let simulatedDronePosition = [[58.3947753, 15.5789432]]
+    drone2: {
+      location: {
+        lat: 58.39463, 
+        lng: 15.577143
+      },
+      status: "Auto"
+    },
+    
+    drone3: {
+      location: {
+        lat: 58.39463, 
+        lng: 15.579143
+      },
+      status: "Auto"
+    },
+};
 
   // GetPosition
   socket.on("get_drones", (request) => {
     console.log("get_drones call");
 
-    simulatedDronePosition[0][0] = simulatedDronePosition[0][0] + 0.00004;
-    simulatedDronePosition[1][0] = simulatedDronePosition[1][0] - 0.00004;
+    simulatedDrones.drone1.location.lat += 0.0006;
+    simulatedDrones.drone2.location.lat -= 0.0004;
+    simulatedDrones.drone3.location.lat -= 0.0003;
 
-    simulatedDronePosition[0][1] = simulatedDronePosition[0][1] + 0.0006;
-    simulatedDronePosition[1][1] = simulatedDronePosition[1][1] + 0.0006;
+    simulatedDrones.drone1.location.lng += 0.0006;
+    simulatedDrones.drone2.location.lng += 0.0004;
+    simulatedDrones.drone3.location.lng -= 0.0003;
 
     let reply = {
       fcn: "ack",
       fcn_name: "get_drones",
       arg: {
-        position: simulatedDronePosition,
+        drones: simulatedDrones,
       },
     };
     socket.emit("response", reply);
