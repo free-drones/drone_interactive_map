@@ -98,6 +98,9 @@ class Coordinate:
             "long": self.long
         }
 
+    def to_list(self):
+        return [self.lat, self.long]
+
     def __composite_values__(self):
         """Return a (lat, long) tuple."""
         return self.lat, self.long
@@ -126,6 +129,18 @@ def coordinate_from_json(json):
     """
 
     return Coordinate(lat=float(json["lat"]), long=float(json["long"]))
+
+def coordinate_from_list(list):
+    """Convert a coordinate in list format to a Coordinate object.
+
+    Keyword arguments:
+    list    A list containing the two float values representing "lat" and "long" 
+            coordinates respectively.
+
+    Returns a Coordinate object corresponding to the given coordinate.
+    """
+
+    return Coordinate(lat=float(list[0]), long=float(list[1]))
 
 
 class UserSession(_Base):
@@ -158,6 +173,15 @@ class UserSession(_Base):
     start_time = Column(Integer, nullable=False)
     end_time = Column(Integer)
     drone_mode = Column(String, nullable=False)
+
+    __bounds1_lat = Column(Float, nullable=True)
+    __bounds1_long = Column(Float, nullable=True)
+    __bounds2_lat = Column(Float, nullable=True)
+    __bounds2_long = Column(Float, nullable=True)
+
+
+    bounds1 = composite(Coordinate, __bounds1_lat, __bounds1_long)
+    bounds2 = composite(Coordinate, __bounds2_lat, __bounds2_long)
 
     def __repr__(self):
         """Return a string representation of the UserSession."""
@@ -222,8 +246,8 @@ class Client(_Base):
 
     def __repr__(self):
         """Return a string representation of the Client."""
-        return _NoneFormatter().format('<Client(id={0:6d}, session_id={1:6d}, up_left={2}, up_right={3}, down_right={4}, down_left={5}',
-            self.id, self.session_id, self.up_left, self.up_right, self.down_right, self.down_left)
+        return _NoneFormatter().format('<Client(id={0:6d}, session_id={1:6d}, up_left={2}, up_right={3}, down_right={4}, down_left={5}, is_prio_client={6}',
+            self.id, self.session_id, self.up_left, self.up_right, self.down_right, self.down_left, self.is_prio_client)
 
 
 UserSession.clients = relationship("Client", order_by=Client.id, back_populates="session")

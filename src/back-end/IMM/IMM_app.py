@@ -13,13 +13,13 @@ from flask import Flask, jsonify, request, send_from_directory, send_file, abort
 import time
 from flask_socketio import SocketIO, join_room, emit
 from IMM.database.database import session_scope, UserSession, Client, Drone, Coordinate, Image, PrioImage, AreaVertex, func, \
-    coordinate_from_json, use_production_db
+    coordinate_from_json, coordinate_from_list, use_production_db
 from config_file import BACKEND_BASE_URL
 from utility.helper_functions import is_overlapping, get_path_from_root, check_keys_exists, create_logger
 import os
 from IMM.error_handler import check_client_id, check_coordinates_list, check_coords_in_list, check_coord_dict, \
     check_type, check_mode, emit_error_response
-from sqlalchemy import select
+from sqlalchemy import select, update, delete, and_
 
 """Initiate the flask application and the socketIO wrapper"""
 app = Flask(__name__)
@@ -164,29 +164,60 @@ def on_set_area(data):
         with session_scope() as session:
             client = session.get(Client, data["arg"]["client_id"])
 
-            if client is not None:
-                sessionID = client.session_id  # Save ID so it's accesible outside scope.
-
-                stmt = select(Client).where(Client.session_id == sessionID and Client.is_prio_user == True)
-                prioritized_user = session.execute(stmt).first()
-
-                if not prioritized_user or prioritized_user.id == client.id:
-                    client.is_prio_user = True
-                    high_priority_client_id = data["arg"]["client_id"]
-                    reply_bounds = data["arg"]["bounds"]
-                    reply_coordinates = data["arg"]["coordinates"]
-                    
-                    AreaVertex()
-                    # TODO: save to db
-                    #...
-                else:
-                    high_priority_client_id = prioritized_user.id
-                    reply_bounds = 0#retrieve from db
-                    reply_coordinates = 0#...
-            else:
+            if client is None:
                 client_id=data["arg"]["client_id"]
                 emit_error_response("set_area", f"Could not retrieve a client with that ID {client_id}, try calling 'init_connection' again.", _logger)
                 return
+            
+            sessionID = client.session_id  # Save ID so it's accesible outside scope.
+            
+            # Retrieve the prioritized client for current user session
+            stmt = select(Client).where((and_(Client.session_id == sessionID, Client.is_prio_client == True)))
+            prioritized_client = session.scalars(stmt).first()
+            
+            if prioritized_client and prioritized_client.id != client.id:
+                # Tried to set area as an unprioritized client, send back correct area and prio info to client.
+
+                stmt = select(UserSession).where(UserSession.id == sessionID)
+                user_session = session.scalars(stmt).first()
+                
+                # Prepare to send area and prio information back to frontend (one client only)
+                high_priority_client_id = prioritized_client.id
+                reply_bounds = [user_session.bounds1.to_list(), user_session.bounds2.to_list()]
+                reply_coordinates = [vertex.coordinate.to_json() for vertex in user_session.area_vertices]
+                broadcast = False
+            else:
+                
+                if prioritized_client is None:
+                    client.is_prio_client = True
+                else: # we are already prioritized, thus we are redefining area
+                    # Delete old area vertices before adding the new ones.
+                    session.execute(delete(AreaVertex).where(AreaVertex.session_id == sessionID))
+                
+                # Prepare to send area and prio information back to frontend
+                high_priority_client_id = data["arg"]["client_id"]
+                reply_bounds = data["arg"]["bounds"]
+                reply_coordinates = data["arg"]["coordinates"]
+
+                # Save the received area information in database.
+                stmt = (
+                    update(UserSession)
+                    .where(UserSession.id == sessionID)
+                    .values(bounds1=coordinate_from_list(reply_bounds[0]), bounds2=coordinate_from_list(reply_bounds[1])))
+                session.execute(stmt)
+            
+                for i, coord in enumerate(reply_coordinates, 1):
+                    vertex = AreaVertex(session_id=sessionID, vertex_no=i, coordinate=coordinate_from_json(coord))
+                    session.add(vertex)
+                session.commit()
+
+
+                # Prepare to send area and prio information back to frontend
+                high_priority_client_id = data["arg"]["client_id"]
+                reply_bounds = data["arg"]["bounds"]
+                reply_coordinates = data["arg"]["coordinates"]
+                broadcast = True
+
 
         # Send set_area to RDS, for some reason
         request_to_rds = {}
@@ -212,15 +243,21 @@ def on_set_area(data):
         _logger.debug(f"set_area resp: {response}")
         emit("response", response)
 
-        # Broadcast set area and which user has priority to all connected frontend users for this user session
+        # Send area info and which user has priority to frontend
         set_prio_response = {
             "high_priority_client": high_priority_client_id,
             "bounds": reply_bounds,
             "coordinates": reply_coordinates
         }
         
-        _logger.debug(f"sending set_prio: {set_prio_response}")
-        emit("set_prio", set_prio_response, room=sessionID)
+        _logger.debug(f"sending ({'broadcast' if broadcast else 'not broadcast'}) set_priority: {set_prio_response}")
+        if broadcast:
+            emit("set_priority", set_prio_response, room=sessionID)
+        else:
+            #TODO: check if this really only sends to one guy, and that the broadcasts are sent to ALL 
+            emit("set_priority", set_prio_response)
+
+        
 
 
 @socketio.on("request_view")
