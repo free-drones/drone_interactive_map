@@ -11,6 +11,7 @@ import {
   ImageOverlay,
   useMapEvents,
   ScaleControl,
+  Polyline,
 } from "react-leaflet";
 import "../CSS/Map.scss";
 import {
@@ -30,7 +31,11 @@ import {
   mapStateActions,
   showWarningActions,
 } from "./Storage.js";
-import { boundsToView } from "./Helpers/maphelper.js";
+import { 
+  boundsToView,
+  newWaypointLinesCrossing, 
+  removedWaypointLinesCrossing,
+} from "./Helpers/maphelper.js";
 
 import Leaflet from "leaflet";
 
@@ -42,160 +47,6 @@ const userPosIcon =
 
 let hasLocationPanned = false;
 
-/**
- * ====================================================================================================
- *                                         Help functions
- * ====================================================================================================
- */
-
-/**
- * Checks if there are waypoints having crossing connections when a new waypoint is added.
- *
- * @param {any} waypoint that will be added and have it connections checked.
- *
- * Returns true if waypoint lines cross
- */
-function newWaypointLinesCrossing(waypoint, waypoints) {
-  // vectors to be checked lat=y long=x
-  // vector 1: (c,d) -> (a,b) (neighbour 1, forward in list) intersects with (p,q) -> (r,s)
-  // vector 2: (e,f) -> (a,b) (neighbour 2, backward in list) intersects with (p,q) -> (r,s)
-
-  if (waypoints.length < 3) {
-    return false;
-  }
-
-  let crossing = false;
-
-  const a = waypoint.lat;
-  const b = waypoint.lng;
-
-  const c = waypoints[0].lat;
-  const d = waypoints[0].lng;
-
-  const e = waypoints[waypoints.length - 1].lat;
-  const f = waypoints[waypoints.length - 1].lng;
-
-  // Do the check for every line on the map.
-  for (let i = 0; i < waypoints.length - 1; i++) {
-    const p = waypoints[i].lat;
-    const q = waypoints[i].lng;
-
-    const r = waypoints[i + 1].lat;
-    const s = waypoints[i + 1].lng;
-    crossing =
-      crossing ||
-      hasIntersectingVectors(c, d, a, b, p, q, r, s) ||
-      hasIntersectingVectors(e, f, a, b, p, q, r, s);
-  }
-
-  return crossing;
-}
-
-/**
- * Checks if any waypoints have crossing connections when waypoint of index is removed.
- *
- * @param {Integer} index of waypoint that will be removed.
- *
- * Returns true if waypoint lines cross
- */
-function removedWaypointLinesCrossing(index, waypoints) {
-  // vectors to be checked lat=y long=x
-  // vector 1: (a,b) -> (c,d) intersects with (p,q) -> (r,s)
-
-  if (waypoints.length - 1 < 3) {
-    return false;
-  }
-
-  let crossing, a, b, c, d;
-
-  // Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
-  if (index === 0) {
-    a = waypoints[1].lat;
-    b = waypoints[1].lng;
-
-    c = waypoints[waypoints.length - 1].lat;
-    d = waypoints[waypoints.length - 1].lng;
-
-    // Do the check for every line on the map.
-    for (let i = 1; i < waypoints.length - 1; i++) {
-      crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
-    }
-  } else if (index === waypoints.length - 1) {
-    a = waypoints[0].lat;
-    b = waypoints[0].lng;
-
-    c = waypoints[index - 1].lat;
-    d = waypoints[index - 1].lng;
-
-    // Do the check for every line on the map.
-    for (let i = 0; i < waypoints.length - 2; i++) {
-      crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
-    }
-  } else {
-    a = waypoints[index + 1].lat;
-    b = waypoints[index + 1].lng;
-
-    c = waypoints[index - 1].lat;
-    d = waypoints[index - 1].lng;
-
-    // Do the check for every line on the map.
-    for (let i = 0; i <= waypoints.length; i++) {
-      if (i === index || i + 1 === index) {
-        // skip this vector
-      }
-      if (i === waypoints.length) {
-        const p = waypoints[i].lat;
-        const q = waypoints[i].lng;
-
-        const r = waypoints[0].lat;
-        const s = waypoints[0].lng;
-        crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
-      } else {
-        crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
-      }
-    }
-  }
-
-  return crossing;
-}
-
-/**
- * Configures points  (p, q) and (r, s) to be used in hasIntersectingVectors.
- *
- * a, b, c, d are integers making up points (a, b) and (c, d).
- *
- * @param {*} waypoints
- * @param {*} i index of what part of waypoint should be used
- */
-
-function vectorHelper(a, b, c, d, waypoints, i) {
-  const p = waypoints[i].lat;
-  const q = waypoints[i].lng;
-
-  const r = waypoints[i + 1].lat;
-  const s = waypoints[i + 1].lng;
-  return hasIntersectingVectors(a, b, c, d, p, q, r, s);
-}
-
-/**
- * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s) then return true.
- * a, b, c, d, p, q, r, s are integers
- */
-function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
-  // det = determinant
-  let det, length_1, length_2;
-  det = (c - a) * (s - q) - (r - p) * (d - b);
-  if (det === 0) {
-    return false;
-  }
-
-  // length_2 & length_2 = lengths to intersecting point of vectors
-  length_1 = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-  length_2 = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-
-  // if intersecting point is farther away than original vectors' length, then lengths will not be between 0 and 1.
-  return 0 < length_1 && length_1 < 1 && 0 < length_2 && length_2 < 1;
-}
 
 /**
  * ====================================================================================================
@@ -206,8 +57,11 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
 class IMMMap extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { userPosition: null };
-  }
+    this.state = { 
+      userPosition: null,
+      crossingLines: [],
+     };
+}
 
   /**
    * Pans and zooms to the selected area when it has been confirmed
@@ -247,6 +101,7 @@ class IMMMap extends React.Component {
    */
   addAreaWaypoint(e) {
     const waypoint = { lat: e.latlng.lat, lng: e.latlng.lng };
+    this.setState({ paintRedLine: false});
 
     if (
       this.props.allowDefine &&
@@ -279,15 +134,48 @@ class IMMMap extends React.Component {
       // Add restructured waypoints
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
     } else {
+      // If removing node results in crossing lines, paint it red
+      let crossingWaypoints = removedWaypointLinesCrossing(i, this.props.store.areaWaypoints);
+      let pointsToBeRemoved = [];
+
+      // Check if removed waypoint was one edge of a line. If so, remove the line. 
+      this.state.crossingLines.map((wp, index) => {
+        if (wp[0] == this.props.store.areaWaypoints[i] || wp[1] == this.props.store.areaWaypoints[i]) {
+          pointsToBeRemoved.push(index);
+        } 
+      })
+
+      // Remove red lines if the one of its waypoints gets removed
+      for (const i of pointsToBeRemoved.reverse()) { 
+        this.state.crossingLines.splice(i, 1); 
+      }
+
+      // Adds new red line that is crossing lines
+      crossingWaypoints.map((wp) => {
+        this.state.crossingLines.push(wp);
+      })
+
+      /**
+       * TODO :
+       * for each crossing line, check if it still crosses any of the other lines. if not -> remove it from crossing line list.
+       * 
+       * (crossingLines.map --> test all wp with almost the same function as removedWaypointLinesCrossing. 
+       *  Check both vector wp[0] -> wp[1] if it crosses another line, if no then remove wp from crossingLines.)
+       * */ 
+
+      /**
+       * 
+       * TODO: 
+       * FIX THIS TO ANOTHER WARNING MESSAGE::
+       * 
+       * this.props.store.setShowWarning(true);
+       * */ 
+      
       // Marked node was clicked, remove it
-      if (!removedWaypointLinesCrossing(i, this.props.store.areaWaypoints)) {
-        this.props.store.removeAreaWaypoint(i);
-      } else {
-        // Shows popup with crossing lines warning message
-        this.props.store.setShowWarning(true);
+      this.props.store.removeAreaWaypoint(i);
+      
       }
     }
-  }
 
   /**
    * Places all waypoints as markers on the map.
@@ -396,6 +284,24 @@ class IMMMap extends React.Component {
               this.props.store.areaWaypoints.map((coord) => [
                 coord.lat,
                 coord.lng,
+              ]),
+            ]}
+          />
+        ) : (
+          ""
+        )}
+
+        {/* Paint crossing lines red.*/}
+        {(this.props.allowDefine && 
+        this.props.store.areaWaypoints.length != 0 &&
+        this.state.crossingLines
+        ) ? (
+          <Polyline
+            pathOptions = {{color: 'red'}}
+            positions={[
+              this.state.crossingLines.map((waypointPair) => [
+                [waypointPair[0].lat, waypointPair[0].lng],
+                [waypointPair[1].lat, waypointPair[1].lng]
               ]),
             ]}
           />
