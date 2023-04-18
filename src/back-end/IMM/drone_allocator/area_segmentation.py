@@ -1,7 +1,7 @@
 import numpy as np
 from bisect import insort
 import mapbox_earcut as earcut
-
+from utility import coordinate_conversion
 
 
 class Triangle():
@@ -186,37 +186,37 @@ class Polygon():
         pass
 
 class Node():
-    def __init__(self, position):
-        self.lat = position[0]
-        self.lon = position[1]
+    def __init__(self, coordinates):
+        self.lat = coordinates[0]
+        self.lon = coordinates[1]
+        utm_x, utm_y, zone_num, zone_letter = coordinate_conversion.utm_from_latlon(self.lat, self.lon)
+        self.x = utm_x
+        self.y = utm_y
+        self.zone_num = zone_num
+        self.zone_letter = zone_letter
         self.angle_to_start = None
+
 
     def angle_to(self, other_node):
         """ Return the angle in radians of the node instance to the 'other_node' """
-        lat1, lon1 = self.to_radians()
-        lat2, lon2 = other_node.to_radians()
-        delta_lon = lon2 - lon1
-        y = np.sin(delta_lon) * np.cos(lat2)
-        x = np.cos(lat1) * np.sin(lat2) - np.sin(lat1) * np.cos(lat2) * np.cos(delta_lon)
-        theta = np.arctan2(y, x)
-        bearing = (theta + 2*np.pi) % (2*np.pi)
-        return bearing
+        return np.arctan2(other_node.y - self.y, other_node.x - self.x)
 
     def __call__(self):
         """ Return the coordinates as a tuple when a node object is called """
-        return (self.lat, self.long)
+        return (self.x, self.y)
+    
+    def distance_to_squared(self, other_node):
+        """ Return distance between self and another node squared """
+        return ((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
     
     def distance_to(self, other_node):
         """ Return distance between self and another node """
-        R = 6371 # Radius of the earth in kilometers
-        lat1, lon1 = self.to_radians()
-        lat2, lon2 = other_node.to_radians()
-        return np.arccos(np.sin(lat1)*np.sin(lat2) + 
-                         np.cos(lat1)*np.cos(lat2)*np.cos(lon2 - lon1)) * R
+        return np.sqrt((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
     
-    def to_radians(self):
-        """ Return latitude and longitude as radians """
-        return map(np.radians, [self.lat, self.lon])
+    def to_latlon(self):
+        latlon = coordinate_conversion.utm_to_latlon(self.lat, self.lon, self.zone_num, self.zone_letter)
+        utm_dict = [{"lat": latlon[0], "lon": latlon[1]}]
+        return utm_dict
     
 class Segment():
     def __init__(self, owned_nodes):
@@ -224,7 +224,7 @@ class Segment():
         self.route = []
 
     def route_dict(self):
-        return [{"lat": node.x, "long": node.y} for node in self.route]
+        return [node.to_latlon() for node in self.route]
 
     def plan_route(self, start_location):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
