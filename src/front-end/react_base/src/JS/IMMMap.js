@@ -352,26 +352,35 @@ class IMMMap extends React.Component {
 
   // Calculate drone icon rotation
   droneAngle(oldPoint, newPoint, key){
-    // compensate for rotation of original icon (45 degrees)
+    // used to compensate for rotation of original icon (45 degrees)
     let iconRotationCompensation = 45;
     
     // latitude scale factor for Linköping in Sweden
     let latitudeScaleFactor = 1.91;
     
-    // If we have the user position we can use it to calculate scale factor
+    // Estimate scale factor for latitude from users position
     if (this.state.userPosition) {
       latitudeScaleFactor = 1/Math.cos(this.state.userPosition.lat*Math.PI / 180);
     }
 
-    // TODO: FIX PROBLEM WHERE latSCALE MAKES DRONE ICONS ROTATE WEIRD, AND/ OR MAKE A IF STATEMENT SO IT GOES THE RIGHT WAY (iconRotationCompensation makes things weird).
-    let angle = (Math.atan2( (newPoint.lat - oldPoint.lat) / latitudeScaleFactor, (newPoint.lng - oldPoint.lng)) * 180 / Math.PI) - iconRotationCompensation;
-    
-    console.log("Drone: ", key, "with rotation: ", angle, " degrees ")
+    // Calculate angle
+    const p1 = {
+        x: oldPoint.lat*latitudeScaleFactor,
+        y: oldPoint.lng
+    };
+
+    const p2 = {
+        x: newPoint.lat*latitudeScaleFactor,
+        y: newPoint.lng
+    };
+
+    // angle in degrees
+    let angleDeg = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+    let angle = angleDeg - iconRotationCompensation;
+
     return angle;
   }
   
-
-
   droneFactory() {
     
     // if old/new drone list will cause error, skip updating the rotations
