@@ -30,10 +30,10 @@ import {
   mapStateActions,
   showWarningActions,
 } from "./Storage.js";
-import { viewify } from "./Helpers/maphelper.js";
+import { boundsToView } from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
 
-import Leaflet, { control, icon } from "leaflet";
+import Leaflet from "leaflet";
 
 // Room Icon pre-rendered + sizing style
 const markedIcon =
@@ -244,7 +244,7 @@ class IMMMap extends React.Component {
     }
 
     this.props.store.setZoomLevel(zoom);
-    this.props.store.setMapPosition(viewify(bounds));
+    this.props.store.setMapPosition(boundsToView(bounds));
   }
 
   /**

@@ -313,7 +313,7 @@ export function callbackWrapper(callback = null) {
   };
 }
 
-export default {
+const downstreamExports = {
   TYPE,
   MODE,
   connect,
@@ -328,3 +328,5 @@ export default {
   getQueueETA,
   callbackWrapper,
 };
+
+export default downstreamExports;

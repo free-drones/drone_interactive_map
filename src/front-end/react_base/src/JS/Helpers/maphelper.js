@@ -5,7 +5,7 @@
 /**
  * Formats collection of bounds into a view object.
  */
-export function viewify(bounds) {
+export function boundsToView(bounds) {
   // latlng objects
   const nw = bounds.getNorthWest();
   const ne = bounds.getNorthEast();
@@ -40,4 +40,8 @@ export function viewify(bounds) {
   return view;
 }
 
-export default { viewify };
+const mapHelperExports = {
+  boundsToView,
+};
+
+export default mapHelperExports;

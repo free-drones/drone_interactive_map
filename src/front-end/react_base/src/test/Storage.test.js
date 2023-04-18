@@ -77,7 +77,7 @@ test("sets client ID", () => {
 
 test("sets bad connection token", () => {
   try {
-    Storage.store.dispatch(setClientID("KATT"));
+    Storage.store.dispatch(setClientID("CAT"));
   } catch (e) {
     expect(e.message).toBe("Client ID must be a number.");
   }
@@ -138,7 +138,7 @@ test("sets map position", () => {
     Storage.store.dispatch(
       setMapPosition({
         upLeft: {
-          lat: "katt",
+          lat: "cat",
           lng: 15.609948,
         },
         upRight: {
@@ -214,7 +214,7 @@ test("adds a picture request", () => {
 
 test("adds a bad picture request", () => {
   try {
-    Storage.store.dispatch(addRequest("Katt"));
+    Storage.store.dispatch(addRequest("cat"));
   } catch (e) {
     expect(e.message).toBe("Invalid request ID!");
   }
@@ -358,7 +358,7 @@ test("set mode auto", () => {
 
 test("set bad mode", () => {
   try {
-    Storage.store.dispatch(setMode("KATT"));
+    Storage.store.dispatch(setMode("CAT"));
   } catch (e) {
     expect(e.message).toBe("Mode must be either MAN or AUTO.");
   }

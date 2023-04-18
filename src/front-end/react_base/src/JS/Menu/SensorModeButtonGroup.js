@@ -1,5 +1,5 @@
 /**
- * Class file for radiobuttons regarding picture mode.
+ * Class file for radio buttons regarding picture mode.
  */
 import React, { Component } from "react";
 import RadioGroup from "@mui/material/RadioGroup";

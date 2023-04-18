@@ -25,7 +25,7 @@ import {
   mapState,
   mapStateActions,
   activePicturesActions,
-  userPrio,
+  userPriority,
 } from "../Storage.js";
 import ModeIcon from "./ModeIcon.js";
 import ColorWrapper from "../ColorWrapper.js";
@@ -44,14 +44,14 @@ function SettingsDrawer(props) {
   redirect = redirect.bind(true);
 
   /**
-   * Clickhandler for redefine button pressed. Opens dialog window.
+   * ClickHandler for redefine button pressed. Opens dialog window.
    */
   function redefineClickHandler() {
     setDialogState(true);
   }
 
   /**
-   * Clickhandler for confirmed dialog window. Reroutes to StartUp.
+   * ClickHandler for confirmed dialog window. Reroutes to StartUp.
    */
   function reroute() {
     setDialogState(false);
@@ -84,7 +84,7 @@ function SettingsDrawer(props) {
                 variant="contained"
                 onClick={redefineClickHandler}
                 startIcon={<UndoIcon />}
-                disabled={props.store.userPrio !== 1}
+                disabled={props.store.userPriority !== 1}
               >
                 Redefine area
               </Button>
@@ -124,7 +124,7 @@ function SettingsDrawer(props) {
 }
 
 export default connect(
-  { userPrio, areaWaypoints, mapState },
+  { userPriority, areaWaypoints, mapState },
   {
     ...areaWaypointActions,
     ...mapStateActions,

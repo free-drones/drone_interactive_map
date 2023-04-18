@@ -7,7 +7,7 @@ const testNamespace = "/ServerConnectionTest";
 const SERVER_IP = "127.0.0.1";
 const PORT = 4570;
 
-// Set up local respons server.
+// Set up local response server.
 var server = new Server(PORT);
 var io = server.of(testNamespace);
 var downstreamSocket;
@@ -36,7 +36,7 @@ afterAll((done) => {
 
 ServerConnection.initialize(SERVER_IP, PORT, testNamespace, { forceNew: true });
 
-test("recives reply to downstream", (done) => {
+test("receives reply to downstream", (done) => {
   downstreamSocket.once("message", () => {
     downstreamSocket.emit("response", { message: "reply from mockup" });
   });

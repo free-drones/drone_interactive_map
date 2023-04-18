@@ -9,14 +9,14 @@ import CameraQueueIcon from "./CameraQueueIcon.js";
 import SmsFailedIcon from "@mui/icons-material/SmsFailed";
 import MessagesTab from "./MessagesTab";
 import { connect, requestQueue, requestQueueActions } from "../Storage.js";
-import PrioImagesTab from "./PrioImagesTab";
+import PriorityImagesTab from "./PriorityImagesTab";
 
 function StatusDrawer() {
   return (
     <div>
       <TabDrawer anchor="right">
         <TabDrawerTab icon={<CameraQueueIcon />}>
-          <PrioImagesTab />
+          <PriorityImagesTab />
         </TabDrawerTab>
         <TabDrawerTab icon={<SmsFailedIcon />}>
           <MessagesTab />

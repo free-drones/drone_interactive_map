@@ -12,7 +12,7 @@ var io = server.of(MockupConstants.NAMESPACE);
 
 let client_id_counter = 1;
 
-const prioAndArea = {
+const priorityAndArea = {
   high_priority_client: null,
   bounds: [],
   coordinates: [],
@@ -56,7 +56,7 @@ io.on("connect", (socket) => {
       fcn: "ack",
       fcn_name: "quit",
     };
-    //TODO: Check if user had high prio and set new high prio
+    //TODO: Check if user had high priority and set new high priority
 
     socket.emit("response", reply);
   });
@@ -71,10 +71,10 @@ io.on("connect", (socket) => {
     };
 
     socket.emit("response", reply);
-    prioAndArea.high_priority_client = request.arg.client_id;
-    prioAndArea.bounds = request.arg.bounds;
-    prioAndArea.coordinates = request.arg.coordinates;
-    io.emit("set_prio", prioAndArea);
+    priorityAndArea.high_priority_client = request.arg.client_id;
+    priorityAndArea.bounds = request.arg.bounds;
+    priorityAndArea.coordinates = request.arg.coordinates;
+    io.emit("set_priority", priorityAndArea);
   });
 
   // RequestView

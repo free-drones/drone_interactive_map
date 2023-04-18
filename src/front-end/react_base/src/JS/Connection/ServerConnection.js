@@ -6,14 +6,14 @@ import io from "socket.io-client";
 import * as Upstream from "./Upstream.js";
 import {
   store,
-  setUserPrio,
+  setUserPriority,
   areaWaypointActions,
   setMapBounds,
   setMapState,
 } from "../Storage.js";
 
 /**
- * Loggin flag. For controlling logging of calls behaviour.
+ * Logging flag. For controlling logging of calls behaviour.
  */
 const LOGGING = true;
 
@@ -29,7 +29,7 @@ const SERVER_IP = "localhost";
 const PORT = 8080;
 
 /**
- * Respons time out time in ms.
+ * Response time out time in ms.
  */
 const TIME_OUT_MS = 10000;
 
@@ -41,7 +41,7 @@ var socket;
  * @param {String} serverIP Server IP address to connect to. Default SERVER_IP.
  * @param {Int} port Downstream request port to connect to. Default PORT.
  * @param {String} namespace Optional namespace to connect to. Default "/"
- * @param {Object} socketOptions Optional socket uptions.
+ * @param {Object} socketOptions Optional socket options.
  */
 export function initialize(
   serverIP = SERVER_IP,
@@ -56,7 +56,7 @@ export function initialize(
   socket.connect();
   console.log("Stream bound to " + connectionString);
   socket.on("notify", upstreamRequestEventHandler);
-  socket.on("set_prio", userPrioEventHandler);
+  socket.on("set_priority", userPriorityEventHandler);
 }
 
 export function disconnect() {
@@ -71,7 +71,7 @@ var messageQueue = [];
 /**
  * Handle a request from backend.
  *
- * @param {String} message received message
+ * @param {String} message Received message
  */
 function upstreamRequestEventHandler(message) {
   switch (message.fcn) {
@@ -84,14 +84,14 @@ function upstreamRequestEventHandler(message) {
 }
 
 /**
- * Handle a SET_PRIO request from backend.
+ * Handle a SET_PRIORITY request from backend.
  *
- * @param {String} message received message
+ * @param {String} message Received message
  */
-function userPrioEventHandler(message) {
-  // If this user is not a high priority user lower userPrio and set the correct area defined by other user
+function userPriorityEventHandler(message) {
+  // If this user is not a high priority user lower userPriority and set the correct area defined by other user
   if (message.high_priority_client !== store.getState().clientID) {
-    store.dispatch(setUserPrio(5));
+    store.dispatch(setUserPriority(5));
     // Clears any waypoints set by this user
     store.dispatch(areaWaypointActions.clearAreaWaypoints());
     // Adds all waypoints set by high priority user
@@ -109,7 +109,7 @@ function userPrioEventHandler(message) {
 }
 
 /**
- * Queue a message to be sent downstream. This will happen immediatly if no other messages are in the queue.
+ * Queue a message to be sent downstream. This will happen immediately if no other messages are in the queue.
  *
  * @param {String} event Event type to emit
  * @param {Object} data JSON object to be sent
@@ -166,4 +166,11 @@ function handleNextMessage() {
   if (mesBack !== null && mesBack !== undefined) _sendDownstream(...mesBack);
 }
 
-export default { initialize, disconnect, sendUpstream, sendDownstream };
+const serverConnectionExports = {
+  initialize,
+  disconnect,
+  sendUpstream,
+  sendDownstream,
+};
+
+export default serverConnectionExports;
