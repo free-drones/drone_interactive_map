@@ -76,66 +76,68 @@ class Main extends React.Component {
             (item) => item.imageID
           );
 
-          for (let image of response.arg.image_data) {
-            // If the image is not already in active pictures, add it.
-            if (!currentImageIDs.includes(image.image_id)) {
-              // Translate between back-end and front-end notation.
-              // Add to storage.
-              this.props.store.addActivePicture({
-                type: image.type,
-                prioritized: image.prioritized,
-                imageID: image.image_id,
-                url: image.url,
-                timeTaken: image.time_taken,
-                coordinates: {
-                  upLeft: {
-                    lat: image.coordinates.up_left.lat,
-                    lng: image.coordinates.up_left.long,
+          if (response.arg.image_data) {
+            for (let image of response.arg.image_data) {
+              // If the image is not already in active pictures, add it.
+              if (!currentImageIDs.includes(image.image_id)) {
+                // Translate between back-end and front-end notation.
+                // Add to storage.
+                this.props.store.addActivePicture({
+                  type: image.type,
+                  prioritized: image.prioritized,
+                  imageID: image.image_id,
+                  url: image.url,
+                  timeTaken: image.time_taken,
+                  coordinates: {
+                    upLeft: {
+                      lat: image.coordinates.up_left.lat,
+                      lng: image.coordinates.up_left.long,
+                    },
+                    upRight: {
+                      lat: image.coordinates.up_right.lat,
+                      lng: image.coordinates.up_right.long,
+                    },
+                    downLeft: {
+                      lat: image.coordinates.down_left.lat,
+                      lng: image.coordinates.down_left.long,
+                    },
+                    downRight: {
+                      lat: image.coordinates.down_right.lat,
+                      lng: image.coordinates.down_right.long,
+                    },
+                    center: {
+                      lat: image.coordinates.center.lat,
+                      lng: image.coordinates.center.long,
+                    },
                   },
-                  upRight: {
-                    lat: image.coordinates.up_right.lat,
-                    lng: image.coordinates.up_right.long,
-                  },
-                  downLeft: {
-                    lat: image.coordinates.down_left.lat,
-                    lng: image.coordinates.down_left.long,
-                  },
-                  downRight: {
-                    lat: image.coordinates.down_right.lat,
-                    lng: image.coordinates.down_right.long,
-                  },
-                  center: {
-                    lat: image.coordinates.center.lat,
-                    lng: image.coordinates.center.long,
-                  },
-                },
-              });
+                });
+              }
             }
-          }
 
-          // Get IDs of the new active images
-          const newImageIDs = response.arg.image_data.map(
-            (item) => item.image_id
-          );
-
-          // Get IDs of the images that will be removed form the current active images.
-          const removedImageIDs = currentImageIDs.filter(
-            (item) => !newImageIDs.includes(item)
-          );
-
-          // Get the indices of the images that will be removed from the current active images.
-          const removedIndices = this.props.store.activePictures
-            .map((item, index) => [index, item.imageID])
-            .reduce(
-              (acc, item) =>
-                removedImageIDs.includes(item[1]) ? [...acc, item[0]] : acc,
-              []
+            // Get IDs of the new active images
+            const newImageIDs = response.arg.image_data.map(
+              (item) => item.image_id
             );
 
-          // Remove images that are no longer active.
-          // Reverse indices list to prevent skipping of images when removing a lower index first.
-          for (let index of removedIndices.reverse()) {
-            this.props.store.removeActivePicture(index);
+            // Get IDs of the images that will be removed form the current active images.
+            const removedImageIDs = currentImageIDs.filter(
+              (item) => !newImageIDs.includes(item)
+            );
+
+            // Get the indices of the images that will be removed from the current active images.
+            const removedIndices = this.props.store.activePictures
+              .map((item, index) => [index, item.imageID])
+              .reduce(
+                (acc, item) =>
+                  removedImageIDs.includes(item[1]) ? [...acc, item[0]] : acc,
+                []
+              );
+
+            // Remove images that are no longer active.
+            // Reverse indices list to prevent skipping of images when removing a lower index first.
+            for (let index of removedIndices.reverse()) {
+              this.props.store.removeActivePicture(index);
+            }
           }
         })
       );
