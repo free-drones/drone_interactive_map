@@ -153,38 +153,36 @@ io.on("connect", (socket) => {
   const simulatedDrones = {
     drone1: {
       location: {
-        lat: 58.39463, 
-        lng: 15.575143
+        lat: 58.39463,
+        lng: 15.575143,
       },
-      status: "Auto"
+      status: "Auto",
     },
 
-    
     drone2: {
       location: {
-        lat: 58.39463, 
-        lng: 15.577143
+        lat: 58.39463,
+        lng: 15.577143,
       },
-      status: "Manual"
+      status: "Manual",
     },
-    
-    
+
     drone3: {
       location: {
-        lat: 58.39463, 
-        lng: 15.579143
+        lat: 58.39463,
+        lng: 15.579143,
       },
-      status: "Photo"
+      status: "Photo",
     },
 
     drone4: {
       location: {
-        lat: 58.39463, 
-        lng: 15.581143
+        lat: 58.39463,
+        lng: 15.581143,
       },
-      status: "Auto"
+      status: "Auto",
     },
-};
+  };
 
   // GetPosition
   socket.on("get_drones", (request) => {
