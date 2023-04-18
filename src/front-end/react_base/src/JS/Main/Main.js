@@ -191,7 +191,7 @@ class Main extends React.Component {
           allowDefine={false}
         />
         <CameraButton clickHandler={this.cameraClickHandler} />
-        <Crosshair />
+        {this.props.store.mode !== "AUTO" ? <Crosshair /> : ""}
       </div>
     );
   }
