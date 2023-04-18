@@ -165,7 +165,7 @@ io.on("connect", (socket) => {
         lat: 58.39463, 
         lng: 15.577143
       },
-      status: "Auto"
+      status: "Manual"
     },
     
     
@@ -174,7 +174,7 @@ io.on("connect", (socket) => {
         lat: 58.39463, 
         lng: 15.579143
       },
-      status: "Auto"
+      status: "Photo"
     },
 
     drone4: {

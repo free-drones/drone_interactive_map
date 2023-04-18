@@ -272,9 +272,9 @@ class IMMMap extends React.Component {
   componentDidMount() {
     this.state.timerID = setInterval(() => {
       getDrones((response) => {
-        //console.log("Received position: ", response.arg.position)
         this.setState({ drones: response.arg.drones});
       });
+      this.state.oldDrones = this.state.drones;
     }, 1600);
   }
 
@@ -340,22 +340,32 @@ class IMMMap extends React.Component {
     return markers;
   }
 
-  // Calculate drone color
-  droneColor(key){
-    if (key == "drone1"){ return "#FF0000"}       // RED 
-    else if (key == "drone2"){return "#CC00FF"}   // PURPLE 
-    else if (key == "drone3"){return "#000000" }  // BLACK 
-    else if (key == "drone4"){ return "#0000FF"}  // BLUE
-    return "#ffffff";
+  /**
+   * Set Drone icon color based on current status
+   * 
+   * @param {*} drone
+   */
+  droneColor(drone){
+    let status = drone.status;
+    switch(status) {
+      case "Auto"   : return "#000000";   // BLACK 
+      case "Manual" : return "#FF0000";   // RED 
+      case "Photo"  : return "#0000FF";   // BLUE  
+      default       : return "#A200FF";   // PURPLE 
+    }
   }
 
-
-  // Calculate drone icon rotation
-  droneAngle(oldPoint, newPoint, key){
-    // used to compensate for rotation of original icon (45 degrees)
+  /**
+   * Calculates drone angle using linear trajectory based on two points
+   * 
+   * @param {*} oldPoint 
+   * @param {*} newPoint 
+   */
+  droneAngle(oldPoint, newPoint){
+    // Used to compensate for rotation of original icon (45 degrees)
     let iconRotationCompensation = 45;
     
-    // latitude scale factor for Linköping in Sweden
+    // Latitude scale factor for Linköping in Sweden
     let latitudeScaleFactor = 1.91;
     
     // Estimate scale factor for latitude from users position
@@ -363,7 +373,7 @@ class IMMMap extends React.Component {
       latitudeScaleFactor = 1/Math.cos(this.state.userPosition.lat*Math.PI / 180);
     }
 
-    // Calculate angle
+    // Calculate angle in degrees
     const p1 = {
         x: oldPoint.lat*latitudeScaleFactor,
         y: oldPoint.lng
@@ -374,24 +384,22 @@ class IMMMap extends React.Component {
         y: newPoint.lng
     };
 
-    // angle in degrees
     let angleDeg = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
     let angle = angleDeg - iconRotationCompensation;
-
     return angle;
   }
-  
+
+  /**
+   * Places all drone icons on the map
+   */
   droneFactory() {
-    
-    // if old/new drone list will cause error, skip updating the rotations
-    // TODO: FIX SO THAT OLD DRONE STATE UPDATES EACH TICK. MAYBE BY HAVING A LIST OF ANGLES.
+    // If old/new drone list will cause error, skip updating the rotations
     if (!this.state.oldDrones || (this.state.drones.length !== this.state.oldDrones.length)){
         this.state.oldDrones = this.state.drones;
     }
 
     const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
       <Marker
-        
         position={[drone.location.lat, drone.location.lng]}
         key={`drone${i}`}
         icon={Leaflet.divIcon({
@@ -400,13 +408,11 @@ class IMMMap extends React.Component {
             this.props.store.config.droneIconPixelSize / 2,
             this.props.store.config.droneIconPixelSize / 2
           ),
-          html: `<svg fill=${this.droneColor(key)}
-                    stroke= "black" 
-                    d="M5 40 l215 0"
+          html: `<svg fill=${this.droneColor(drone)}
                     height="${this.props.store.config.droneIconPixelSize}px" 
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
-                    transform="rotate(${this.droneAngle(this.state.oldDrones[key].location, drone.location, key)})"   
+                    transform="rotate(${this.droneAngle(this.state.oldDrones[key].location, drone.location)})"   
                     xmlns="http://www.w3.org/2000/svg" 
                     xmlns:xlink="http://www.w3.org/1999/xlink" 
                     viewBox="0 0 1792 1792" 
@@ -529,11 +535,10 @@ class IMMMap extends React.Component {
         {/* Draws markers */}
         {this.props.allowDefine ? this.markerFactory() : ""}
 
-        {/* Draw drone icons. */}
+        {/* Draws drone icons. */}
         {this.props.store.config.showDroneIcons && this.state.drones ? this.droneFactory() : ""}
 
-        {
-          /* Draw user position. */
+        {/* Draws user position. */
           this.state.userPosition !== null ? (
             <Marker
               position={this.state.userPosition}
