@@ -121,7 +121,7 @@ class DroneManager(Thread):
             else:
                 pos = self.link.get_drone_position(d)
                 distance_to_goal = self.distance(self.get_coordinates_from_route(route), (pos[0],pos[1]))
-                if distance_to_goal > ACCEPTABLE_DISTANCE:
+                if distance_to_goal > ACCEPTABLE_DISTANCE: # This needs to be figured out, PLACEHOLDER
                     clostest_auto_drone, auto_drone_distance = self.get_closest_auto_drone(self.get_coordinates_from_route(route))
                     if auto_drone_distance < distance_to_goal:
                         manual_drone.mode = "auto"
@@ -132,7 +132,7 @@ class DroneManager(Thread):
                         clostest_auto_drone.current_mission = self.create_mission(clostest_auto_drone.route)
 
     def get_coordinates_from_route(self, route):
-        coordinates = (lat, lon)
+        coordinates = (lat, lon) # This needs to be figured out, PLACEHOLDER
         return coordinates
 
     def get_manual_drone(self):
@@ -142,7 +142,7 @@ class DroneManager(Thread):
             else:
                 return None
             
-    def get_manual_route(self, drone):
+    def get_manual_route(self, drone):# This needs to be figured out, PLACEHOLDER
         return None
     
     def get_closest_auto_drone(self, coordinates):
