@@ -223,8 +223,8 @@ export function checkRedLinesCrossing(point1, point2, waypoints, index) {
   // If the red line overlaps with itself or with lines that are about to be removed, skip.
   if ((point1 == waypoints[0] && point2 == waypoints[waypoints.length - 1]) ||
       (point1 == waypoints[waypoints.length - 1] && point2 == waypoints[0]) || 
-      (index == 0) 
-      || (index == waypoints.length - 1)) 
+      (index == 0) || 
+      (index == waypoints.length - 1))
       {
          return crossing
   }
