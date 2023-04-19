@@ -33,7 +33,7 @@ UPDATE_INTERVAL = 2
 ENABLE_IMAGE_PROCESSING = True
 
 """File where log messages should be written."""
-LOG_FILE = "log.txt"
+LOG_FILE = "log.log"
 
 """Minimum log level to write to console."""
 CONSOLE_LOG_LEVEL = logging.WARNING
