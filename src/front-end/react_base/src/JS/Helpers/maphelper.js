@@ -41,9 +41,9 @@ export function boundsToView(bounds) {
 }
 
 /**
- * Checks if there are waypoints having crossing connections when a new waypoint is added.
+ * Checks if adding a waypoint results in new crossing lines
  *
- * @param {any} waypoint that will be added and have it connections checked.
+ * @param {any} waypoint that will be added
  *
  * Returns true if waypoint lines cross
  */
@@ -84,23 +84,22 @@ export function newWaypointLinesCrossing(waypoint, waypoints) {
 }
 
 /**
- * Checks if any waypoints have crossing connections when waypoint of index is removed.
+ * Checks if removing a waypoint results in new crossing lines
  *
  * @param {Integer} index of waypoint that will be removed.
- *
- * Returns list of all crossing lines
+ * 
+ * Returns crossing line
  */
 export function removedWaypointLinesCrossing(index, waypoints) {
-  // vectors to be checked lat=y long=x
-  // vector 1: (a,b) -> (c,d) intersects with (p,q) -> (r,s)
-
-  
-  if (waypoints.length - 1 < 3) {
-    return false;
-  }
+  // vectors to be checked lat=x long=y
+  // vector (a,b) -> (c,d) intersects with (p,q) -> (r,s)
 
   let crossing, tempCrossing, a, b, c, d;
-  let crossingWaypointList = [];
+  let newCrossingLine = [];
+
+  if (waypoints.length - 1 < 3) {
+    return newCrossingLine;
+  }
 
   // Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
   if (index === 0) {
@@ -115,8 +114,8 @@ export function removedWaypointLinesCrossing(index, waypoints) {
       tempCrossing = vectorHelper(a, b, c, d, waypoints, i);
       crossing = crossing || tempCrossing;
 
-      if (tempCrossing) {
-        crossingWaypointList.push([waypoints[1], waypoints[waypoints.length - 1]])
+      if (tempCrossing && (newCrossingLine.length === 0)) {
+        newCrossingLine.push([waypoints[1], waypoints[waypoints.length - 1]])
       }
     }
   } else if (index === waypoints.length - 1) {
@@ -130,8 +129,8 @@ export function removedWaypointLinesCrossing(index, waypoints) {
     for (let i = 0; i < waypoints.length - 2; i++) {
       tempCrossing = vectorHelper(a, b, c, d, waypoints, i);
       crossing = crossing || tempCrossing;
-      if (tempCrossing) {
-        crossingWaypointList.push([waypoints[0], waypoints[index - 1]])
+      if (tempCrossing && (newCrossingLine.length === 0)) {
+        newCrossingLine.push([waypoints[0], waypoints[index - 1]])
       }
   
     }
@@ -145,7 +144,8 @@ export function removedWaypointLinesCrossing(index, waypoints) {
     // Do the check for every line on the map.
     for (let i = 0; i <= waypoints.length; i++) {
       if (i === index || i + 1 === index) {
-        // skip this vector
+        // skip since this waypoint is about to be removed, and so will the connecting lines.
+        continue;
       }
       if (i === waypoints.length) {
         const p = waypoints[i].lat;
@@ -156,20 +156,63 @@ export function removedWaypointLinesCrossing(index, waypoints) {
 
         tempCrossing = hasIntersectingVectors(a, b, c, d, p, q, r, s);
         crossing = crossing || tempCrossing;
-        if (tempCrossing) {
-          crossingWaypointList.push([waypoints[index + 1], waypoints[index - 1]])
+        if (tempCrossing && (newCrossingLine.length === 0)) {
+          newCrossingLine.push([waypoints[index + 1], waypoints[index - 1]])
         }
 
       } else {
         tempCrossing = vectorHelper(a, b, c, d, waypoints, i);
         crossing = crossing || tempCrossing;
-        if (tempCrossing) {
-          crossingWaypointList.push([waypoints[index + 1], waypoints[index - 1]])
+        if (tempCrossing && (newCrossingLine.length === 0)) {
+          newCrossingLine.push([waypoints[index + 1], waypoints[index - 1]])
         }
       }
     }
   }
-  return crossingWaypointList;
+  return newCrossingLine;
+}
+
+/**
+ * Checks if red lines are still crossing. If not -> remove them.
+ */
+
+export function checkRedLinesCrossing(point1, point2, waypoints, index) {
+  // vectors to be checked lat=x long=y
+  // vector (a,b) -> (c,d) intersects with (p,q) -> (r,s)
+
+  let crossing;
+  let a = point1.lat;
+  let b = point1.lng;
+  let c = point2.lat;
+  let d = point2.lng;
+
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    // Don't check if red line overlaps with itself or lines that will be removed when waypoint at index is removed
+    if ((point1 == waypoints[i] && point2 == waypoints[i + 1]) || (point1 == waypoints[i + 1] && point2 == waypoints[i]) 
+    || (index == i) || (index == i + 1)) { 
+      //console.log("Line overlapping with it self at index: ", i);
+      continue;
+    }
+    crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
+  }
+
+  if ((point1 == waypoints[0] && point2 == waypoints[waypoints.length - 1]) ||
+      (point1 == waypoints[waypoints.length - 1] && point2 == waypoints[0]) || 
+      (index == 0) || (index == waypoints.length - 1)) {
+        //console.log("INSIDE RETURN HAHAHAHAH");
+         return crossing
+  }
+  
+  let p = waypoints[waypoints.length - 1].lat;
+  let q = waypoints[waypoints.length - 1].lng;
+  let r = waypoints[0].lat;
+  let s = waypoints[0].lng;
+
+  console.log(" Waypoint 1: ", a, b, '\n',"Waypoint 2: ", c, d, '\n',"Waypoint 3: ", p, q, '\n', "Waypoint 4: ", r, s);
+  console.log("======================================================================");
+  
+  crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
+  return crossing
 }
 
 /**
@@ -216,6 +259,7 @@ const mapHelperExports = {
   boundsToView, 
   newWaypointLinesCrossing, 
   removedWaypointLinesCrossing,
+  checkRedLinesCrossing,
 };
 
 
