@@ -263,7 +263,7 @@ test("send request_priority_view", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "request_priority_view",
-        arg: { client_id: 1, coordinates: validViewReceived },
+        arg: { client_id: 1, coordinates: validViewReceived, isUrgent: false },
       });
 
       // Emulate server response
@@ -280,7 +280,7 @@ test("send request_priority_view", (done) => {
     }
   });
 
-  Downstream.requestPriorityView(1, validViewSend, () => {
+  Downstream.requestPriorityView(1, validViewSend, false, () => {
     done();
   });
 });
