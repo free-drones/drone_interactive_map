@@ -218,6 +218,7 @@ class Client(_Base):
     
     is_prio_client  A Boolean that indicates whether the client has high priority
                     for this UserSession, meaning it can reset area etc
+    sid             A String, given to each Flask-Socketio connection. Each sid is assumed to be unique.
     """
 
     __tablename__ = 'clients'
@@ -225,6 +226,7 @@ class Client(_Base):
     id = Column(Integer, primary_key=True)
     session_id = Column(Integer, ForeignKey('sessions.id'), nullable=False)
     is_prio_client = Column(Boolean, nullable=False, default=False)
+    sid = Column(String, nullable=False)
     __up_left_lat = Column(Float, nullable=True)
     __up_left_long = Column(Float, nullable=True)
     __up_right_lat = Column(Float, nullable=True)
@@ -246,8 +248,8 @@ class Client(_Base):
 
     def __repr__(self):
         """Return a string representation of the Client."""
-        return _NoneFormatter().format('<Client(id={0:6d}, session_id={1:6d}, up_left={2}, up_right={3}, down_right={4}, down_left={5}, is_prio_client={6}',
-            self.id, self.session_id, self.up_left, self.up_right, self.down_right, self.down_left, self.is_prio_client)
+        return _NoneFormatter().format('<Client(id={0:6d}, session_id={1:6d}, sid={2}, up_left={3}, up_right={4}, down_right={5}, down_left={6}, is_prio_client={7}',
+            self.id, self.session_id, self.sid, self.up_left, self.up_right, self.down_right, self.down_left, self.is_prio_client)
 
 
 UserSession.clients = relationship("Client", order_by=Client.id, back_populates="session")

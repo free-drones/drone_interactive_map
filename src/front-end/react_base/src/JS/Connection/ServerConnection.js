@@ -8,6 +8,7 @@ import {
   store,
   setUserPriority,
   areaWaypointActions,
+  clientIDActions,
   setMapBounds,
   setMapState,
 } from "../Storage.js";
@@ -57,6 +58,7 @@ export function initialize(
   console.log("Stream bound to " + connectionString);
   socket.on("notify", upstreamRequestEventHandler);
   socket.on("set_priority", userPriorityEventHandler);
+  socket.on("set_client_id", setClientIdEventHandler);
 }
 
 export function disconnect() {
@@ -106,6 +108,16 @@ function userPriorityEventHandler(message) {
     store.dispatch(setMapBounds(message.bounds));
     store.dispatch(setMapState("Main"));
   }
+}
+
+/**
+ * Handle a SET_CLIENT_ID request from backend.
+ *
+ * @param {String} message Received message
+ */
+function setClientIdEventHandler(message) {
+  console.log("Received 'set_client' from backend: ", message.clientID, message)
+  store.dispatch(clientIDActions.setClientID(message.client_id));
 }
 
 /**

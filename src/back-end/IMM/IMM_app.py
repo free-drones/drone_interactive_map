@@ -63,37 +63,65 @@ perform. These functions will execute automatically when front-end calls for
 them trough SocketIO. The functions will retrieve the request from front-end and
 assamble a response to front-end and possibly a request to RDS."""
 
-@socketio.on("init_connection")
-def on_init_connection(unused_data):
-    """This function should be called before any other. This functions initiates
-    a new client, sets up a socketIO room for that client and responds with a
-    unique client ID.
 
-    Keyword arguments:
-    unused_data -- N/A
+@socketio.on("connect")
+def on_connect(unused_data):
     """
-    _logger.debug(f"Received init_connection API call with data: {unused_data}")
+    This function is called automatically by SocketIO on each new connection 
+    This functions initiates a new client, sets up a socketIO room for that 
+    client and responds with a unique client ID.
+    """
+
+    # case 1: No priority user and no area set.
+    #    -->  Return client ID
+    #
+    # case 2: Area is set AND Priority user exists
+    #    -->  Return client ID and the set area/bounds
+    #    -->  emit 'set_client_id'
+    #    -->  emit 'set_priority'  (prio, area, bounds)
+    #
+    # case 3: Area is set AND No priority user is set
+    #    -->  Return client ID and the set area/bounds
+    #    -->  Set current client to priority client
+    #    -->  emit 'set_client_id'
+    #    -->  emit 'set_priority'  (prio, area, bounds)
+    #
+    #
+
     client_id = None
     with session_scope() as session:
+        # Create UserSession if needed and new Client for this connection
         user_session = session.query(UserSession).first()
         if user_session is None:
             user_session = UserSession(start_time=1, drone_mode="MAN")
         session.add(user_session)
         session.commit()
-        new_client = Client(session_id=user_session.id)
+        new_client = Client(session_id=user_session.id, sid=request.sid)
         session.add(new_client)
         session.commit()
         client_id = new_client.id
         join_room(room=user_session.id)
 
-    response = {}
-    response["fcn"] = "ack"
-    response["fcn_name"] = "connect"
-    response["arg"] = {}
-    response["arg"]["client_id"] = client_id
+        
+        stmt = select(Client).where((and_(Client.session_id == user_session.id, Client.is_prio_client == True)))
+        prioritized_client = session.scalars(stmt).first()
+        
+        stmt = select(AreaVertex).where(AreaVertex.session_id == user_session.id)
+        area_vertex = session.scalars(stmt).first()
+    
+    
+    client_id_response = { "client_id": client_id }
+    emit("set_client_id", client_id_response)
 
-    _logger.debug(f"init_connection resp: {response}")
-    emit("response", response)
+    _logger.debug(f"Received connect call, client id: {client_id}, sid: {request.sid}")
+
+
+@socketio.on("disconnect")
+def on_disconnect():
+    with session_scope() as session:
+        session.execute(delete(Client).where(Client.sid == request.sid))
+
+    _logger.debug(f"Received disconnect call without data")
 
 
 @socketio.on("check_alive")
