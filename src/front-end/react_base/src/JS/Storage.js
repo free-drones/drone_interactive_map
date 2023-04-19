@@ -142,6 +142,40 @@ export const removeAreaWaypoint = createAction(
 
 export const clearAreaWaypoints = createAction("CLEAR_AREA_WAYPOINTS");
 
+export const addCrossingLine = createAction(
+  "ADD_CROSSING_LINES",
+  function prepare(line) {
+    if (
+      line !== undefined &&
+      !isNaN(line[0].lat) &&
+      !isNaN(line[0].lng) &&
+      !isNaN(line[1].lat) &&
+      !isNaN(line[1].lng)
+    ) {
+      return {
+        payload: line,
+      };
+    } else {
+      throw new Error("Invalid line!");
+    }
+  }
+);
+
+export const removeCrossingLine = createAction(
+  "REMOVE_CROSSING_LINES",
+  function prepare(index) {
+    if (0 <= index && !isNaN(index)) {
+      return {
+        payload: index,
+      };
+    } else {
+      throw new Error("Index not found in crossing lists.");
+    }
+  }
+);
+
+export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
+
 /**
  * Client ID, restricted to a number.
  */
@@ -483,6 +517,21 @@ export const _areaWaypoints = createReducer([], (builder) => {
     });
 });
 
+export const _crossingLines = createReducer([], (builder) => {
+  builder
+    .addCase(addCrossingLine, (state, action) => {
+      const newLine = action.payload;
+      return [...state, newLine];
+    })
+    .addCase(removeCrossingLine, (state, action) => {
+      const index = action.payload;
+      return [...state.slice(0, index), ...state.slice(index + 1)];
+    })
+    .addCase(clearCrossingLines, (state, action) => {
+      return [];
+    });
+});
+
 export const _clientID = createReducer(null, (builder) => {
   builder.addCase(setClientID, (state, action) => {
     const newID = action.payload;
@@ -656,6 +705,12 @@ export function areaWaypoints(state) {
   };
 }
 
+export function crossingLines(state) {
+  return {
+    crossingLines: state.crossingLines,
+  };
+}
+
 export function clientID(state) {
   return {
     clientID: state.clientID,
@@ -749,6 +804,7 @@ const states = {
   messages,
   mapState,
   showWarning,
+  crossingLines,
 };
 
 /**
@@ -818,6 +874,12 @@ export const mapStateActions = { setMapState };
 
 export const showWarningActions = { setShowWarning };
 
+export const crossingLineActions = {
+  addCrossingLine,
+  removeCrossingLine,
+  clearCrossingLines,
+};
+
 const actions = {
   areaWaypointActions,
   clientIDActions,
@@ -833,6 +895,7 @@ const actions = {
   messagesActions,
   mapStateActions,
   showWarningActions,
+  crossingLineActions,
 };
 
 /**
@@ -868,6 +931,7 @@ export const store = configureStore({
     messages: _messages,
     mapState: _mapState,
     showWarning: _showWarning,
+    crossingLines: _crossingLines,
   },
 });
 

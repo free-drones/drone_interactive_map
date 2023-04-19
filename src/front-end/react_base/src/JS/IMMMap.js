@@ -23,6 +23,7 @@ import {
   mapState,
   mapBounds,
   activePictures,
+  crossingLines,
 } from "./Storage.js";
 import {
   mapPositionActions,
@@ -30,6 +31,7 @@ import {
   areaWaypointActions,
   mapStateActions,
   showWarningActions,
+  crossingLineActions,
 } from "./Storage.js";
 import { 
   boundsToView,
@@ -60,7 +62,6 @@ class IMMMap extends React.Component {
     super(props);
     this.state = { 
       userPosition: null,
-      crossingLines: [],
      };
 }
 
@@ -131,7 +132,7 @@ class IMMMap extends React.Component {
     const tempRemovedLine2 = [lastWaypoint, firstWaypoint];
     
     // If removed line is part of crossing lines, remove the red line from crossing lines.
-    this.state.crossingLines.map((line, index) => {
+    props.store.crossingLines.map((line, index) => {
       if (!((line == tempRemovedLine1) || (line == tempRemovedLine2)) && 
       (((line[0] == firstWaypoint) || (line[1] == lastWaypoint)) &&
       ((line[0] == lastWaypoint) || ([line[1] == firstWaypoint]))))
@@ -142,7 +143,9 @@ class IMMMap extends React.Component {
 
     // Remove red lines if placing a new waypoint removes intersection
     for (const i of redLinesToBeRemoved.reverse()) { 
-      this.state.crossingLines.splice(i, 1); 
+
+      // maybe this will not work (does splice work on store things)
+      props.store.crossingLines.splice(i, 1); 
     }   
     return
   }
@@ -165,6 +168,7 @@ class IMMMap extends React.Component {
       
       // Remove all waypoints.
       this.props.store.clearAreaWaypoints();
+
       // Add restructured waypoints.
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
 
@@ -174,7 +178,7 @@ class IMMMap extends React.Component {
       // Remove red lines from removing waypoint.
       this.removeRedLines(i)
 
-      if (this.state.crossingLines.length != 0) {
+      if (props.store.crossingLines.length != 0) {
         this.props.store.setShowWarning(true);
       }
       
@@ -190,7 +194,7 @@ class IMMMap extends React.Component {
   removeRedLines(i) {
       let redLinesToBeRemoved = [];
       // Check if removed waypoint was one edge of a red line. If so, remove the red line. 
-      this.state.crossingLines.map((redLine, index) => {
+      props.store.crossingLines.map((redLine, index) => {
         if (redLine[0] == this.props.store.areaWaypoints[i] ||
             redLine[1] == this.props.store.areaWaypoints[i] ||
            (!checkRedLinesCrossing(redLine[0], redLine[1], this.props.store.areaWaypoints, i)))
@@ -201,7 +205,7 @@ class IMMMap extends React.Component {
 
       // Remove red lines if the one of its waypoints gets removed.
       for (const i of redLinesToBeRemoved.reverse()) { 
-        this.state.crossingLines.splice(i, 1); 
+        props.store.crossingLines.splice(i, 1); 
       }   
       return
   }
@@ -216,8 +220,8 @@ class IMMMap extends React.Component {
       let newCrossingLine = removedWaypointLinesCrossing(i, this.props.store.areaWaypoints);
 
       // Adds red line that is crossing lines.
-      if (newCrossingLine && !(this.state.crossingLines.includes(newCrossingLine))){
-        this.state.crossingLines.push(newCrossingLine);
+      if (newCrossingLine && !(props.store.crossingLines.includes(newCrossingLine))){
+        props.store.addCrossingLine(newCrossingLine)
       }
       return
   }
@@ -339,12 +343,12 @@ class IMMMap extends React.Component {
         {/* Paint crossing lines red.*/}
         {(this.props.allowDefine && 
         this.props.store.areaWaypoints.length != 0 &&
-        this.state.crossingLines
+        props.store.crossingLines
         ) ? (
           <Polyline
             pathOptions = {{color: 'red'}}
             positions={[
-              this.state.crossingLines.map((waypointPair) => [
+              props.store.crossingLines.map((waypointPair) => [
                 [waypointPair[0].lat, waypointPair[0].lng],
                 [waypointPair[1].lat, waypointPair[1].lng]
               ]),
@@ -426,6 +430,7 @@ export default connect(
     mapState,
     mapBounds,
     activePictures,
+    crossingLines,
   },
   {
     ...areaWaypointActions,
@@ -433,5 +438,6 @@ export default connect(
     ...zoomLevelActions,
     ...mapStateActions,
     ...showWarningActions,
+    ...crossingLineActions,
   }
 )(IMMMap);
