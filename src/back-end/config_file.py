@@ -42,4 +42,5 @@ CONSOLE_LOG_LEVEL = logging.WARNING
 FILE_LOG_LEVEL = logging.DEBUG
 
 """Drone application socket url"""
-DRONE_APP_URL = 'tcp://10.44.170.10:17720'
+DRONE_APP_REQ_URL = 'tcp://10.44.170.10:17720'
+DRONE_APP_SUB_URL = 'tcp://10.44.170.10:17721'

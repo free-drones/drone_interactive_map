@@ -4,6 +4,7 @@ import json
 from utility.helper_functions import create_logger
 from config_file import DRONE_APP_REQ_URL, DRONE_APP_SUB_URL
 import queue
+import typing
 
 '''This class is used to connect to drones and send missions to them'''
 
@@ -19,13 +20,15 @@ class Socket_SUB():
         self.mutex = threading.Lock()
         self.queue = link_queue
         self.alive = _link_alive_event
+        # Set the receive timeout to 30 seconds (30000 milliseconds)
+        self.socket.setsockopt(zmq.RCVTIMEO, 30000)
 
     def recieve(self) -> dict:
         '''Recieves a message from the drone_application'''
         while self.alive.is_set():
+            msg = {}
             try:
-                msg = self.socket.recv_json()
-                msg = json.loads(msg)
+                msg = self.socket.recv_string()
             except KeyboardInterrupt:
                 _logger.debug("Keyboard interrupt, closing socket")
                 self.socket.close()
@@ -36,25 +39,44 @@ class Socket_SUB():
             except json.JSONDecodeError as e:
                 _logger.error(f"Error decoding message: {e}")
                 
-            
-            _logger.debug(f"Received message: {msg}")
-            if msg['topic'] == 'lost_drones':
-                lost_drones = msg['drones']
-                number_of_lost_drones = len(lost_drones)
-                self.queue.put({'topic':'lost_drones', 'data': {'lost_drones': lost_drones, 'number_of_lost_drones': number_of_lost_drones}})
-            elif msg['topic'] == 'gained_drones':
-                gained_drones = msg['drones']
-                number_of_gained_drones = len(gained_drones)
-                self.queue.put({'topic':'gained_drones', 'data': {'gained_drones': gained_drones, 'number_of_gained_drones': number_of_gained_drones}})
-            elif msg['topic'] == 'battery_level':
-                battery_level = msg['battery_level']
-                drone = msg['drone']
-                self.queue.put({'topic':'battery_level', 'data': {'drone': drone, 'battery_level': battery_level}})
-            elif msg['topic'] == 'drone_status':
-                drone_status = msg['drone_status']
-                drone = msg['drone']
-                self.queue.put({'topic':'drone_status', 'data': {'drone': drone, 'drone_status': drone_status}})
+            if msg:
+                _logger.debug(f"Received message: {msg}")
+                msg = self.decode(msg)
+                if msg['topic'] == 'lost_drones':
+                    lost_drone = msg['data']['drone']
+                    self.queue.put({'topic':'lost_drone', 'data': {'lost_drone': lost_drone}})
+                elif msg['topic'] == 'gained_drones':
+                    gained_drones = msg['data']['drones']
+                    number_of_gained_drones = len(gained_drones)
+                    self.queue.put({'topic':'gained_drones', 'data': {'gained_drones': gained_drones, 'number_of_gained_drones': number_of_gained_drones}})
+                elif msg['topic'] == 'battery_level':
+                    battery_level = msg['data']['battery_level']
+                    drone = msg['data']['drone']
+                    self.queue.put({'topic':'battery_level', 'data': {'drone': drone, 'battery_level': battery_level}})
+                elif msg['topic'] == 'drone_status':
+                    drone_status = msg['data']['drone_status']
+                    drone = msg['data']['drone']
+                    self.queue.put({'topic':'drone_status', 'data': {'drone': drone, 'drone_status': drone_status}})
         self.socket.close()
+    
+    def close(self):
+        self.socket.close()
+        _logger.debug("Socket closed")
+
+    def recv(self) -> typing.Tuple[str, dict]:
+        msg = str(self._socket.recv(), 'utf-8')
+        topic, msg = self.decode(msg)
+        _logger.info(f'Received message: {msg}, topic: {topic}')
+        return topic, msg
+    
+    def decode(self, msg):
+        print(msg)
+        topic, msg = msg.split(maxsplit=1)
+        print("topic: ", topic, "msg: ", msg)
+        msg_dict = json.loads(msg)
+        print("msg_dict: ", msg_dict, type(msg_dict))
+        return {'topic': topic, 'data': msg_dict}
+
 
 class Socket_REQ():
     def __init__(self):
@@ -122,8 +144,8 @@ class Link():
         '''Attempts to connect to a drone'''
         msg = {'fcn':'connect_to_drone'}
         _logger.debug(f"Sending connect_to_drone message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug(f"succesfully connected to drone: {reply['message']}")
             return True
         else:
@@ -137,8 +159,8 @@ class Link():
         '''Attempts to connect to as many drones as possible'''
         msg = {'fcn':'connect_to_all_drones'}
         _logger.debug(f"Sending connect_to_all_drones message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug(f"connect_to_all_drones success: {reply['message']}")
             return reply["message"]
         else:
@@ -152,8 +174,8 @@ class Link():
         '''Gets a list of all connected drones'''
         msg = {'fcn': 'get_list_of_drones'}
         _logger.debug(f"Sending get_list_of_drones message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug(f"Received drone list: {reply['drone_list']}")
             return reply['drone_list']
         else:
@@ -164,8 +186,8 @@ class Link():
         '''Attempts to fly the specified mission with the specified drone'''
         msg = {'fcn': 'fly', 'mission': mission.as_mission_dict(), 'drone_name': drone.id}
         _logger.debug(f"Sending fly message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug("request success for fly")
             return True
         else:
@@ -176,8 +198,8 @@ class Link():
         '''Attempts to fly a random mission with the specified drone'''
         msg = {'fcn': 'fly_random_mission', 'drone_name': drone.id, 'n_wps': n_wps}
         _logger.debug(f"Sending fly_random_mission message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug("request success for fly_random_mission")
             return True
         else:
@@ -189,8 +211,8 @@ class Link():
         'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied, 'charging' = charging'''
         msg = {'fcn': 'get_drone_status', 'drone_name': drone.id}
         _logger.debug(f"Sending get_drone_status message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug(f"Received mission status: {reply['mission_status']}")
             return reply['mission_status']
         else:
@@ -201,8 +223,8 @@ class Link():
         '''Attempts to return the drone to its home position'''
         msg = {'fcn': 'return_to_home', 'drone_name': drone.id}
         _logger.debug(f"Sending return_to_home message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             print("request success for return_to_home")
             return True
         else:
@@ -213,8 +235,8 @@ class Link():
         '''Gets the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north}'''
         msg = {'fcn': 'get_drone_position', 'drone_name': drone.id}
         _logger.debug(f"Sending get_drone_position message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug(f"Received drone position: {reply['drone_position']}")
             return reply['drone_position']
         else:
@@ -225,8 +247,8 @@ class Link():
         '''Gets the current waypoint of the drone, {"lat" : lat , "lon": lon , "alt": new_alt, "alt_type": "amsl", "heading": degrees relative true north,  "speed": speed}'''
         msg = {'fcn': 'get_drone_waypoint', 'drone_name': drone.id}
         _logger.debug(f"Sending get_drone_waypoint message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug(f"Received drone waypoint: {reply['drone_waypoint']}")
             return reply['drone_waypoint']
         else:
@@ -237,8 +259,8 @@ class Link():
         '''Returns True if the drone name is valid, False otherwise'''
         msg = {'fcn': 'get_valid_drone_name', 'drone_name': drone.id}
         _logger.debug(f"Sending valid_drone_name message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
-        if self.socket.request_success(reply):
+        reply = self.socket_req.send_and_recieve(msg)
+        if self.socket_req.request_success(reply):
             _logger.debug(f"Received valid drone name: {reply['valid']}")
             return reply['valid']
         else:
@@ -251,7 +273,7 @@ class Link():
     def kill(self):
         '''Closes socket'''
         _logger.debug("Closing socket")
-        _link_alive_event.clear()
-        self.sub_thread.join()
+        self.socket_sub.close()
         self.socket_req.close()
+        _link_alive_event.clear()
 
