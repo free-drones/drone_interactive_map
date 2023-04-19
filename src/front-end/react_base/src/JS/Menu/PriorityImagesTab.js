@@ -33,6 +33,7 @@ import {
 
 import { clearImageQueue, callbackWrapper } from "../Connection/Downstream";
 import ColorWrapper from "../ColorWrapper.js";
+import PictureRequestInfo from "./PictureRequestInfo.js";
 
 const styles = {
   fullWidthButton: {
@@ -51,22 +52,6 @@ const styles = {
 
 function PriorityImagesTab(props) {
   var [dialogOpen, setDialogState] = useState(false);
-
-  /**
-   * Get a formatted time string form at date object.
-   * @param {Date} date Date to be formatted.
-   */
-  function getFormattedTime(date) {
-    var hours = String(date.getHours());
-    var minutes = String(date.getMinutes());
-    var seconds = String(date.getSeconds());
-
-    hours = hours.length === 2 ? hours : "0" + hours;
-    minutes = minutes.length === 2 ? minutes : "0" + minutes;
-    seconds = seconds.length === 2 ? seconds : "0" + seconds;
-
-    return hours + ":" + minutes + ":" + seconds;
-  }
 
   return (
     <div>
@@ -98,25 +83,7 @@ function PriorityImagesTab(props) {
                 disableTypography
                 sx={styles.wrappingText}
                 primary={<Typography variant="body1">{item.id}</Typography>}
-                secondary={
-                  <div>
-                    <Typography variant="subtitle2" display="block">
-                      {"Request time: " +
-                        getFormattedTime(new Date(item.requestTime))}
-                    </Typography>
-                    <Typography variant="subtitle2" display="block">
-                      {"received: " + item.received}
-                    </Typography>
-                    {item.received ? (
-                      <Typography variant="subtitle2" display="block">
-                        {"receive time: " +
-                          getFormattedTime(new Date(item.receiveTime))}
-                      </Typography>
-                    ) : (
-                      ""
-                    )}
-                  </div>
-                }
+                secondary={<PictureRequestInfo data={item} />}
               />
             </ListItem>
           ))}
