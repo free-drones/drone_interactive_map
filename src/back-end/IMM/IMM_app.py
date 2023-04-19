@@ -206,19 +206,10 @@ def on_set_area(data):
         drone_manager_thread = thread_handler.get_drone_manager_thread()
         num_seg = 5 # len(drone_manager_thread.drones)
         polygon = area_segmentation.Polygon(area_coordinates) 
-        
         polygon.create_area_segments(NODE_SPACING, START_LOCATION, num_seg)
-        print("num segs, hehe segs, geddit? ", len(polygon.segments))
         
         route_list = [segment.route_dicts() for segment in polygon.segments]
 
-        print("Node grid: ", len(polygon.node_grid))
-        print("Route list")
-        for route in route_list:
-            print("\n\n------------")
-            for node in route:
-                print(repr(node), end=', ')
-                
         thread_handler.drone_manager_thread.set_routes(route_list)
 
 

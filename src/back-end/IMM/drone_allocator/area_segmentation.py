@@ -79,9 +79,7 @@ class Polygon():
                 3. Create a node grid inside the polygon
                 4. Segmentate the polygon into 'num_seg' segments
         """
-        print("Start coords: ", start_coordinates)
         start_location = Node(start_coordinates)
-        print("Start loc: ", repr(start_location))
 
         self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
