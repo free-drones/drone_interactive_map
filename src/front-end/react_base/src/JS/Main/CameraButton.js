@@ -2,13 +2,7 @@
  * Class file for camera button component.
  */
 
-import {
-  Fab,
-  Box,
-  Button,
-  ButtonGroup,
-  Collapse,
-} from "@mui/material";
+import { Fab, Box, Button, ButtonGroup, Collapse } from "@mui/material";
 import { AddAPhoto } from "@mui/icons-material/";
 import React from "react";
 import { userPriority, connect } from "../Storage.js";

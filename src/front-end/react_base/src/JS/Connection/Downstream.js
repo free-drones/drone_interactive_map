@@ -13,7 +13,6 @@ export const MODE = {
   manual: "MAN",
 };
 
-
 /**
  * Request mode. Either "auto" or "man"
  * @typedef {String} Mode

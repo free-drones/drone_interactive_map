@@ -151,7 +151,10 @@ function StartUp(props) {
     const paddingY = 3 * (bounds.getSouth() - bounds.getNorth());
 
     let topLeft = [bounds.getNorth() - paddingY, bounds.getWest() - paddingX];
-    let bottomRight = [bounds.getSouth() + paddingY, bounds.getEast() + paddingX];
+    let bottomRight = [
+      bounds.getSouth() + paddingY,
+      bounds.getEast() + paddingX,
+    ];
 
     return [topLeft, bottomRight];
   }

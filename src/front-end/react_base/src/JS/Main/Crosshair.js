@@ -24,7 +24,7 @@ const styles = {
 };
 
 /**
- * AttentionBorder component function.
+ * Crosshair component function.
  */
 export default function Crosshair() {
   return (
