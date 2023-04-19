@@ -1,21 +1,68 @@
 import threading
 import zmq
 import json
-import socket
 from utility.helper_functions import create_logger
-from config_file import DRONE_APP_URL
+from config_file import DRONE_APP_REQ_URL, DRONE_APP_SUB_URL
+import queue
 
 '''This class is used to connect to drones and send missions to them'''
 
 _context = zmq.Context()
 _logger = create_logger("link")
+_link_alive_event = threading.Event()
 
-class Socket():
+class Socket_SUB():
+    def __init__(self, link_queue):
+        self.socket = _context.socket(zmq.SUB)
+        self.socket.connect(DRONE_APP_SUB_URL)
+        self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
+        self.mutex = threading.Lock()
+        self.queue = link_queue
+        self.alive = _link_alive_event
+
+    def recieve(self) -> dict:
+        '''Recieves a message from the drone_application'''
+        while self.alive.is_set():
+            try:
+                msg = self.socket.recv_json()
+                msg = json.loads(msg)
+            except KeyboardInterrupt:
+                _logger.debug("Keyboard interrupt, closing socket")
+                self.socket.close()
+            except zmq.Again as e:
+                _logger.error("Error receiving message (timeout): {e}")
+            except zmq.ZMQError as e:
+                _logger.error(f"Error receiving message: {e}")
+            except json.JSONDecodeError as e:
+                _logger.error(f"Error decoding message: {e}")
+                
+            
+            _logger.debug(f"Received message: {msg}")
+            if msg['topic'] == 'lost_drones':
+                lost_drones = msg['drones']
+                number_of_lost_drones = len(lost_drones)
+                self.queue.put({'topic':'lost_drones', 'data': {'lost_drones': lost_drones, 'number_of_lost_drones': number_of_lost_drones}})
+            elif msg['topic'] == 'gained_drones':
+                gained_drones = msg['drones']
+                number_of_gained_drones = len(gained_drones)
+                self.queue.put({'topic':'gained_drones', 'data': {'gained_drones': gained_drones, 'number_of_gained_drones': number_of_gained_drones}})
+            elif msg['topic'] == 'battery_level':
+                battery_level = msg['battery_level']
+                drone = msg['drone']
+                self.queue.put({'topic':'battery_level', 'data': {'drone': drone, 'battery_level': battery_level}})
+            elif msg['topic'] == 'drone_status':
+                drone_status = msg['drone_status']
+                drone = msg['drone']
+                self.queue.put({'topic':'drone_status', 'data': {'drone': drone, 'drone_status': drone_status}})
+        self.socket.close()
+
+class Socket_REQ():
     def __init__(self):
         self.socket = _context.socket(zmq.REQ)
         # Port and IP of the drone_application
-        self.socket.connect(DRONE_APP_URL)
+        self.socket.connect(DRONE_APP_REQ_URL)
         self.mutex = threading.Lock()
+        self.alive = _link_alive_event
     
     def send_and_recieve(self, data) -> dict:
         '''Sends a message to the drone_application and returns the reply'''
@@ -59,12 +106,17 @@ class Socket():
         self.socket.close()
         _logger.debug("Socket closed")      
 
-
 class Link():
     '''This class is used to send and recieve information/requests from and to the drone_application'''
     def __init__(self):
+        _link_alive_event.set()
+
         self.drone_dict = {}
-        self.socket = Socket()
+        self.socket_req = Socket_REQ()
+        self.msg_queue = queue.Queue()
+        self.socket_sub = Socket_SUB(self.msg_queue)
+        self.sub_thread = threading.Thread(target=self.socket_sub.recieve, daemon=True)
+        self.sub_thread.start()
                                            
     def connect_to_drone(self):
         '''Attempts to connect to a drone'''
@@ -107,11 +159,6 @@ class Link():
         else:
             _logger.error(f"Error getting list of drones: {reply['message']}")
             return False
-    
-    def kill(self):
-        '''Closes socket'''
-        _logger.debug("Closing socket")
-        self.socket.close()
 
     def fly(self, mission, drone):
         '''Attempts to fly the specified mission with the specified drone'''
@@ -123,8 +170,7 @@ class Link():
             return True
         else:
             _logger.error(f"request failed for fly: {reply['message']}")
-            return False
-        
+            return False 
     
     def fly_random_mission(self, drone, n_wps = 10):
         '''Attempts to fly a random mission with the specified drone'''
@@ -201,3 +247,11 @@ class Link():
     
     def get_drone_battery(self, drone):
         return 100
+    
+    def kill(self):
+        '''Closes socket'''
+        _logger.debug("Closing socket")
+        _link_alive_event.clear()
+        self.sub_thread.join()
+        self.socket_req.close()
+
