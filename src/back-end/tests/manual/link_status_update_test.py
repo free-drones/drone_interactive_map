@@ -1,6 +1,5 @@
 from IMM.drone_manager.link import Link
 import time
-import threading
 '''
 This is a test script for the link module. It is not intended to be run as a part of the main program.
 To run this test, first the crm needs to have simulated drones running. Then start qgroundcontrol and connect to the simulated drones. 
@@ -10,11 +9,9 @@ you can find this information on c2m2 (in a webbrowser type 10.44.170.10 when co
 When this is done and you are connected to the drones, set them to guided mode in qgroundcontrol.
 After that ssh in to the RISE server (for us it is at 10.44.170.10 with openvpn running) and run app_drone_link, then run this script.
 '''
-STATUS_TEST = True
-MONITOR_TEST = False
+
 link_object = Link()
 alive = True
-
 class Drone():
     def __init__(self, drone_name) -> None:
         self.id = drone_name
@@ -87,29 +84,10 @@ def test_link_new_mission():
         link_object.kill()
         alive = False
 
-def status_printer():
-    while(alive):
-        try:
-            print('trying to get status update')
-            msg = link_object.msg_queue.get()
-            print(f'got status update: {msg}')
-            if msg is not None:
-                if msg['topic'] =='drone_status':
-                    print(f'topic is drone_status, trying to get data')
-                    data = msg['data']
-                    print(f'Recieved drone status update with the data being: {data}')
-        except Exception as e:
-            print(e)
-            pass
-
 
 if __name__ == '__main__':
     try:
-        if STATUS_TEST:
-            print('Starting status test thread')
-            status_test_thread = threading.Thread(target=status_printer, daemon=True)
-            status_test_thread.start()
-        test_link_all_drones()
+        test_link_new_mission()
     except KeyboardInterrupt:
         print('KeyboardInterrupt')
         link_object.kill()
