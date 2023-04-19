@@ -119,12 +119,13 @@ export function requestView(clientID, view, callback = null) {
  * @param {View} view Current view
  * @param {APICallback} callback Optional callback function
  */
-export function requestPriorityView(clientID, view, callback = null) {
+export function requestPriorityView(clientID, view, isUrgent, callback = null) {
   let message = {
     fcn: "request_priority_view",
     arg: {
       client_id: clientID,
       coordinates: translateView(view),
+      isUrgent: isUrgent,
     },
   };
 

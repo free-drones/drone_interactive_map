@@ -55,6 +55,7 @@ class Main extends React.Component {
     requestPriorityView(
       this.props.store.clientID,
       this.props.store.mapPosition,
+      isUrgent,
       callbackWrapper((response) => {
         this.props.store.addPictureRequest(
           response.arg.force_que_id,
