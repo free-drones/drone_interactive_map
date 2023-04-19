@@ -194,15 +194,33 @@ def on_set_area(data):
 
         #route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
         #route_list = Area + Pathfinding functions
-        NODE_SPACING = 1
-        START_LOCATION = (data[0]["lat"], data[0]["long"]) # TODO: Find a more reasonable approach to find start_location
+        area_coordinates = data["arg"]["coordinates"] 
+
+        for coord in area_coordinates:
+            print(f'{coord["lat"]}, {coord["long"]}' , end=', ')
+        print("\n\n")
+
+        NODE_SPACING = 0.8
+        START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
 
         drone_manager_thread = thread_handler.get_drone_manager_thread()
-        num_seg = len(drone_manager_thread.drones)
-        polygon = area_segmentation.Polygon(data) 
+        num_seg = 5 # len(drone_manager_thread.drones)
+        polygon = area_segmentation.Polygon(area_coordinates) 
+        
         polygon.create_area_segments(NODE_SPACING, START_LOCATION, num_seg)
-        route_list = [segment.route_dict() for segment in polygon.segments]
+        print("num segs, hehe segs, geddit? ", len(polygon.segments))
+        
+        route_list = [segment.route_dicts() for segment in polygon.segments]
+
+        print("Node grid: ", len(polygon.node_grid))
+        print("Route list")
+        for route in route_list:
+            print("\n\n------------")
+            for node in route:
+                print(repr(node), end=', ')
+                
         thread_handler.drone_manager_thread.set_routes(route_list)
+
 
 
 @socketio.on("request_view")

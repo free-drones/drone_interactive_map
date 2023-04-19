@@ -64,14 +64,14 @@ class Triangle():
 
 
 class Polygon():
-    def __init__(self, node_dict):
-        self.nodes = [Node(node["lat" ], node["long"]) for node in node_dict]
+    def __init__(self, node_list):
+        self.nodes = [Node((node_dict["lat"], node_dict["long"])) for node_dict in node_list]
         self.bounding_box = {}
         self.triangles = []
         self.node_grid = []
         self.segments = []
     
-    def create_area_segments(self, node_spacing, start_location, num_seg):
+    def create_area_segments(self, node_spacing, start_coordinates, num_seg):
         """ This is the main function to perform area segmentation and calls the necessary helper functions in correct order
             Create area segments of the polygon instance:
                 1. Triangulate the polygon
@@ -79,12 +79,16 @@ class Polygon():
                 3. Create a node grid inside the polygon
                 4. Segmentate the polygon into 'num_seg' segments
         """
+        print("Start coords: ", start_coordinates)
+        start_location = Node(start_coordinates)
+        print("Start loc: ", repr(start_location))
+
         self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
         self.node_grid = self.create_node_grid(node_spacing, start_location)
-        self.update_area_segments(node_spacing, start_location, num_seg)
+        self.update_area_segments(start_location, num_seg)
  
-    def update_area_segments(self, node_spacing, start_location, num_seg):
+    def update_area_segments(self, start_location, num_seg):
         """ Create new segments with the given node spacing, start location, and number of segments """
         self.set_node_angles(start_location)
         self.segments = self.create_segments(num_seg)
@@ -121,14 +125,27 @@ class Polygon():
         node_grid = []
         self.bounding_box = self.create_bounding_box()
         max_diff_ang = self.max_diff_angle(start_location)
-        for x in range(self.bounding_box["x_min"], self.bounding_box["x_max"], node_spacing):
-            for y in range(self.bounding_box["y_min"], self.bounding_box["y_max"], node_spacing):
+        
+        x_min, x_max = self.bounding_box["x_min"], self.bounding_box["x_max"]
+        y_min, y_max = self.bounding_box["y_min"], self.bounding_box["y_max"]
+
+        for x in np.arange(x_min, x_max, node_spacing):
+            for y in np.arange(y_min, y_max, node_spacing):
                 for triangle in self.triangles:
-                    node = Node((x, y))
+                    node = Node(None, utm_coordinates=(x, y))
+
                     if triangle.contains(node):
+                        # Find the zone num/letter of the closest node in the polygon node list.
+                        # This is because the nodes are created with UTM coordinates, and the lat/lon coordinates
+                        # are unknown, which means that the zone information cannot be derived.
+                        closest_poly_node = node.closest_node(self.nodes)
+                        node.zone_num = closest_poly_node.zone_num
+                        node.zone_letter = closest_poly_node.zone_letter
+                        
                         node.angle_to_start = start_location.angle_to(node)
                         node_grid.append(node)
                         break
+
         node_grid.sort(key=lambda n: (n.angle_to_start - max_diff_ang), reverse=False)
         return node_grid    
     
@@ -136,6 +153,8 @@ class Polygon():
         """ Evenly partition the amount of node grid nodes into segments 
             Node grid list is presumed to be sorted according to angle relative 'start_location' so resulting segments will be lines drawn from 'start_location'      
         """
+        assert num_seg > 0, "Number of segments must be a positive integer"
+
         total_node_count = 0
         segments = []
         num_nodes = int(np.ceil(len(self.node_grid) / num_seg))
@@ -186,16 +205,23 @@ class Polygon():
         pass
 
 class Node():
-    def __init__(self, coordinates):
-        self.lat = coordinates[0]
-        self.lon = coordinates[1]
-        utm_x, utm_y, zone_num, zone_letter = coordinate_conversion.utm_from_latlon(self.lat, self.lon)
-        self.x = utm_x
-        self.y = utm_y
-        self.zone_num = zone_num
-        self.zone_letter = zone_letter
-        self.angle_to_start = None
+    def __init__(self, coordinates, utm_coordinates=None):
+        
+        if utm_coordinates:
+            self.zone_num = None
+            self.zone_letter = None
+        else:
+            # Calculate utm data from lat, lon
+            lat, lon = coordinates
+            utm_x, utm_y, zone_num, zone_letter = coordinate_conversion.utm_from_latlon(lat, lon)
+            utm_coordinates = utm_x, utm_y
+        
+            self.zone_num = zone_num
+            self.zone_letter = zone_letter
+        
+        self.x, self.y = utm_coordinates
 
+        self.angle_to_start = None
 
     def angle_to(self, other_node):
         """ Return the angle in radians of the node instance to the 'other_node' """
@@ -213,22 +239,44 @@ class Node():
         """ Return distance between self and another node """
         return np.sqrt((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
     
+    def closest_node(self, node_ls):
+        """ Returns the node closest to 'node' among 'owned_nodes' """
+        min_dist = float('inf')
+        closest_node = node_ls[0]
+        for comp_node in node_ls:
+            if comp_node is self:
+                continue
+            distance = self.distance_to(comp_node)
+            if distance < min_dist:
+                min_dist = distance
+                closest_node = comp_node
+        return closest_node
+
     def to_latlon(self):
-        latlon = coordinate_conversion.utm_to_latlon(self.lat, self.lon, self.zone_num, self.zone_letter)
-        utm_dict = [{"lat": latlon[0], "lon": latlon[1]}]
-        return utm_dict
+        """ Convert the UTM coordinates to lat/lon coordinates """
+        assert self.zone_num, "Zone num is not defined!"
+        assert self.zone_letter, "Zone letter is not defined!"
+
+        latlon = coordinate_conversion.utm_to_latlon(self.x, self.y, self.zone_num, self.zone_letter)
+        latlon_dict = {"lat": latlon[0], "lon": latlon[1]}
+        return latlon_dict
+    
+    def __repr__(self):
+        """ String representation of a node object. """
+        return f"Node: UTM data: ({self.x}, {self.y}), Zone: {self.zone_num}{self.zone_letter}:"
     
 class Segment():
     def __init__(self, owned_nodes):
         self.owned_nodes = owned_nodes
         self.route = []
 
-    def route_dict(self):
+    def route_dicts(self):
         return [node.to_latlon() for node in self.route]
 
     def plan_route(self, start_location):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
-        start_neighbour = self.closest_owned_node(start_location)
+        start_neighbour = start_location.closest_node(self.owned_nodes)
+
         # Insert 'start_location' as a node in the route
         new_route = [start_location, start_neighbour]
         unexplored_nodes = self.owned_nodes[:]
@@ -248,20 +296,6 @@ class Segment():
                         insert_node = unexplored_node
             new_route.insert(insert_index + 1, insert_node)
             unexplored_nodes.remove(insert_node)
-        self.route = new_route
-                        
-
-    def closest_owned_node(self, node):
-        """ Returns the node closest to 'node' among 'owned_nodes' """
-        min_dist = float('inf')
-        closest_node = node
-        for comp_node in self.owned_nodes:
-            if comp_node is closest_node:
-                continue
-            distance = comp_node.distance_to(node)
-            if distance < min_dist:
-                min_dist = distance
-                closest_node = comp_node
-        return closest_node
-
+        print("Len of new route: ", len(new_route))
+        self.route = new_route              
     
