@@ -34,6 +34,8 @@ import {
   showWarning,
   showWarningActions,
   userPriority,
+  crossingLines,
+  crossingLineActions,
 } from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import { Check, Delete, MyLocation } from "@mui/icons-material";
@@ -138,6 +140,7 @@ function StartUp(props) {
    * Clears waypoints.
    */
   function clearWaypoints() {
+    props.store.clearCrossingLines();
     props.store.setShowWarning(false);  
     props.store.clearAreaWaypoints();
   }
@@ -196,7 +199,7 @@ function StartUp(props) {
             props.store.setShowWarning(false);
           }}
           sx={[styles.fab, styles.fabRight]}
-          disabled={showWarning}
+          disabled={((props.store.areaWaypoints.length < 3) || (props.store.crossingLines.length > 0))}
         >
           <Check />
         </Fab>
@@ -300,6 +303,7 @@ export default connect(
     messages,
     showWarning,
     userPriority,
+    crossingLines,
   },
   {
     ...areaWaypointActions,
@@ -309,5 +313,6 @@ export default connect(
     ...clientIDActions,
     ...configActions,
     ...showWarningActions,
+    ...crossingLineActions,
   }
 )(StartUp);
