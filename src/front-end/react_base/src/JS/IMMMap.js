@@ -135,43 +135,30 @@ class IMMMap extends React.Component {
       // Add restructured waypoints
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
     } else {
+      
       // If removing node results in crossing lines, paint it red
-      let newCrossingLines = removedWaypointLinesCrossing(i, this.props.store.areaWaypoints);
-      let pointsToBeRemoved = [];
-
+      let newCrossingLine = removedWaypointLinesCrossing(i, this.props.store.areaWaypoints);
+      let redLinesToBeRemoved = [];
 
       // Adds new red line that is crossing lines
-      newCrossingLines.map((wp) => {
-        if (!(this.state.crossingLines.includes(wp))){
-          this.state.crossingLines.push(wp);
-        }
-      })
+      if (newCrossingLine && !(this.state.crossingLines.includes(newCrossingLine))){
+        this.state.crossingLines.push(newCrossingLine);
+      }
 
-      // Check if removed waypoint was one edge of a line. If so, remove the line. 
+      // Check if removed waypoint was one edge of a red line. If so, remove the red line. 
       this.state.crossingLines.map((redLine, index) => {
-        if (redLine[0] == this.props.store.areaWaypoints[i] || redLine[1] == this.props.store.areaWaypoints[i] || (!checkRedLinesCrossing(redLine[0], redLine[1], this.props.store.areaWaypoints, i))) {
-          pointsToBeRemoved.push(index);
+        if (redLine[0] == this.props.store.areaWaypoints[i] ||
+            redLine[1] == this.props.store.areaWaypoints[i] ||
+           (!checkRedLinesCrossing(redLine[0], redLine[1], this.props.store.areaWaypoints, i))) 
+        {
+          redLinesToBeRemoved.push(index);
         } 
       })
 
-
-      console.log("PRINTING CROSSING LINE ", this.state.crossingLines);
-      console.log("PRINTING NEW CROSSING LINE ", newCrossingLines);
-      console.log("PRINTING INDEX LIST ", pointsToBeRemoved);
       // Remove red lines if the one of its waypoints gets removed
-      for (const i of pointsToBeRemoved.reverse()) { 
-        console.log(" removed point: ", i)
+      for (const i of redLinesToBeRemoved.reverse()) { 
         this.state.crossingLines.splice(i, 1); 
       }   
-
-      /**
-       * TODO :
-       * for each crossing line, check if it still crosses any of the other lines. if not -> remove it from crossing line list.
-       * 
-       * (crossingLines.map --> test all wp with almost the same function as removedWaypointLinesCrossing. 
-       *  Check both vector wp[0] -> wp[1] if it crosses another line, if no then remove wp from crossingLines.)
-       * */ 
-
       
 
       /**
@@ -184,15 +171,8 @@ class IMMMap extends React.Component {
       
       // Marked node was clicked, remove it
       this.props.store.removeAreaWaypoint(i);
-
-      this.state.crossingLines.map((redLine, index) => {
-        if (!checkRedLinesCrossing(redLine[0], redLine[1], this.props.store.areaWaypoints)) {
-          pointsToBeRemoved.push(index);
-        } 
-      })
-      
-      }
     }
+  }
 
   /**
    * Places all waypoints as markers on the map.
