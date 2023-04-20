@@ -106,26 +106,25 @@ class IMMMap extends React.Component {
 
     if (
       this.props.allowDefine &&
-      !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)
-    ) {
-      this.props.store.setShowWarning(false);
+      !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)) 
+    {
+      // Add new waypoint and remove old red lines
       this.props.store.addAreaWaypoint(waypoint);
+      const removedLines = this.removeRedLinesOnNewWaypoint();
 
-      this.removeRedLinesOnNewWaypoint();
-
-      if (this.props.store.crossingLines.length != 0) {
-        this.props.store.setShowWarning(true);
-      }
-      
+      // Show error message if there are any crossing lines
+      this.props.store.setShowWarning(this.props.store.crossingLines.length > removedLines.length);
     }
     else {
-      // Shows popup with crossing lines warning message
+      // Shows popup with crossing lines warning 
       this.props.store.setShowWarning(true);
     } 
   }
   
   /**
    * Removes red lines that disappear when placing a new waypoint.
+   * 
+   * @returns list of removed lines
    */
   removeRedLinesOnNewWaypoint() {
     let redLinesToBeRemoved = [];
@@ -136,7 +135,7 @@ class IMMMap extends React.Component {
     const tempRemovedLine1 = [firstWaypoint, lastWaypoint];
     const tempRemovedLine2 = [lastWaypoint, firstWaypoint];
     
-    // If removed line is part of crossing lines, remove the red line from crossing lines.
+    // If removed line was part of crossing lines list, remove it.
     this.props.store.crossingLines.map((line, index) => {
       if (!((line == tempRemovedLine1) || (line == tempRemovedLine2)) && 
       (((line[0] == firstWaypoint) || (line[1] == lastWaypoint)) &&
@@ -150,7 +149,7 @@ class IMMMap extends React.Component {
     for (const i of redLinesToBeRemoved.reverse()) { 
       this.props.store.removeCrossingLine(i);
     }   
-    return
+    return redLinesToBeRemoved;
   }
 
   /**
@@ -168,7 +167,6 @@ class IMMMap extends React.Component {
         ...waypoints.slice(0, i + 1),
       ];
 
-      
       // Remove all waypoints.
       this.props.store.clearAreaWaypoints();
 
@@ -177,14 +175,11 @@ class IMMMap extends React.Component {
 
     } else {
       // Add new red lines from removing waypoint.
-      this.addRedLines(i);
+      const addedLine = this.addRedLines(i);
       // Remove red lines from removing waypoint.
-      this.removeRedLines(i);
-
-      if (this.props.store.crossingLines.length != 0) {
-        this.props.store.setShowWarning(true);
-      }
-
+      const removedLines = this.removeRedLines(i);
+      // Show warning if there are any red lines left
+      this.props.store.setShowWarning((this.props.store.crossingLines.length > removedLines.length) || addedLine);
       // Marked node was clicked, remove it.
       this.props.store.removeAreaWaypoint(i);
     }
@@ -193,6 +188,7 @@ class IMMMap extends React.Component {
   /**
    * Removing red lines that disappear when removing a waypoint.
    * @param {integer} i index of waypoint about to be removed.
+   * @returns list of removed lines
    */
   removeRedLines(i) {
       let redLinesToBeRemoved = [];
@@ -210,23 +206,25 @@ class IMMMap extends React.Component {
       for (const i of redLinesToBeRemoved.reverse()) { 
         this.props.store.removeCrossingLine(i); 
       }   
-      return
+      return redLinesToBeRemoved
   }
 
   /**
    * Add new red lines that appear when removing a waypoint.
    * 
    * @param {integer} i index of waypoint about to be removed.
+   * @returns true if a line has been removed
    */
   addRedLines(i) {
       // If removing waypoint results in crossing lines, paint it red.
       let newCrossingLine = removedWaypointLinesCrossing(i, this.props.store.areaWaypoints);
-
+      let lineAdded = false;
       // Adds red line that is crossing lines.
       if (newCrossingLine && !(this.props.store.crossingLines.includes(newCrossingLine))){
         this.props.store.addCrossingLine(newCrossingLine)
+        lineAdded = true;
       }
-      return
+      return lineAdded;
   }
 
   /**
