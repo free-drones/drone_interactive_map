@@ -129,8 +129,12 @@ export const addAreaWaypoint = createAction(
 
 export const removeAreaWaypoint = createAction(
   "REMOVE_AREA_WAYPOINT",
-  function prepare(index) {
+  function prepare(index, callback = null) {
     if (0 <= index && !isNaN(index)) {
+      if (callback) {
+        console.log("callback")
+        callback();
+      }
       return {
         payload: index,
       };

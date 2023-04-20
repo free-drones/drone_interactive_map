@@ -104,7 +104,7 @@ class IMMMap extends React.Component {
     this.setState({ paintRedLine: false });
 
     if (
-      this.props.allowDefine &&
+      this.props.allowDefine  &&
       !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)
     ) {
       // Add new waypoint and remove old red lines
@@ -248,18 +248,27 @@ class IMMMap extends React.Component {
     const markers = this.props.store.areaWaypoints.map((pos, i) => (
       <Marker
         position={pos}
+        // Only currently selected waypoint can be moved
+        draggable={(i === this.props.store.areaWaypoints.length - 1) ? true : false}
+
+        // Update position when drag stops.
         key={`marker${i}`}
         icon={Leaflet.divIcon({
           className:
             (i === this.props.store.areaWaypoints.length - 1
               ? "last-marker" // If it is the last marker add special styling
               : i === 0
-              ? "first-marker" // If it is the first marker add special styling
-              : "") + " marker", // Always use the base marker styling
+                ? "first-marker" // If it is the first marker add special styling
+                : "") + " marker", // Always use the base marker styling
           iconAnchor: Leaflet.point(18, 34),
           html: markedIcon,
         })}
-        eventHandlers={{ click: () => this.markerClick(i) }}
+        eventHandlers={{
+          click: () => this.markerClick(i),
+          dragend: (e) => {
+            this.props.store.removeAreaWaypoint(i, () => this.addAreaWaypoint({latlng: e.target._latlng}));
+          }
+        }}
       />
     ));
 
@@ -357,8 +366,8 @@ class IMMMap extends React.Component {
 
         {/* Paint crossing lines red.*/}
         {this.props.allowDefine &&
-        this.props.store.areaWaypoints.length !== 0 &&
-        this.props.store.crossingLines ? (
+          this.props.store.areaWaypoints.length !== 0 &&
+          this.props.store.crossingLines ? (
           <Polyline
             pathOptions={{ color: "red" }}
             positions={[
@@ -374,7 +383,7 @@ class IMMMap extends React.Component {
 
         {/*Draws an overlay for the whole world except for defined area.*/}
         {!this.props.allowDefine &&
-        Object.keys(this.props.store.areaWaypoints).length > 0 ? (
+          Object.keys(this.props.store.areaWaypoints).length > 0 ? (
           <Polygon
             positions={[
               worldPolygon,
