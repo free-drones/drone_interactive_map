@@ -33,9 +33,9 @@ import {
   showWarningActions,
   crossingLineActions,
 } from "./Storage.js";
-import { 
+import {
   boundsToView,
-  newWaypointLinesCrossing, 
+  newWaypointLinesCrossing,
   removedWaypointLinesCrossing,
   checkRedLinesCrossing,
 } from "./Helpers/maphelper.js";
@@ -50,7 +50,6 @@ const userPosIcon =
 
 let hasLocationPanned = false;
 
-
 /**
  * ====================================================================================================
  *                                       IMMMAP class
@@ -60,10 +59,10 @@ let hasLocationPanned = false;
 class IMMMap extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
+    this.state = {
       userPosition: null,
-     };
-}
+    };
+  }
 
   /**
    * Pans and zooms to the selected area when it has been confirmed
@@ -102,53 +101,56 @@ class IMMMap extends React.Component {
    */
   addAreaWaypoint(e) {
     const waypoint = { lat: e.latlng.lat, lng: e.latlng.lng };
-    this.setState({ paintRedLine: false});
+    this.setState({ paintRedLine: false });
 
     if (
       this.props.allowDefine &&
-      !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)) 
-    {
+      !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)
+    ) {
       // Add new waypoint and remove old red lines
       this.props.store.addAreaWaypoint(waypoint);
       const removedLines = this.removeRedLinesOnNewWaypoint();
 
       // Show error message if there are any crossing lines
-      this.props.store.setShowWarning(this.props.store.crossingLines.length > removedLines.length);
-    }
-    else {
-      // Shows popup with crossing lines warning 
+      this.props.store.setShowWarning(
+        this.props.store.crossingLines.length > removedLines.length
+      );
+    } else {
+      // Shows popup with crossing lines warning
       this.props.store.setShowWarning(true);
-    } 
+    }
   }
-  
+
   /**
    * Removes red lines that disappear when placing a new waypoint.
-   * 
+   *
    * @returns list of removed lines
    */
   removeRedLinesOnNewWaypoint() {
     let redLinesToBeRemoved = [];
-    const firstWaypoint = this.props.store.areaWaypoints[0]
-    const lastWaypoint = this.props.store.areaWaypoints[this.props.store.areaWaypoints.length - 1]
+    const firstWaypoint = this.props.store.areaWaypoints[0];
+    const lastWaypoint =
+      this.props.store.areaWaypoints[this.props.store.areaWaypoints.length - 1];
 
     // Two cases of lines that will be removed when adding new waypoint, used to compare with red lines
     const tempRemovedLine1 = [firstWaypoint, lastWaypoint];
     const tempRemovedLine2 = [lastWaypoint, firstWaypoint];
-    
+
     // If removed line was part of crossing lines list, remove it.
     this.props.store.crossingLines.map((line, index) => {
-      if (!((line == tempRemovedLine1) || (line == tempRemovedLine2)) && 
-      (((line[0] == firstWaypoint) || (line[1] == lastWaypoint)) &&
-      ((line[0] == lastWaypoint) || ([line[1] == firstWaypoint]))))
-      {
+      if (
+        !(line == tempRemovedLine1 || line == tempRemovedLine2) &&
+        (line[0] == firstWaypoint || line[1] == lastWaypoint) &&
+        (line[0] == lastWaypoint || [line[1] == firstWaypoint])
+      ) {
         redLinesToBeRemoved.push(index);
       }
-    })
+    });
 
     // Remove red lines if placing a new waypoint removes intersection
-    for (const i of redLinesToBeRemoved.reverse()) { 
+    for (const i of redLinesToBeRemoved.reverse()) {
       this.props.store.removeCrossingLine(i);
-    }   
+    }
     return redLinesToBeRemoved;
   }
 
@@ -159,7 +161,6 @@ class IMMMap extends React.Component {
   markerClick(i) {
     this.props.store.setShowWarning(false);
     if (i !== this.props.store.areaWaypoints.length - 1) {
-
       // Restructure waypoints.
       var waypoints = this.props.store.areaWaypoints;
       var newWP = [
@@ -172,59 +173,72 @@ class IMMMap extends React.Component {
 
       // Add restructured waypoints.
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
-
     } else {
       // Add new red lines from removing waypoint.
       const addedLine = this.addRedLines(i);
       // Remove red lines from removing waypoint.
       const removedLines = this.removeRedLines(i);
       // Show warning if there are any red lines left
-      this.props.store.setShowWarning((this.props.store.crossingLines.length > removedLines.length) || addedLine);
+      this.props.store.setShowWarning(
+        this.props.store.crossingLines.length > removedLines.length || addedLine
+      );
       // Marked node was clicked, remove it.
       this.props.store.removeAreaWaypoint(i);
     }
   }
-  
+
   /**
    * Removing red lines that disappear when removing a waypoint.
    * @param {integer} i index of waypoint about to be removed.
    * @returns list of removed lines
    */
   removeRedLines(i) {
-      let redLinesToBeRemoved = [];
-      // Check if removed waypoint was one edge of a red line. If so, remove the red line. 
-      this.props.store.crossingLines.map((redLine, index) => {
-        if (redLine[0] == this.props.store.areaWaypoints[i] ||
-            redLine[1] == this.props.store.areaWaypoints[i] ||
-           (!checkRedLinesCrossing(redLine[0], redLine[1], this.props.store.areaWaypoints, i)))
-        {
-          redLinesToBeRemoved.push(index);
-        } 
-      })
+    let redLinesToBeRemoved = [];
+    // Check if removed waypoint was one edge of a red line. If so, remove the red line.
+    this.props.store.crossingLines.map((redLine, index) => {
+      if (
+        redLine[0] == this.props.store.areaWaypoints[i] ||
+        redLine[1] == this.props.store.areaWaypoints[i] ||
+        !checkRedLinesCrossing(
+          redLine[0],
+          redLine[1],
+          this.props.store.areaWaypoints,
+          i
+        )
+      ) {
+        redLinesToBeRemoved.push(index);
+      }
+    });
 
-      // Remove red lines if the one of its waypoints gets removed.
-      for (const i of redLinesToBeRemoved.reverse()) { 
-        this.props.store.removeCrossingLine(i); 
-      }   
-      return redLinesToBeRemoved
+    // Remove red lines if the one of its waypoints gets removed.
+    for (const i of redLinesToBeRemoved.reverse()) {
+      this.props.store.removeCrossingLine(i);
+    }
+    return redLinesToBeRemoved;
   }
 
   /**
    * Add new red lines that appear when removing a waypoint.
-   * 
+   *
    * @param {integer} i index of waypoint about to be removed.
    * @returns true if a line has been removed
    */
   addRedLines(i) {
-      // If removing waypoint results in crossing lines, paint it red.
-      let newCrossingLine = removedWaypointLinesCrossing(i, this.props.store.areaWaypoints);
-      let lineAdded = false;
-      // Adds red line that is crossing lines.
-      if (newCrossingLine && !(this.props.store.crossingLines.includes(newCrossingLine))){
-        this.props.store.addCrossingLine(newCrossingLine)
-        lineAdded = true;
-      }
-      return lineAdded;
+    // If removing waypoint results in crossing lines, paint it red.
+    let newCrossingLine = removedWaypointLinesCrossing(
+      i,
+      this.props.store.areaWaypoints
+    );
+    let lineAdded = false;
+    // Adds red line that is crossing lines.
+    if (
+      newCrossingLine &&
+      !this.props.store.crossingLines.includes(newCrossingLine)
+    ) {
+      this.props.store.addCrossingLine(newCrossingLine);
+      lineAdded = true;
+    }
+    return lineAdded;
   }
 
   /**
@@ -342,16 +356,15 @@ class IMMMap extends React.Component {
         )}
 
         {/* Paint crossing lines red.*/}
-        {(this.props.allowDefine && 
+        {this.props.allowDefine &&
         this.props.store.areaWaypoints.length != 0 &&
-        this.props.store.crossingLines
-        ) ? (
+        this.props.store.crossingLines ? (
           <Polyline
-            pathOptions = {{color: 'red'}}
+            pathOptions={{ color: "red" }}
             positions={[
               this.props.store.crossingLines.map((waypointPair) => [
                 [waypointPair[0].lat, waypointPair[0].lng],
-                [waypointPair[1].lat, waypointPair[1].lng]
+                [waypointPair[1].lat, waypointPair[1].lng],
               ]),
             ]}
           />

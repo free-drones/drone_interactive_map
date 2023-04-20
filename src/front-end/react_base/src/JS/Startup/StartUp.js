@@ -141,7 +141,7 @@ function StartUp(props) {
    */
   function clearWaypoints() {
     props.store.clearCrossingLines();
-    props.store.setShowWarning(false);  
+    props.store.setShowWarning(false);
     props.store.clearAreaWaypoints();
   }
 
@@ -199,7 +199,10 @@ function StartUp(props) {
             props.store.setShowWarning(false);
           }}
           sx={[styles.fab, styles.fabRight]}
-          disabled={((props.store.areaWaypoints.length < 3) || (props.store.crossingLines.length > 0))}
+          disabled={
+            props.store.areaWaypoints.length < 3 ||
+            props.store.crossingLines.length > 0
+          }
         >
           <Check />
         </Fab>
