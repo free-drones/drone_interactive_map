@@ -91,6 +91,7 @@ function upstreamRequestEventHandler(message) {
  * @param {String} message Received message
  */
 function userPriorityEventHandler(message) {
+  console.log("Received 'set_priority' from backend: ", {message})
   // If this user is not a high priority user lower userPriority and set the correct area defined by other user
   if (message.high_priority_client !== store.getState().clientID) {
     store.dispatch(setUserPriority(5));
@@ -116,7 +117,7 @@ function userPriorityEventHandler(message) {
  * @param {String} message Received message
  */
 function setClientIdEventHandler(message) {
-  console.log("Received 'set_client' from backend: ", message.clientID, message)
+  console.log("Received 'set_client' from backend: ", message)
   store.dispatch(clientIDActions.setClientID(message.client_id));
 }
 

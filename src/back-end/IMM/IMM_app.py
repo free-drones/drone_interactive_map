@@ -105,23 +105,73 @@ def on_connect(unused_data):
         
         stmt = select(Client).where((and_(Client.session_id == user_session.id, Client.is_prio_client == True)))
         prioritized_client = session.scalars(stmt).first()
-        
         stmt = select(AreaVertex).where(AreaVertex.session_id == user_session.id)
         area_vertex = session.scalars(stmt).first()
     
-    
-    client_id_response = { "client_id": client_id }
-    emit("set_client_id", client_id_response)
+        _logger.debug(f"Received connect call, client id: {client_id}, sid: {request.sid}")
+        
+        #Case 1
+        if not (prioritized_client or area_vertex):
+            _logger.debug(f"No prioritized client and no area set: sending set_client_id")
 
-    _logger.debug(f"Received connect call, client id: {client_id}, sid: {request.sid}")
+            client_id_response = { "client_id": client_id }
+            emit("set_client_id", client_id_response)
+
+        #Case 2
+        elif (prioritized_client and area_vertex):
+            _logger.debug(f"Prioritized client exists and area is set: sending set_client_id and sending set_priority ")
+            client_id_response = { "client_id": client_id }
+            emit("set_client_id", client_id_response)
+
+
+            reply_bounds = [user_session.bounds1.to_list(), user_session.bounds2.to_list()]
+            reply_coordinates = [vertex.coordinate.to_json() for vertex in user_session.area_vertices]
+
+            set_priority_response = {
+            "high_priority_client": prioritized_client.id,
+            "bounds": reply_bounds,
+            "coordinates": reply_coordinates
+            }
+            emit("set_priority", set_priority_response)
+
+        #Case 3
+        elif (area_vertex and not prioritized_client):
+
+            _logger.debug(f"We have area but no prio client: Setting current client to prio and sending set priority")
+            client_id_response = { "client_id": client_id }
+            emit("set_client_id", client_id_response)
+
+            reply_bounds = [user_session.bounds1.to_list(), user_session.bounds2.to_list()]
+            reply_coordinates = [vertex.coordinate.to_json() for vertex in user_session.area_vertices]
+            
+            _logger.debug(f"sending set_priority with -1")
+            set_priority_response = {
+            "high_priority_client": -1,
+            "bounds": reply_bounds,
+            "coordinates": reply_coordinates
+            }
+            emit("set_priority", set_priority_response)
+            time.sleep(3)
+            new_client.is_prio_client = True
+            
+            _logger.debug(f"sending set_priority with id {client_id}")
+            set_priority_response = {
+            "high_priority_client": client_id,
+            "bounds": reply_bounds,
+            "coordinates": reply_coordinates
+            }
+            emit("set_priority", set_priority_response)
 
 
 @socketio.on("disconnect")
 def on_disconnect():
     with session_scope() as session:
+        client = session.scalars(select(Client).where(Client.sid == request.sid)).first()
+        client_id = client.id if client else None
+        client_sid = client.sid if client else None
         session.execute(delete(Client).where(Client.sid == request.sid))
 
-    _logger.debug(f"Received disconnect call without data")
+    _logger.debug(f"Received disconnect call, disconnecting client {client_id} with {client_sid}")
 
 
 @socketio.on("check_alive")
