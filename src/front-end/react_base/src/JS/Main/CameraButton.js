@@ -50,7 +50,9 @@ const styles = {
     padding: 2,
   },
 };
-
+/**
+ * A floating camera button component which extends into selecting urgency and also has an overlay and a crosshair in the urgency selection.
+ */
 function CameraButton(props) {
   const [shouldChooseUrgency, setShouldChooseUrgency] = React.useState(false);
   return (

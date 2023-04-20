@@ -1,3 +1,8 @@
+/**
+ * List item to store information about the pictures requested to be taken. 
+ * They are stored in the PriorityPicturesTab.
+ */
+
 import {
   ListItem,
   ListItemText,
@@ -28,6 +33,12 @@ const styles = {
   },
 };
 
+/**
+ * React component used to show information about a priority picture request in a list item
+ * @param {Object} item priority picture request data
+ * @param {Number} listID 
+ * @returns React component
+ */
 export default function PriorityPictureListItem({ item, listID }) {
   const [shouldShowInfo, setShouldShowInfo] = React.useState(false);
   return (

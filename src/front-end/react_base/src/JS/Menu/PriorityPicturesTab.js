@@ -29,6 +29,9 @@ import PriorityPictureListItem from "./PriorityPictureListItem.js";
 import { clearImageQueue, callbackWrapper } from "../Connection/Downstream.js";
 import ColorWrapper from "../ColorWrapper.js";
 
+/**
+ * React component for the tab containing information about priority picture requests.
+ */
 function PriorityPicturesTab(props) {
   const [dialogOpen, setDialogState] = useState(false);
   return (

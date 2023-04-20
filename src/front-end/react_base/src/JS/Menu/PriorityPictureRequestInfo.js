@@ -8,8 +8,9 @@ import Typography from "@mui/material/Typography";
 import { Box } from "@mui/system";
 
 /**
- * Get a formatted time string form at date object.
+ * Get a formatted time string from a date object.
  * @param {Date} date Date to be formatted.
+ * @returns {String} with hh:mm:ss format
  */
 function getFormattedTime(date) {
   const hours = String(date.getHours()).padStart(2, "0");
@@ -19,6 +20,12 @@ function getFormattedTime(date) {
   return hours + ":" + minutes + ":" + seconds;
 }
 
+/**
+ * Returns the time since date, given currentTime. It is formatted and returned as a string. 
+ * @param {Date} currentTime The time when the function is called.
+ * @param {Date} date The time when the picture was requested to be taken.
+ * @returns A formatted string with the time difference
+ */
 function getTimeSince(currentTime, date) {
   const seconds = Math.floor((currentTime - date) / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -29,6 +36,11 @@ function getTimeSince(currentTime, date) {
   return `${minutes}m ${seconds % 60}s ago`;
 }
 
+/**
+ * A React component of a Box containing formatted information about a priority picture request
+ * @param {Object} data the picture request data 
+ * @returns react component
+ */
 export default function PriorityPictureRequestInfo({ data }) {
   const [time, setTime] = React.useState(Date.now());
   setTimeout(() => {
