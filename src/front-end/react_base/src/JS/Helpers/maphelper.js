@@ -102,7 +102,7 @@ export function removedWaypointLinesCrossing(index, waypoints) {
   }
 
   /*
-   Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
+   Removing waypoints should only happen when (index === waypoints.length - 1) but this is more secure.
 
    There are 3 cases: index is the first element of the waypoint list, 
    index is the last element of the waypoint list or index is in the middle of the waypoint list.
@@ -205,10 +205,10 @@ export function checkRedLinesCrossing(point1, point2, waypoints, index) {
   for (let i = 0; i < waypoints.length - 1; i++) {
     // If the red line overlaps with itself or with lines that are about to be removed, skip.
     if (
-      (point1 == waypoints[i] && point2 == waypoints[i + 1]) ||
-      (point1 == waypoints[i + 1] && point2 == waypoints[i]) ||
-      index == i ||
-      index == i + 1
+      (point1 === waypoints[i] && point2 === waypoints[i + 1]) ||
+      (point1 === waypoints[i + 1] && point2 === waypoints[i]) ||
+      index === i ||
+      index === i + 1
     ) {
       continue;
     }
@@ -222,10 +222,10 @@ export function checkRedLinesCrossing(point1, point2, waypoints, index) {
 
   // If the red line overlaps with itself or with lines that are about to be removed, skip.
   if (
-    (point1 == waypoints[0] && point2 == waypoints[waypoints.length - 1]) ||
-    (point1 == waypoints[waypoints.length - 1] && point2 == waypoints[0]) ||
-    index == 0 ||
-    index == waypoints.length - 1
+    (point1 === waypoints[0] && point2 === waypoints[waypoints.length - 1]) ||
+    (point1 === waypoints[waypoints.length - 1] && point2 === waypoints[0]) ||
+    index === 0 ||
+    index === waypoints.length - 1
   ) {
     return crossing;
   }

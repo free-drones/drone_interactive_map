@@ -137,11 +137,11 @@ class IMMMap extends React.Component {
     const tempRemovedLine2 = [lastWaypoint, firstWaypoint];
 
     // If removed line was part of crossing lines list, remove it.
-    this.props.store.crossingLines.map((line, index) => {
+    this.props.store.crossingLines.forEach((line, index) => {
       if (
-        !(line == tempRemovedLine1 || line == tempRemovedLine2) &&
-        (line[0] == firstWaypoint || line[1] == lastWaypoint) &&
-        (line[0] == lastWaypoint || [line[1] == firstWaypoint])
+        !(line === tempRemovedLine1 || line === tempRemovedLine2) &&
+        (line[0] === firstWaypoint || line[1] === lastWaypoint) &&
+        (line[0] === lastWaypoint || [line[1] === firstWaypoint])
       ) {
         redLinesToBeRemoved.push(index);
       }
@@ -195,10 +195,10 @@ class IMMMap extends React.Component {
   removeRedLines(i) {
     let redLinesToBeRemoved = [];
     // Check if removed waypoint was one edge of a red line. If so, remove the red line.
-    this.props.store.crossingLines.map((redLine, index) => {
+    this.props.store.crossingLines.forEach((redLine, index) => {
       if (
-        redLine[0] == this.props.store.areaWaypoints[i] ||
-        redLine[1] == this.props.store.areaWaypoints[i] ||
+        redLine[0] === this.props.store.areaWaypoints[i] ||
+        redLine[1] === this.props.store.areaWaypoints[i] ||
         !checkRedLinesCrossing(
           redLine[0],
           redLine[1],
@@ -357,7 +357,7 @@ class IMMMap extends React.Component {
 
         {/* Paint crossing lines red.*/}
         {this.props.allowDefine &&
-        this.props.store.areaWaypoints.length != 0 &&
+        this.props.store.areaWaypoints.length !== 0 &&
         this.props.store.crossingLines ? (
           <Polyline
             pathOptions={{ color: "red" }}
