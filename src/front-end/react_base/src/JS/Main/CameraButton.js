@@ -2,8 +2,15 @@
  * Class file for camera button component.
  */
 
-import { Fab, Box, Button, ButtonGroup, Collapse } from "@mui/material";
-import { AddAPhoto } from "@mui/icons-material/";
+import {
+  Fab,
+  Box,
+  Button,
+  ButtonGroup,
+  Collapse,
+  ButtonBase,
+} from "@mui/material";
+import { AddAPhoto, NoPhotography } from "@mui/icons-material/";
 import React from "react";
 import { userPriority, connect } from "../Storage.js";
 import Crosshair from "./Crosshair.js";
@@ -34,6 +41,14 @@ const styles = {
     borderRadius: 1000,
     boxShadow: "inset 0 0 1vw #50505090, 0 0 0 9999px #50505066",
   },
+  extendedFabLike: {
+    backgroundColor: "white",
+    display: "flex",
+    borderRadius: "4px",
+  },
+  extendedButton: {
+    padding: 2,
+  },
 };
 
 function CameraButton(props) {
@@ -49,53 +64,58 @@ function CameraButton(props) {
       ) : (
         ""
       )}
-      <Box sx={styles.cameraButton}>
-        {/* Creates a floating object, Fab */}
+      {/* Creates the extended urgency selection button */}
+      <Collapse
+        sx={styles.cameraButton}
+        in={shouldChooseUrgency}
+        timeout="auto"
+        orientation="horizontal"
+      >
+        <Box sx={styles.extendedFabLike}>
+          <ButtonGroup variant="outlined">
+            <ButtonBase
+              sx={styles.extendedButton}
+              onClick={() => setShouldChooseUrgency(false)}
+            >
+              <NoPhotography />
+            </ButtonBase>
+            <Button
+              sx={styles.extendedButton}
+              color="info"
+              onClick={() => {
+                props.clickHandler(false);
+                setShouldChooseUrgency(false);
+              }}
+            >
+              Normal
+            </Button>
+            <Button
+              sx={styles.extendedButton}
+              color="error"
+              onClick={() => {
+                props.clickHandler(true);
+                setShouldChooseUrgency(false);
+              }}
+            >
+              Urgent
+            </Button>
+          </ButtonGroup>
+        </Box>
+      </Collapse>
+      {/* Creates a floating object, Fab */}
+      {!shouldChooseUrgency ? (
         <Fab
+          sx={[styles.cameraButton, { backgroundColor: "white" }]}
           onClick={() => {
-            setShouldChooseUrgency(!shouldChooseUrgency);
+            setShouldChooseUrgency(true);
           }}
           disabled={props.store.userPriority !== 1}
-          variant={shouldChooseUrgency ? "extended" : "round"}
-          sx={[
-            { backgroundColor: "white" },
-            shouldChooseUrgency
-              ? { borderTopRightRadius: 3, borderBottomRightRadius: 3 } // Adjusts the radius to the button's radius during the urgency choice
-              : {},
-          ]}
         >
-          <AddAPhoto sx={{ color: shouldChooseUrgency ? "gray" : "black" }} />
-          <Collapse
-            in={shouldChooseUrgency}
-            timeout="auto"
-            orientation="horizontal"
-            sx={{
-              height: "100% !important",
-              width: shouldChooseUrgency ? "100% !important" : "",
-            }} // Makes the buttons easier to click by covering the entire space
-          >
-            <ButtonGroup
-              variant="outlined"
-              sx={{ paddingLeft: 2, height: "100%", width: "100%" }}
-            >
-              <Button
-                sx={{ width: "50%" }}
-                color="info"
-                onClick={() => props.clickHandler(false)}
-              >
-                Normal
-              </Button>
-              <Button
-                sx={{ width: "51%" }} // The background goes out slightly longer, so 51% is needed
-                color="error"
-                onClick={() => props.clickHandler(true)}
-              >
-                Urgent
-              </Button>
-            </ButtonGroup>
-          </Collapse>
+          <AddAPhoto />
         </Fab>
-      </Box>
+      ) : (
+        ""
+      )}
     </Box>
   );
 }
