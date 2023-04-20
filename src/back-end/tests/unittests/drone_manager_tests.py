@@ -5,9 +5,8 @@ from IMM.drone_manager.node import Node
 from IMM.drone_manager.drone import Drone
 from IMM.drone_manager.drone_manager import DroneManager
 from IMM.drone_manager.helper_functions import generate_dummy_route
-from IMM.drone_manager.dm_config import DRONE_SPEED, ALTITUDE, GROUND_LEVEL
+from IMM.drone_manager.dm_config import DRONE_SPEED, ALTITUDE, GROUND_LEVEL, FULL_CHARGE_LEVEL
 
-FULL_CHARGE_LEVEL = 95
 
 
 class TestHelper(unittest.TestCase):

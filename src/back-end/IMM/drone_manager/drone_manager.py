@@ -31,8 +31,11 @@ class DroneManager(Thread):
         self.link = Link()
         self.link.connect_to_all_drones()
 
-    def run(self):
+    def run(self, connect_to_RDS = True):
         """ where the thread runs """
+
+        if connect_to_RDS:
+            self.connect()
 
         # get drones from CRM, wait until non-zero number of drones
         while True:

@@ -7,7 +7,7 @@ import time
 Manual test that tests communication between the Drone Manager and RISE Drone System, via the Link class.
 
 Hardcoded routes are generated and are set as routes in the drone manager. Currently generates 2 routes.
-The drone manager is connected to RDS (.connect()) and then its run-function is called. This performs
+The drone manager is run by calling its run-function where it first connects to RDS and then performs
 'resource management' which assigns drones to routes. Then missions are created and uploaded for those 
 drones.
 
@@ -46,8 +46,7 @@ def test_fly_auto_routes():
         drone_manager = DroneManager()
         drone_manager.set_routes(dummy_routes)
         _logger.debug("attempting to connect drone_manager to RDS")
-        drone_manager.connect()
-        drone_manager.run()
+        drone_manager.run(connect_to_RDS = True)
         while alive:
             print("sleeping after success")
             time.sleep(7)
