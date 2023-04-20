@@ -35,7 +35,7 @@ import {
 import { boundsToView } from "./Helpers/maphelper.js";
 
 import Leaflet from "leaflet";
-import PictureRequestInfo from "./Menu/PictureRequestInfo";
+import PriorityPictureRequestInfo from "./Menu/PriorityPictureRequestInfo";
 
 // Room Icon pre-rendered + sizing style
 const markedIcon =
@@ -334,7 +334,7 @@ class IMMMap extends React.Component {
         })}
       >
         <Popup>
-          <PictureRequestInfo data={data} />
+          <PriorityPictureRequestInfo data={data} />
         </Popup>
       </Marker>
     ));

@@ -13,14 +13,14 @@ import {
   pictureRequestQueue,
   pictureRequestQueueActions,
 } from "../Storage.js";
-import PriorityImagesTab from "./PriorityImagesTab";
+import PriorityPicturesTab from "./PriorityPicturesTab";
 
 function StatusDrawer() {
   return (
     <div>
       <TabDrawer anchor="right">
         <TabDrawerTab icon={<CameraQueueIcon />}>
-          <PriorityImagesTab />
+          <PriorityPicturesTab />
         </TabDrawerTab>
         <TabDrawerTab icon={<SmsFailedIcon />}>
           <MessagesTab />

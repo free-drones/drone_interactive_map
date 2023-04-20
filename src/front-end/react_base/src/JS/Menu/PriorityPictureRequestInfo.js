@@ -23,11 +23,13 @@ function getTimeSince(currentTime, date) {
   const seconds = Math.floor((currentTime - date) / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(seconds / (60 * 60));
-
-  return `${hours}h ${minutes % (60 * 60)}m ${seconds % 60}s ago`;
+  if (hours !== 0) {
+    return `${hours}h ${minutes % 60}m ${seconds % 60}s ago`;
+  }
+  return `${minutes}m ${seconds % 60}s ago`;
 }
 
-export default function PictureRequestInfo({ data }) {
+export default function PriorityPictureRequestInfo({ data }) {
   const [time, setTime] = React.useState(Date.now());
   setTimeout(() => {
     setTime(Date.now()); // Used to make the component rerender every second to show the actual time since
