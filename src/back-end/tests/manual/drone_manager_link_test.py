@@ -46,7 +46,7 @@ def test_fly_auto_routes():
         drone_manager = DroneManager()
         drone_manager.set_routes(dummy_routes)
         _logger.debug("attempting to connect drone_manager to RDS")
-        drone_manager.run(connect_to_RDS = True)
+        drone_manager.run()
         while alive:
             print("sleeping after success")
             time.sleep(7)

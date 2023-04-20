@@ -192,26 +192,20 @@ def on_set_area(data):
         _logger.debug(f"set_area resp: {response}")
         emit("response", response)
 
-        #route_list = [[(0,0), (1,0)], [(3,3), (3,4)]]
-        #route_list = Area + Pathfinding functions
+        # Area segmentation and route planning, and give routes to drone manager
         area_coordinates = data["arg"]["coordinates"] 
-
-        for coord in area_coordinates:
-            print(f'{coord["lat"]}, {coord["long"]}' , end=', ')
-        print("\n\n")
-
-        NODE_SPACING = 0.8
         START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
+        NODE_SPACING = 6
 
-        drone_manager_thread = thread_handler.get_drone_manager_thread()
-        num_seg = 5 # len(drone_manager_thread.drones)
-        polygon = area_segmentation.Polygon(area_coordinates) 
-        polygon.create_area_segments(NODE_SPACING, START_LOCATION, num_seg)
-        
-        route_list = [segment.route_dicts() for segment in polygon.segments]
-
-        thread_handler.drone_manager_thread.set_routes(route_list)
-
+        drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
+        if drone_count:
+            polygon = area_segmentation.Polygon(area_coordinates) 
+            polygon.create_area_segments(NODE_SPACING, START_LOCATION, drone_count)
+            route_list = [segment.route_dicts() for segment in polygon.segments]
+            
+            thread_handler.get_drone_manager_thread().set_routes(route_list)
+        else:
+            _logger.warning("No drones available when attempting route planning!")  # TODO: handle this case better
 
 
 @socketio.on("request_view")
