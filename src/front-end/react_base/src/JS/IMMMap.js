@@ -211,7 +211,7 @@ class IMMMap extends React.Component {
       userPosition: null,
       drones: null,
       oldDrones: null,
-      timerID: null,
+      getDronesTimer: null,
     };
   }
 
@@ -270,19 +270,22 @@ class IMMMap extends React.Component {
    * Drone position update, componentDidMount runs once on startup.
    */
   componentDidMount() {
-    this.state.timerID = setInterval(() => {
-      getDrones((response) => {
-        this.setState({ drones: response.arg.drones });
-      });
-      this.state.oldDrones = this.state.drones;
-    }, 500);
+    const updateDronesTimer = 1000;
+    this.setState({
+      getDronesTimer: setInterval(() => {
+        getDrones((response) => {
+          this.setState({ oldDrones: this.state.drones });
+          this.setState({ drones: response.arg.drones });
+        });
+      }, updateDronesTimer),
+    });
   }
 
   /**
    * Remove double timer from componentDidMount
    */
   componentWillUnmount() {
-    clearInterval(this.state.timerID);
+    clearInterval(this.state.getDronesTimer);
   }
 
   /**
@@ -365,17 +368,8 @@ class IMMMap extends React.Component {
    * @param {*} newPoint
    */
   droneAngle(oldPoint, newPoint) {
-    // Used to compensate for rotation of original icon (45 degrees)
-    let iconRotationCompensation = 45;
-
-    // Latitude scale factor for Linköping in Sweden
-    let latitudeScaleFactor = 1.91;
-
-    // Estimate scale factor for latitude from users position
-    if (this.state.userPosition) {
-      latitudeScaleFactor =
-        1 / Math.cos((this.state.userPosition.lat * Math.PI) / 180);
-    }
+    // Estimate latitude scale factor for each drone given its current position
+    let latitudeScaleFactor = 1 / Math.cos((newPoint.lat * Math.PI) / 180);
 
     // Calculate angle in degrees
     const p1 = {
@@ -388,21 +382,16 @@ class IMMMap extends React.Component {
       y: newPoint.lng,
     };
 
-    let angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
-    let angle = angleDeg - iconRotationCompensation;
-    return angle;
+    const angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
+    return angleDeg;
   }
 
   /**
    * Places all drone icons on the map
    */
   droneFactory() {
-    // If old/new drone list will cause error, skip updating the rotations
-    if (
-      !this.state.oldDrones ||
-      this.state.drones.length !== this.state.oldDrones.length
-    ) {
-      this.state.oldDrones = this.state.drones;
+    if (!this.state.oldDrones) {
+      return [];
     }
 
     const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
@@ -422,15 +411,11 @@ class IMMMap extends React.Component {
                     transform="rotate(${this.droneAngle(
                       this.state.oldDrones[key].location,
                       drone.location
-                    )})"   
-                    xmlns="http://www.w3.org/2000/svg" 
-                    xmlns:xlink="http://www.w3.org/1999/xlink" 
-                    viewBox="0 0 1792 1792" 
-                    xml:space="preserve"> 
-                    <g id="SVGRepo_bgCarrier" stroke-width="0">
-                    </g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round">
-                    </g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path>
-                    </g></svg>`,
+                    )})"
+                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	                  viewBox="0 0 1792 1792" xml:space="preserve">
+                    <path d="M187.8,1659L896,132.9L1604.2,1659L896,1285.5L187.8,1659z"/>
+                    </svg> `,
         })}
       />
     ));

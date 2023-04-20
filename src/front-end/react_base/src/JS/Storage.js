@@ -463,33 +463,6 @@ export const setShowWarning = createAction(
 );
 
 /**
- *  Actions related to drone position
- */
-
-export const setDronePosition = createAction(
-  "SET_DRONE_POSITION",
-  function prepare(key, value) {
-    return {
-      payload: {
-        key: key,
-        value: value,
-      },
-    };
-  }
-);
-
-export const removeDronePosition = createAction(
-  "REMOVE_DRONE_POSITION",
-  function prepare(key) {
-    return {
-      payload: key,
-    };
-  }
-);
-
-export const clearDronePositions = createAction("CLEAR_DRONE_POSITION");
-
-/**
  * ====================================================================================================
  *                                             Reducers
  * ====================================================================================================
@@ -668,23 +641,6 @@ export const _showWarning = createReducer(false, (builder) => {
   });
 });
 
-export const _dronePositions = createReducer([], (builder) => {
-  builder
-    .addCase(setDronePosition, (state, action) => {
-      state[action.payload.key] = action.payload.value;
-      return state;
-    })
-    .addCase(removeDronePosition, (state, action) => {
-      //if(state[action.payload.key]) {
-      delete state[action.payload.key];
-      //}
-      return state;
-    })
-    .addCase(clearDronePositions, (state, action) => {
-      return [];
-    });
-});
-
 /**
  * ====================================================================================================
  *                                      State mapping functions
@@ -777,13 +733,6 @@ export function showWarning(state) {
     showWarning: state.showWarning,
   };
 }
-
-export function dronePositions(state) {
-  return {
-    dronePositions: state.dronePositions,
-  };
-}
-
 const states = {
   areaWaypoints,
   clientID,
@@ -799,7 +748,6 @@ const states = {
   messages,
   mapState,
   showWarning,
-  dronePositions,
 };
 
 /**
@@ -869,12 +817,6 @@ export const mapStateActions = { setMapState };
 
 export const showWarningActions = { setShowWarning };
 
-export const dronePositionActions = {
-  setDronePosition,
-  removeDronePosition,
-  clearDronePositions,
-};
-
 const actions = {
   areaWaypointActions,
   clientIDActions,
@@ -890,7 +832,6 @@ const actions = {
   messagesActions,
   mapStateActions,
   showWarningActions,
-  dronePositionActions,
 };
 
 /**
@@ -926,7 +867,6 @@ export const store = configureStore({
     messages: _messages,
     mapState: _mapState,
     showWarning: _showWarning,
-    dronePosition: _dronePositions,
   },
 });
 
