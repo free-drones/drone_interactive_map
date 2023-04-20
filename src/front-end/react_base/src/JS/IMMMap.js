@@ -372,6 +372,12 @@ class IMMMap extends React.Component {
         move: () => {
           this.updateBounds(map);
         },
+        moveend: () => {
+          // This makes sure the bounds remain accurate, even with the 100ms rate limit for updating
+          setTimeout(() => {
+            this.updateBounds(map);
+          }, 100);
+        },
         locationfound: (location) => {
           // Called when user's gps location has been found
           if (!hasLocationPanned) {
