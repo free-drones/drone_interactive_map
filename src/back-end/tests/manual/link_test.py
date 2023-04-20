@@ -1,6 +1,7 @@
 from IMM.drone_manager.link import Link
 import time
 import threading
+import queue
 '''
 This is a test script for the link module. It is not intended to be run as a part of the main program.
 To run this test, first the crm needs to have simulated drones running. Then start qgroundcontrol and connect to the simulated drones. 
@@ -14,6 +15,8 @@ STATUS_TEST = True
 MONITOR_TEST = False
 link_object = Link()
 alive = True
+event_queue = queue.Queue()
+update_recieved_event = threading.Event()
 
 class Drone():
     def __init__(self, drone_name) -> None:
@@ -88,19 +91,96 @@ def test_link_new_mission():
         alive = False
 
 def status_printer():
-    while(alive):
+    alive = True
+    while alive:
         try:
-            print('trying to get status update')
+            #print('trying to get status update')
             msg = link_object.msg_queue.get()
-            print(f'got status update: {msg}')
+            #print(f'got status update: {msg}')
             if msg is not None:
                 if msg['topic'] =='drone_status':
-                    print(f'topic is drone_status, trying to get data')
+                    #print(f'topic is drone_status, trying to get data')
                     data = msg['data']
                     print(f'Recieved drone status update with the data being: {data}')
+                    if data['drone_status'] == 'waiting':
+                        event_queue.put({'drone':data['drone'], 'update':'status_update', 'drone_status':data['drone_status']})
+                        update_recieved_event.set()
+                        print(f'update recieved: {update_recieved_event.is_set()}')
+                        #print('mission done')
+                elif msg['topic'] == 'lost_drone':
+                    print(f'topic is lost_drone, trying to get data')
+                    data = msg['data']
+                    print(f'Recieved drone status update with the data being: {data}')
+                    event_queue.put({'drone':data['drone'], 'update':'lost_drone'})
+                    update_recieved_event.set()
+                elif msg['topic'] == 'gained_drone':
+                    print(f'topic is new_drone, trying to get data')
+                    data = msg['data']
+                    print(f'Recieved drone status update with the data being: {data}')
+                    event_queue.put({'drone':data['drone'], 'update':'gained_drone'})
+                    update_recieved_event.set()
+            while update_recieved_event.is_set():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            alive = False
         except Exception as e:
             print(e)
             pass
+
+def update_logic_test():
+    alive = True
+    while alive:
+        try:
+            link_object.connect_to_all_drones()
+            drone_list = link_object.get_list_of_drones()
+            drone_object_list = {}
+            for drone in drone_list:
+                drone_object_list[drone] = Drone(drone)
+            for drone in drone_object_list:
+                link_object.fly_random_mission(drone_object_list[drone])
+                print('mission started')
+            try:
+                while True:
+                    if update_recieved_event.is_set():
+                        update = event_queue.get()
+                        update_recieved_event.clear()
+                        print(f'update recieved: {update}')
+                        if update['update'] == 'status_update':
+                            if update['drone_status'] == 'waiting':
+                                print(f'mission done for drone: {update["drone"]}')
+                                link_object.fly_random_mission(drone_object_list[update["drone"]])
+                                print(f'mission started again for drone: {update["drone"]}')
+                        elif update['update'] == 'lost_drone':
+                            print(f'drone lost: {update["drone"]}')
+                            print(f'old drone list: {drone_object_list}')
+                            drone_object_list.pop(update['drone'])
+                            print(f'new drone list: {drone_object_list}')
+                        elif update['update'] == 'gained_drone':
+                            if link_object.connect_to_drone():
+                                new_drone_list = link_object.get_list_of_drones()
+                                for drone in new_drone_list:
+                                    if drone not in drone_object_list:
+                                        print(f'old drone list: {drone_object_list}')
+                                        drone_object_list[drone] = Drone(drone)
+                                        link_object.fly_random_mission(drone_object_list[drone])
+                                        print(f'mission started for new drone: {drone}')
+                                print(f'new drone list: {drone_object_list}')
+                    else:
+                        print('Bussiness as usual')
+                        time.sleep(1)
+            except KeyboardInterrupt:
+                print('KeyboardInterrupt')
+                link_object.kill()
+                alive = False
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt')
+            link_object.kill()
+            alive = False
+        except Exception as e:
+            print(e)
+            print("uhh i died")
+            link_object.kill()
+            alive = False
 
 
 if __name__ == '__main__':
@@ -109,7 +189,7 @@ if __name__ == '__main__':
             print('Starting status test thread')
             status_test_thread = threading.Thread(target=status_printer, daemon=True)
             status_test_thread.start()
-        test_link_all_drones()
+        update_logic_test()
     except KeyboardInterrupt:
         print('KeyboardInterrupt')
         link_object.kill()

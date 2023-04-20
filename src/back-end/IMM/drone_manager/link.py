@@ -12,6 +12,7 @@ _context = zmq.Context()
 _logger = create_logger("link")
 _link_alive_event = threading.Event()
 
+
 class Socket_SUB():
     def __init__(self, link_queue):
         self.socket = _context.socket(zmq.SUB)
@@ -42,13 +43,12 @@ class Socket_SUB():
             if msg:
                 _logger.debug(f"Received message: {msg}")
                 msg = self.decode(msg)
-                if msg['topic'] == 'lost_drones':
+                if msg['topic'] == 'lost_drone':
                     lost_drone = msg['data']['drone']
-                    self.queue.put({'topic':'lost_drone', 'data': {'lost_drone': lost_drone}})
-                elif msg['topic'] == 'gained_drones':
-                    gained_drones = msg['data']['drones']
-                    number_of_gained_drones = len(gained_drones)
-                    self.queue.put({'topic':'gained_drones', 'data': {'gained_drones': gained_drones, 'number_of_gained_drones': number_of_gained_drones}})
+                    self.queue.put({'topic':'lost_drone', 'data': {'drone': lost_drone}})
+                elif msg['topic'] == 'gained_drone':
+                    gained_drone = msg['data']['drone']
+                    self.queue.put({'topic':'gained_drone', 'data': {'drone': gained_drone}})
                 elif msg['topic'] == 'battery_level':
                     battery_level = msg['data']['battery_level']
                     drone = msg['data']['drone']
