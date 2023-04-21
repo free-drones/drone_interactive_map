@@ -57,6 +57,12 @@ class Socket_SUB():
                     drone_status = msg['data']['drone_status']
                     drone = msg['data']['drone']
                     self.queue.put({'topic':'drone_status', 'data': {'drone': drone, 'drone_status': drone_status}})
+                elif msg['topic'] == 'drone_position':
+                    lat = msg['data']['lat']
+                    lon = msg['data']['lon']
+                    alt = msg['data']['alt']
+                    drone = msg['data']['drone']
+                    self.queue.put({'topic':'drone_position', 'data': {'drone': drone, 'lat': lat, 'lon': lon, 'alt': alt}})
         self.socket.close()
     
     def close(self):
@@ -70,11 +76,11 @@ class Socket_SUB():
         return topic, msg
     
     def decode(self, msg):
-        print(msg)
+        #print(msg)
         topic, msg = msg.split(maxsplit=1)
-        print("topic: ", topic, "msg: ", msg)
+        #print("topic: ", topic, "msg: ", msg)
         msg_dict = json.loads(msg)
-        print("msg_dict: ", msg_dict, type(msg_dict))
+        #print("msg_dict: ", msg_dict, type(msg_dict))
         return {'topic': topic, 'data': msg_dict}
 
 

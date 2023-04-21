@@ -101,7 +101,7 @@ def status_printer():
                 if msg['topic'] =='drone_status':
                     #print(f'topic is drone_status, trying to get data')
                     data = msg['data']
-                    print(f'Recieved drone status update with the data being: {data}')
+                    #print(f'Recieved drone status update with the data being: {data}')
                     if data['drone_status'] == 'waiting':
                         event_queue.put({'drone':data['drone'], 'update':'status_update', 'drone_status':data['drone_status']})
                         update_recieved_event.set()

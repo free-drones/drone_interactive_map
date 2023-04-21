@@ -8,3 +8,7 @@ class Drone():
         self.mode = mode
         self.route = None
         self.current_mission = None
+        self.status = "idle"
+        self.lat = None
+        self.lon = None
+        self.alt = None
