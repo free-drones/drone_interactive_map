@@ -10,7 +10,7 @@ TILE_SERVER_BASE_URL is used in /IMM/threads/thread_rds_sub.py.
 
 It's specifies at which address the Tile Server is being hosted.
 """
-TILE_SERVER_AVAILABLE = True
+TILE_SERVER_AVAILABLE = False
 TILE_SERVER_BASE_URL = "http://localhost/osm"
 
 """BACKEND_BASE_URL specifies at which adress the Server is being hosted."""

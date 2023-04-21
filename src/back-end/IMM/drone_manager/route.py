@@ -1,8 +1,13 @@
 import math
+from IMM.drone_manager.node import Node
 
 class Route():
-    def __init__(self, nodes):
-        self.nodes = nodes
+    def __init__(self, nodes, as_dicts = False):
+        if as_dicts:
+            self.nodes = [Node(lat=node['lat'], lon=node['lon']) for node in nodes]
+        else:
+            self.nodes = nodes
+        
         self.drone = None
     
     # The following functions are not currently used but will probably be helpful later
