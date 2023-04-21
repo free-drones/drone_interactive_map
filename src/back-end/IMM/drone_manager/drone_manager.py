@@ -33,6 +33,8 @@ class DroneManager(Thread):
         self.drone_data_lock = threading.Lock()
         self.update_recieved_event = threading.Event()
         self.event_queue = queue.Queue()
+        self.status_thread = None
+        
 
     def connect(self):
         self.link = Link()
@@ -57,6 +59,9 @@ class DroneManager(Thread):
             time.sleep(WAIT_TIME)
         
         _logger.info("received routes from pathfinding")
+
+        self.status_thread = threading.Thread(target=self.status_printer, daemon=True)
+        self.status_thread.start()
 
         while self.running:
             self.resource_management()
@@ -107,7 +112,7 @@ class DroneManager(Thread):
 
         for d in self.drones:
             with self.drone_data_lock:
-                if d.st != "charging" and self.link.get_drone_battery(d) < MIN_CHARGE_LEVEL:
+                if d.status != "charging" and self.link.get_drone_battery(d) < MIN_CHARGE_LEVEL:
                     if d.route:
                         d.route.drone = None
                     d.route = None
@@ -207,7 +212,7 @@ class DroneManager(Thread):
                         self.update_recieved_event.set()
 
                 while self.update_recieved_event.is_set():
-                    time.sleep(1)
+                    time.sleep(0.1)
             except KeyboardInterrupt:
                 alive = False
             except Exception as e:
