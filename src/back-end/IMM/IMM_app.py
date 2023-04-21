@@ -69,24 +69,13 @@ def on_connect(unused_data):
     """
     This function is called automatically by SocketIO on each new connection 
     This functions initiates a new client, sets up a socketIO room for that 
-    client and responds with a unique client ID.
+    client and responds with a unique client ID ('set_client_id'). If an area is already set,
+    the area and which user is set as high priority is also sent as a 'set_priority'
+    response.
+    
+    Keyword arguments:
+    unused_data -- N/A
     """
-
-    # case 1: No priority user and no area set.
-    #    -->  Return client ID
-    #
-    # case 2: Area is set AND Priority user exists
-    #    -->  Return client ID and the set area/bounds
-    #    -->  emit 'set_client_id'
-    #    -->  emit 'set_priority'  (prio, area, bounds)
-    #
-    # case 3: Area is set AND No priority user is set
-    #    -->  Return client ID and the set area/bounds
-    #    -->  Set current client to priority client
-    #    -->  emit 'set_client_id'
-    #    -->  emit 'set_priority'  (prio, area, bounds)
-    #
-    #
 
     client_id = None
     with session_scope() as session:
@@ -104,67 +93,43 @@ def on_connect(unused_data):
 
         
         stmt = select(Client).where((and_(Client.session_id == user_session.id, Client.is_prio_client == True)))
-        prioritized_client = session.scalars(stmt).first()
+        prioritized_client = session.scalars(stmt).first()  # used to see if prio client exists
         stmt = select(AreaVertex).where(AreaVertex.session_id == user_session.id)
-        area_vertex = session.scalars(stmt).first()
+        area_vertex = session.scalars(stmt).first()  # used to check if area is set
     
         _logger.debug(f"Received connect call, client id: {client_id}, sid: {request.sid}")
         
-        #Case 1
-        if not (prioritized_client or area_vertex):
-            _logger.debug(f"No prioritized client and no area set: sending set_client_id")
+        client_id_response = { "client_id": client_id }
+        emit("set_client_id", client_id_response)
 
-            client_id_response = { "client_id": client_id }
-            emit("set_client_id", client_id_response)
-
-        #Case 2
-        elif (prioritized_client and area_vertex):
-            _logger.debug(f"Prioritized client exists and area is set: sending set_client_id and sending set_priority ")
-            client_id_response = { "client_id": client_id }
-            emit("set_client_id", client_id_response)
-
-
-            reply_bounds = [user_session.bounds1.to_list(), user_session.bounds2.to_list()]
-            reply_coordinates = [vertex.coordinate.to_json() for vertex in user_session.area_vertices]
-
-            set_priority_response = {
-            "high_priority_client": prioritized_client.id,
-            "bounds": reply_bounds,
-            "coordinates": reply_coordinates
-            }
-            emit("set_priority", set_priority_response)
-
-        #Case 3
-        elif (area_vertex and not prioritized_client):
-
-            _logger.debug(f"We have area but no prio client: Setting current client to prio and sending set priority")
-            client_id_response = { "client_id": client_id }
-            emit("set_client_id", client_id_response)
-
+        # If area is set, send area info to connecting client
+        if area_vertex:
             reply_bounds = [user_session.bounds1.to_list(), user_session.bounds2.to_list()]
             reply_coordinates = [vertex.coordinate.to_json() for vertex in user_session.area_vertices]
             
-            _logger.debug(f"sending set_priority with -1")
+            # Send client id of prioritized client if there is one, otheriwise give high priority to connecting client
+            if prioritized_client:
+                high_priority_client_id = prioritized_client.id
+            else:
+                new_client.is_prio_client = True
+                high_priority_client_id = client_id
+    
             set_priority_response = {
-            "high_priority_client": -1,
+            "high_priority_client": high_priority_client_id,
             "bounds": reply_bounds,
             "coordinates": reply_coordinates
             }
-            emit("set_priority", set_priority_response)
-            time.sleep(3)
-            new_client.is_prio_client = True
-            
-            _logger.debug(f"sending set_priority with id {client_id}")
-            set_priority_response = {
-            "high_priority_client": client_id,
-            "bounds": reply_bounds,
-            "coordinates": reply_coordinates
-            }
-            emit("set_priority", set_priority_response)
+            emit("set_priority", set_priority_response)        
 
 
 @socketio.on("disconnect")
 def on_disconnect():
+    """
+    This function is called automatically by SocketIO when a client disconnects. As SocketIO
+    uses long polling this does not happen instantly after the connection actually closes.
+
+    The Client associated with the connection is deleted.
+    """
     with session_scope() as session:
         client = session.scalars(select(Client).where(Client.sid == request.sid)).first()
         client_id = client.id if client else None
@@ -247,7 +212,7 @@ def on_set_area(data):
                 emit_error_response("set_area", f"Could not retrieve a client with that ID {client_id}, try calling 'init_connection' again.", _logger)
                 return
             
-            sessionID = client.session_id  # Save ID so it's accesible outside scope.
+            sessionID = client.session_id  # Save ID so it's accessible outside scope.
             
             # Retrieve the prioritized client for current user session
             stmt = select(Client).where((and_(Client.session_id == sessionID, Client.is_prio_client == True)))
@@ -265,18 +230,18 @@ def on_set_area(data):
                 reply_coordinates = [vertex.coordinate.to_json() for vertex in user_session.area_vertices]
                 broadcast = False
             else:
-                
                 if prioritized_client is None:
                     client.is_prio_client = True
                 else: # we are already prioritized, thus we are redefining area
                     # Delete old area vertices before adding the new ones.
                     session.execute(delete(AreaVertex).where(AreaVertex.session_id == sessionID))
                 
-                # Prepare to send area and prio information back to frontend
+                # Prepare to send area and prio information back to frontend (to all clients in this user session)
                 high_priority_client_id = data["arg"]["client_id"]
                 reply_bounds = data["arg"]["bounds"]
                 reply_coordinates = data["arg"]["coordinates"]
-
+                broadcast = True
+                
                 # Save the received area information in database.
                 stmt = (
                     update(UserSession)
@@ -290,14 +255,8 @@ def on_set_area(data):
                 session.commit()
 
 
-                # Prepare to send area and prio information back to frontend
-                high_priority_client_id = data["arg"]["client_id"]
-                reply_bounds = data["arg"]["bounds"]
-                reply_coordinates = data["arg"]["coordinates"]
-                broadcast = True
 
-
-        # Send set_area to RDS, for some reason
+        # Send set_area to RDS
         request_to_rds = {}
         request_to_rds["fcn"] = "set_area"
         request_to_rds["arg"] = {}
@@ -332,7 +291,6 @@ def on_set_area(data):
         if broadcast:
             emit("set_priority", set_prio_response, room=sessionID)
         else:
-            #TODO: check if this really only sends to one guy, and that the broadcasts are sent to ALL 
             emit("set_priority", set_prio_response)
 
         
