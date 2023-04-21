@@ -727,7 +727,6 @@ export function showWarning(state) {
     showWarning: state.showWarning,
   };
 }
-
 const states = {
   areaWaypoints,
   clientID,

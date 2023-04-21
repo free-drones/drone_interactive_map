@@ -182,6 +182,15 @@ export function getInfo(callback = null) {
 }
 
 /**
+ * Get drone position.
+ *
+ * @param {APICallback} callback Optional callback function
+ */
+export function getDrones(callback = null) {
+  ServerConnection.sendDownstream("get_drones", {}, callback);
+}
+
+/**
  * Get information of queue ETA (seconds).
  *
  * @param {APICallback} callback Optional callback function
