@@ -31,6 +31,7 @@ import {
   showWarningActions,
 } from "./Storage.js";
 import { boundsToView } from "./Helpers/maphelper.js";
+import { getDrones } from "./Connection/Downstream.js";
 
 import Leaflet from "leaflet";
 
@@ -206,7 +207,12 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
 class IMMMap extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { userPosition: null };
+    this.state = {
+      userPosition: null,
+      drones: null,
+      oldDrones: null,
+      getDronesTimer: null,
+    };
   }
 
   /**
@@ -261,6 +267,28 @@ class IMMMap extends React.Component {
   }
 
   /**
+   * Drone position update, componentDidMount runs once on startup.
+   */
+  componentDidMount() {
+    const updateDronesTimer = 1000;
+    this.setState({
+      getDronesTimer: setInterval(() => {
+        getDrones((response) => {
+          this.setState({ oldDrones: this.state.drones });
+          this.setState({ drones: response.arg.drones });
+        });
+      }, updateDronesTimer),
+    });
+  }
+
+  /**
+   * Remove double timer from componentDidMount
+   */
+  componentWillUnmount() {
+    clearInterval(this.state.getDronesTimer);
+  }
+
+  /**
    * Restructures the waypoint list so that the clicked markers waypoint is the first in the list and the waypoint that is added next is its neighbor.
    * @param {Integer} i
    */
@@ -312,6 +340,86 @@ class IMMMap extends React.Component {
     ));
 
     return markers;
+  }
+
+  /**
+   * Set Drone icon color based on current status
+   *
+   * @param {*} drone
+   */
+  droneColor(drone) {
+    let status = drone.status;
+    switch (status) {
+      case "Auto":
+        return "#000000"; // BLACK
+      case "Manual":
+        return "#FF0000"; // RED
+      case "Photo":
+        return "#0000FF"; // BLUE
+      default:
+        return "#A200FF"; // PURPLE
+    }
+  }
+
+  /**
+   * Calculates drone angle using linear trajectory based on two points
+   *
+   * @param {*} oldPoint
+   * @param {*} newPoint
+   */
+  droneAngle(oldPoint, newPoint) {
+    // Estimate latitude scale factor for each drone given its current position
+    let latitudeScaleFactor = 1 / Math.cos((newPoint.lat * Math.PI) / 180);
+
+    // Calculate angle in degrees
+    const p1 = {
+      x: oldPoint.lat * latitudeScaleFactor,
+      y: oldPoint.lng,
+    };
+
+    const p2 = {
+      x: newPoint.lat * latitudeScaleFactor,
+      y: newPoint.lng,
+    };
+
+    const angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
+    return angleDeg;
+  }
+
+  /**
+   * Places all drone icons on the map
+   */
+  droneFactory() {
+    if (!this.state.oldDrones) {
+      return [];
+    }
+
+    const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
+      <Marker
+        position={[drone.location.lat, drone.location.lng]}
+        key={`drone${i}`}
+        icon={Leaflet.divIcon({
+          className: "tmp",
+          iconAnchor: Leaflet.point(
+            this.props.store.config.droneIconPixelSize / 2,
+            this.props.store.config.droneIconPixelSize / 2
+          ),
+          html: `<svg fill=${this.droneColor(drone)}
+                    height="${this.props.store.config.droneIconPixelSize}px" 
+                    width="${this.props.store.config.droneIconPixelSize}px" 
+                    version="1.1" id="Layer_1" 
+                    transform="rotate(${this.droneAngle(
+                      this.state.oldDrones[key].location,
+                      drone.location
+                    )})"
+                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	                  viewBox="0 0 1792 1792" xml:space="preserve">
+                    <path d="M187.8,1659L896,132.9L1604.2,1659L896,1285.5L187.8,1659z"/>
+                    </svg> `,
+        })}
+      />
+    ));
+    return drones;
   }
 
   /**
@@ -419,37 +527,29 @@ class IMMMap extends React.Component {
           ""
         )}
 
-        {/*Draws markers*/}
+        {/* Draws markers */}
         {this.props.allowDefine ? this.markerFactory() : ""}
 
-        {/* This marker is only here to show the effects of the drone icon configs until the actual drone icons are added */}
-        {this.props.store.config.showDroneIcons ? (
-          <Marker
-            position={[59.815636, 17.649551]}
-            icon={Leaflet.divIcon({
-              className: "tmp",
-              iconAnchor: Leaflet.point(
-                this.props.store.config.droneIconPixelSize / 2,
-                this.props.store.config.droneIconPixelSize / 2
-              ),
-              html: `<svg fill="#000000" height="${this.props.store.config.droneIconPixelSize}px" width="${this.props.store.config.droneIconPixelSize}px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1792 1792" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path></g></svg>`,
-            })}
-          />
-        ) : (
-          ""
-        )}
-        {this.state.userPosition !== null ? (
-          <Marker
-            position={this.state.userPosition}
-            icon={Leaflet.divIcon({
-              className: "userIcon",
-              iconAnchor: Leaflet.point(11, 11),
-              html: userPosIcon,
-            })}
-          />
-        ) : (
-          ""
-        )}
+        {/* Draws drone icons. */}
+        {this.props.store.config.showDroneIcons && this.state.drones
+          ? this.droneFactory()
+          : ""}
+
+        {
+          /* Draws user position. */
+          this.state.userPosition !== null ? (
+            <Marker
+              position={this.state.userPosition}
+              icon={Leaflet.divIcon({
+                className: "userIcon",
+                iconAnchor: Leaflet.point(11, 11),
+                html: userPosIcon,
+              })}
+            />
+          ) : (
+            ""
+          )
+        }
         {this.props.store.activePictures.map((img) => (
           <ImageOverlay
             url={img.url}
