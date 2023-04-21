@@ -195,14 +195,21 @@ def on_set_area(data):
         # Area segmentation and route planning, and give routes to drone manager
         area_coordinates = data["arg"]["coordinates"] 
         START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
-        NODE_SPACING = 6
+        NODE_SPACING = 5.0
 
-        drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
+        drone_count = True # thread_handler.get_drone_manager_thread().get_drone_count()
         if drone_count:
             polygon = area_segmentation.Polygon(area_coordinates) 
-            polygon.create_area_segments(NODE_SPACING, START_LOCATION, drone_count)
+            polygon.create_area_segments(NODE_SPACING, START_LOCATION, 5)
             route_list = [segment.route_dicts() for segment in polygon.segments]
-            
+            print("NODE GRID: ")
+
+            print("[", end='')
+            for node in route_list[0]:
+                latlon = node
+                print('{"lat": ', latlon["lat"], ', "long": ', latlon["lon"], '}, ', end='')
+            print("]")
+
             thread_handler.get_drone_manager_thread().set_routes(route_list)
         else:
             _logger.warning("No drones available when attempting route planning!")  # TODO: handle this case better

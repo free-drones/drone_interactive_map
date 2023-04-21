@@ -96,12 +96,31 @@ class Polygon():
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
         nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
+        
+        #print("---- NODES, yo ----")
+        #print(nodes)
+        
         rings = np.array([len(nodes)]) # Used to describe the geometry of the polygon. Can be used to define holes inside the polygon. (We don't)
         result = earcut.triangulate_int32(nodes, rings) # List of node indices defining the triangles
         triangles = []
+
+        #print("TRIANGLEEEEEEES!")
+        #print("[")
         for i in range(0, len(result), 3): # Iterate over all such found triangles to create the triangle objects.
+            
             triangle = Triangle([self.nodes[result[i]], self.nodes[result[i+1]], self.nodes[result[i+2]]])
+            #latlon = triangle.a.to_latlon()
+            #print('{"lat": ', latlon["lat"], ', "long": ', latlon["lon"], '}, ', end='')
+            #latlon = triangle.b.to_latlon()
+            #print('{"lat": ', latlon["lat"], ', "long": ', latlon["lon"], '}, ', end='')
+            #latlon = triangle.c.to_latlon()
+            #print('{"lat": ', latlon["lat"], ', "long": ', latlon["lon"], '}, ', end='')
+
             triangles.append(triangle)
+
+        #print("]")
+
+        #print("Triangles len: ", len(triangles), ", len results: ", len(result))
 
         return triangles
     
@@ -132,7 +151,7 @@ class Polygon():
                 for triangle in self.triangles:
                     node = Node(None, utm_coordinates=(x, y))
 
-                    if triangle.contains(node):
+                    if True: # triangle.contains(node):
                         # Find the zone num/letter of the closest node in the polygon node list.
                         # This is because the nodes are created with UTM coordinates, and the lat/lon coordinates
                         # are unknown, which means that the zone information cannot be derived.
