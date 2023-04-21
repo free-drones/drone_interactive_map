@@ -21,7 +21,7 @@ function getFormattedTime(date) {
 }
 
 /**
- * Returns the time since date, given currentTime. It is formatted and returned as a string. 
+ * Returns the time since date, given currentTime. It is formatted and returned as a string.
  * @param {Date} currentTime The time when the function is called.
  * @param {Date} date The time when the picture was requested to be taken.
  * @returns A formatted string with the time difference
@@ -38,7 +38,7 @@ function getTimeSince(currentTime, date) {
 
 /**
  * A React component of a Box containing formatted information about a priority picture request
- * @param {Object} data the picture request data 
+ * @param {Object} data the picture request data
  * @returns react component
  */
 export default function PriorityPictureRequestInfo({ data }) {

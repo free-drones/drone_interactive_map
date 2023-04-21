@@ -1,5 +1,5 @@
 /**
- * List item to store information about the pictures requested to be taken. 
+ * List item to store information about the pictures requested to be taken.
  * They are stored in the PriorityPicturesTab.
  */
 
@@ -25,7 +25,7 @@ const styles = {
   wrappingText: {
     whiteSpace: "normal",
     marginLeft: 3,
-},
+  },
   listItem: {
     display: "flex",
     flexDirection: "column",
@@ -36,7 +36,7 @@ const styles = {
 /**
  * React component used to show information about a priority picture request in a list item
  * @param {Object} item priority picture request data
- * @param {Number} listID 
+ * @param {Number} listID
  * @returns React component
  */
 export default function PriorityPictureListItem({ item, listID }) {
