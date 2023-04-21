@@ -1,6 +1,7 @@
 from threading import Thread
 from utility.helper_functions import create_logger
 from IMM.drone_manager.drone import Drone
+from IMM.drone_manager.route import Route
 from IMM.drone_manager.link import Link
 from IMM.drone_manager.link_dummy import Link as LinkDummy
 from IMM.drone_manager.mission import Mission
@@ -37,8 +38,11 @@ class DroneManager(Thread):
         self.link = Link()
         self.link.connect_to_all_drones()
 
-    def run(self):
+    def run(self, connect_to_RDS = True):
         """ where the thread runs """
+
+        if connect_to_RDS:
+            self.connect()
 
         # get drones from CRM, wait until non-zero number of drones
         while True:
@@ -62,7 +66,17 @@ class DroneManager(Thread):
 
 
     def set_routes(self, route_list):
-        self.routes = route_list
+        if not isinstance(route_list, list) or not route_list:
+            return False
+        if isinstance(route_list[0], list):
+            self.routes = [Route(route, as_dicts=True) for route in route_list]
+            print(self.routes)
+            return True
+        elif isinstance(route_list[0], Route):
+            self.routes = route_list
+            print(self.routes)
+            return True
+        return False
 
     def get_crm_drones(self):
         drones = [Drone(id=dname) for dname in self.link.get_list_of_drones()]

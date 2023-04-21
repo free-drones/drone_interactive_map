@@ -33,7 +33,6 @@ class ThreadHandler():
         self.gui_pub_thread.start()
         self.info_fetcher_thread.start()
         self.drone_manager_thread.start()
-        self.drone_manager_thread.connect()
 
     def stop_threads(self):
         """Stops the threads. Used for debugging."""
