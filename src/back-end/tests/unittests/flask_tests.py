@@ -48,25 +48,29 @@ class TestFlask(unittest.TestCase):
         """Settings that can be enabled/disabled"""
         pass
 
+    def assert_connection(self, client):
+        self.assertTrue(client.is_connected())
+        received = client.get_received()
+        print(received)
+        self.assertEqual("set_client_id", received[0]["name"])
+        self.assertEqual({"client_id": 1}, received[0]["args"][0])
 
     def test_connect(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
 
 
     def test_check_alive(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
+        #self.assert_connection(client)
+        self.assert_connection(client)
         client.emit("check_alive", {})
         received = client.get_received()
         self.assertEqual({"fcn":"ack", "fcn_name":"check_alive"}, received[0]["args"][0])
 
     def test_quit(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
+        self.assert_connection(client)
         client.emit("quit", {})
         received = client.get_received()
         self.assertEqual({"fcn":"ack", "fcn_name":"quit"}, received[0]["args"][0])
@@ -74,10 +78,8 @@ class TestFlask(unittest.TestCase):
     def test_set_area(self):
         data = {"arg":{"client_id":1, "coordinates": [{"lat":1.0,"long":2.0}, {"lat":3.0, "long":4.0}, {"lat":3.0,"long":4.0}], "bounds": [[3,4],[5,6]]}}
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
+        
 
         client.emit("set_area", data)
         received = client.get_received()
@@ -93,10 +95,8 @@ class TestFlask(unittest.TestCase):
 
     def test_request_view(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
+        
 #        [(5,0),(5,5),(10,5),(10,0)]
         data = {
                 "arg" : {   "type":"RGB",
@@ -219,10 +219,8 @@ class TestFlask(unittest.TestCase):
 
     def test_request_priority_view(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
+        
 
         data = {"arg":
                     {
@@ -250,10 +248,8 @@ class TestFlask(unittest.TestCase):
 
     def test_clear_queue(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
+        
 
         with dbx.session_scope() as session:
             priority_image = dbx.PrioImage(
@@ -282,10 +278,8 @@ class TestFlask(unittest.TestCase):
 
     def test_set_mode(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
+        
 
         data = {"arg":{"mode": "MAN", "zoom":example_coordinates}}
         client.emit("set_mode", data)
@@ -295,10 +289,8 @@ class TestFlask(unittest.TestCase):
 
     def test_get_info(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
+        
 
         with dbx.session_scope() as session:
             drone = Drone(
@@ -330,10 +322,8 @@ class TestFlask(unittest.TestCase):
 
     def test_que_ETA(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
+        self.assert_connection(client)
+        
 
         with dbx.session_scope() as session:
             image = PrioImage(
@@ -356,10 +346,8 @@ class TestFlask(unittest.TestCase):
 
     def test_send_to_gui(self):
         client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        received = client.get_received()
-        client_id = received[0]["args"][0]["arg"]["client_id"]
+        self.assert_connection(client)
+        client_id = 1
 
         thread_handler.get_gui_pub_thread().send_to_gui("hello world")
         received = client.get_received()
