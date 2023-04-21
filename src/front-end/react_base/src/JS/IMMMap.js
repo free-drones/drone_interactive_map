@@ -566,7 +566,7 @@ class IMMMap extends React.Component {
 
         {/* Draws requested picture indicators */}
         {this.pictureRequestIndicatorFactory()}
-        
+
         {/* Draws drone icons. */}
         {this.props.store.config.showDroneIcons && this.state.drones
           ? this.droneFactory()
