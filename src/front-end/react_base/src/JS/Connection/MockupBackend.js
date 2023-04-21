@@ -33,7 +33,7 @@ io.on("connect", (socket) => {
       },
     };
 
-    socket.emit("response", reply);
+    socket.emit("init_connection_response", reply);
   });
 
   // CheckAlive
@@ -45,7 +45,7 @@ io.on("connect", (socket) => {
       fcn_name: "check_alive",
     };
 
-    socket.emit("response", reply);
+    socket.emit("check_alive_response", reply);
   });
 
   // Disconnect
@@ -58,7 +58,7 @@ io.on("connect", (socket) => {
     };
     //TODO: Check if user had high priority and set new high priority
 
-    socket.emit("response", reply);
+    socket.emit("quit_response", reply);
   });
 
   // SetArea
@@ -70,7 +70,7 @@ io.on("connect", (socket) => {
       fcn_name: "set_area",
     };
 
-    socket.emit("response", reply);
+    socket.emit("set_area_response", reply);
     priorityAndArea.high_priority_client = request.arg.client_id;
     priorityAndArea.bounds = request.arg.bounds;
     priorityAndArea.coordinates = request.arg.coordinates;
@@ -89,7 +89,7 @@ io.on("connect", (socket) => {
       },
     };
 
-    socket.emit("response", reply);
+    socket.emit("request_view_response", reply);
   });
 
   // RequestPriorityPicture
@@ -104,7 +104,7 @@ io.on("connect", (socket) => {
       },
     };
 
-    socket.emit("response", reply);
+    socket.emit("request_priority_picture_response", reply);
   });
 
   // ClearImageQueue
@@ -116,7 +116,7 @@ io.on("connect", (socket) => {
       fcn_name: "clear_queue",
     };
 
-    socket.emit("response", reply);
+    socket.emit("clear_queue_response", reply);
   });
 
   // SetMode
@@ -128,7 +128,7 @@ io.on("connect", (socket) => {
       fcn_name: "set_mode",
     };
 
-    socket.emit("response", reply);
+    socket.emit("set_mode_response", reply);
   });
 
   // GetInfo
@@ -146,7 +146,7 @@ io.on("connect", (socket) => {
       ],
     };
 
-    socket.emit("response", reply);
+    socket.emit("get_info_response", reply);
   });
 
   // "fake" drone data for testing GUI
@@ -205,7 +205,7 @@ io.on("connect", (socket) => {
         drones: simulatedDrones,
       },
     };
-    socket.emit("response", reply);
+    socket.emit("get_drones_response", reply);
   });
 
   // GetQueueETA
@@ -219,6 +219,6 @@ io.on("connect", (socket) => {
         ETA: 9999999,
       },
     };
-    socket.emit("response", reply);
+    socket.emit("que_ETA_response", reply);
   });
 });
