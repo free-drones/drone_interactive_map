@@ -37,6 +37,7 @@ class DroneManager(Thread):
         
 
     def connect(self):
+        '''Connects to the RDS.'''
         self.link = Link()
         self.link.connect_to_all_drones()
 
@@ -71,6 +72,7 @@ class DroneManager(Thread):
 
 
     def set_routes(self, route_list):
+        ''''Sets the routes for the drones to follow. Expects a list of Route objects or a list of lists of dicts.'''
         if not isinstance(route_list, list) or not route_list:
             return False
         if isinstance(route_list[0], list):
@@ -83,18 +85,27 @@ class DroneManager(Thread):
             return True
         return False
 
+
     def get_crm_drones(self):
+        '''Returns a list of drones connected to the drone application'''
         drones = [Drone(id=dname) for dname in self.link.get_list_of_drones()]
         return drones
 
+
     def stop(self):
+        '''Stops the thread'''
         self.running = False
 
+
     def get_drone_count(self):
+        '''Returns the number of drones connected to the RDS'''
         return len(self.drones)
     
+
     def create_mission(self, drone):
+        '''Creates a mission for the drone to fly'''
         return Mission(drone.route)
+
 
     def resource_management(self):
         """ Handles assigning drones based on battery and mission status to routes. Drones are sent to charge when needed. """
@@ -147,69 +158,73 @@ class DroneManager(Thread):
         return success
         #TODO: Handle routes which could not get a mission
 
+
     def get_matching_drone(self, drone_id):
         for d in self.drones:
             if d.id == drone_id:
                 return d
         return None
     
+
     def status_printer(self):
+        ''''Receives update msgs from link and updates the drone managers resources to reflect the changes'''
         alive = True
         while alive:
             try:
                 _logger.info('trying to get status update')
                 msg = self.link.msg_queue.get()
                 _logger.info(f'got status update: {msg}')
-                if msg is not None:
+                if msg is None:
+                    continue
 
-                    if msg['topic'] =='drone_status':
-                        _logger.info(f'topic is drone_status, trying to get data')
-                        data = msg['data']
-                        _logger.info(f'Recieved drone status update with the data being: {data}')
-                        if data['drone_status'] == 'waiting':
-                            #self.event_queue.put({'drone':data['drone'], 'update':'status_update', 'drone_status':data['drone_status']})
-                            #self.update_recieved_event.set()
-                            #_logger.info(f'update recieved: {self.update_recieved_event.is_set()}')
-                            with self.drone_data_lock:
-                                self.get_matching_drone(data['drone']).status = data['drone_status']
-                            _logger.info('mission done')
-                        elif data['drone_status'] == 'idle':
-                            with self.drone_data_lock:
-                                self.get_matching_drone(data['drone']).status = data['drone_status']
-                            _logger.info('idling')
-                        elif data['drone_status'] == 'charging':
-                            with self.drone_data_lock:
-                                self.get_matching_drone(data['drone']).status = data['drone_status']
-                            _logger.info('charging battery')
-                        elif data['drone_status'] == 'flying':
-                            with self.drone_data_lock:
-                                self.get_matching_drone(data['drone']).status = data['drone_status']
-                            _logger.info('flying mission')
-                        elif data['drone_status'] == 'returning':
-                            with self.drone_data_lock:
-                                self.get_matching_drone(data['drone']).status = data['drone_status']
-                            _logger.info('returning to home')
-
-                    elif msg['topic'] == 'drone_position':
+                if msg['topic'] =='drone_status':
+                    _logger.info(f'topic is drone_status, trying to get data')
+                    data = msg['data']
+                    _logger.info(f'Recieved drone status update with the data being: {data}')
+                    if data['drone_status'] == 'waiting':
+                        #self.event_queue.put({'drone':data['drone'], 'update':'status_update', 'drone_status':data['drone_status']})
+                        #self.update_recieved_event.set()
+                        #_logger.info(f'update recieved: {self.update_recieved_event.is_set()}')
                         with self.drone_data_lock:
-                            drone = self.get_matching_drone(data['drone'])
-                            drone.lat = data['lat']
-                            drone.lon = data['lon']
-                            drone.alt = data['alt']
+                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                        _logger.info('mission done')
+                    elif data['drone_status'] == 'idle':
+                        with self.drone_data_lock:
+                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                        _logger.info('idling')
+                    elif data['drone_status'] == 'charging':
+                        with self.drone_data_lock:
+                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                        _logger.info('charging battery')
+                    elif data['drone_status'] == 'flying':
+                        with self.drone_data_lock:
+                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                        _logger.info('flying mission')
+                    elif data['drone_status'] == 'returning':
+                        with self.drone_data_lock:
+                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                        _logger.info('returning to home')
 
-                    elif msg['topic'] == 'lost_drone':
-                        _logger.info(f'topic is lost_drone, trying to get data')
-                        data = msg['data']
-                        _logger.info(f'Recieved drone status update with the data being: {data}')
-                        self.event_queue.put({'drone':data['drone'], 'update':'lost_drone'})
-                        self.update_recieved_event.set()
+                elif msg['topic'] == 'drone_position':
+                    with self.drone_data_lock:
+                        drone = self.get_matching_drone(data['drone'])
+                        drone.lat = data['lat']
+                        drone.lon = data['lon']
+                        drone.alt = data['alt']
 
-                    elif msg['topic'] == 'gained_drone':
-                        _logger.info(f'topic is new_drone, trying to get data')
-                        data = msg['data']
-                        _logger.info(f'Recieved drone status update with the data being: {data}')
-                        self.event_queue.put({'drone':data['drone'], 'update':'gained_drone'})
-                        self.update_recieved_event.set()
+                elif msg['topic'] == 'lost_drone':
+                    _logger.info(f'topic is lost_drone, trying to get data')
+                    data = msg['data']
+                    _logger.info(f'Recieved drone status update with the data being: {data}')
+                    self.event_queue.put({'drone':data['drone'], 'update':'lost_drone'})
+                    self.update_recieved_event.set()
+
+                elif msg['topic'] == 'gained_drone':
+                    _logger.info(f'topic is new_drone, trying to get data')
+                    data = msg['data']
+                    _logger.info(f'Recieved drone status update with the data being: {data}')
+                    self.event_queue.put({'drone':data['drone'], 'update':'gained_drone'})
+                    self.update_recieved_event.set()
 
                 while self.update_recieved_event.is_set():
                     time.sleep(0.1)
