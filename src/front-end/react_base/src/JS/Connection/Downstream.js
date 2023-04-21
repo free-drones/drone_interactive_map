@@ -113,14 +113,20 @@ export function requestView(clientID, view, callback = null) {
 }
 
 /**
- * Make a prioritized image request downstream.
+ * Make a priority picture request downstream.
  *
  * @param {View} view Current view
  * @param {APICallback} callback Optional callback function
+ * @param {Boolean} isUrgent Whether the priority picture request is urgent or not
  */
-export function requestPriorityView(clientID, view, isUrgent, callback = null) {
+export function requestPriorityPicture(
+  clientID,
+  view,
+  isUrgent,
+  callback = null
+) {
   let message = {
-    fcn: "request_priority_view",
+    fcn: "request_priority_picture",
     arg: {
       client_id: clientID,
       coordinates: translateView(view),
@@ -128,7 +134,11 @@ export function requestPriorityView(clientID, view, isUrgent, callback = null) {
     },
   };
 
-  ServerConnection.sendDownstream("request_priority_view", message, callback);
+  ServerConnection.sendDownstream(
+    "request_priority_picture",
+    message,
+    callback
+  );
 }
 
 /**
@@ -137,7 +147,7 @@ export function requestPriorityView(clientID, view, isUrgent, callback = null) {
  * @param {APICallback} callback Optional callback function
  */
 export function clearImageQueue(callback = null) {
-  ServerConnection.sendDownstream("clear_que", {}, callback);
+  ServerConnection.sendDownstream("clear_queue", {}, callback);
 }
 
 /**
@@ -304,7 +314,7 @@ const downstreamExports = {
   disconnect,
   setArea,
   requestView,
-  requestPriorityView,
+  requestPriorityPicture: requestPriorityPicture,
   clearImageQueue,
   setMode,
   getInfo,

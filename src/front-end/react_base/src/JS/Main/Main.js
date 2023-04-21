@@ -33,7 +33,7 @@ import StatusDrawer from "../Menu/StatusDrawer.js";
 
 import {
   requestView,
-  requestPriorityView,
+  requestPriorityPicture,
   callbackWrapper,
 } from "../Connection/Downstream.js";
 
@@ -52,7 +52,7 @@ class Main extends React.Component {
    * On click event for camera button.
    */
   cameraClickHandler(isUrgent) {
-    requestPriorityView(
+    requestPriorityPicture(
       this.props.store.clientID,
       this.props.store.mapPosition,
       isUrgent,

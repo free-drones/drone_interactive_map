@@ -92,13 +92,13 @@ io.on("connect", (socket) => {
     socket.emit("response", reply);
   });
 
-  // RequestPriorityView
-  socket.on("request_priority_view", (request) => {
-    console.log("request_priority_view call");
+  // RequestPriorityPicture
+  socket.on("request_priority_picture", (request) => {
+    console.log("request_priority_picture call");
 
     let reply = {
       fcn: "ack",
-      fcn_name: "request_priority_view",
+      fcn_name: "request_priority_picture",
       arg: {
         force_que_id: 1,
       },
@@ -108,12 +108,12 @@ io.on("connect", (socket) => {
   });
 
   // ClearImageQueue
-  socket.on("clear_que", (request) => {
-    console.log("clear_que call");
+  socket.on("clear_queue", (request) => {
+    console.log("clear_queue call");
 
     let reply = {
       fcn: "ack",
-      fcn_name: "clear_que",
+      fcn_name: "clear_queue",
     };
 
     socket.emit("response", reply);
