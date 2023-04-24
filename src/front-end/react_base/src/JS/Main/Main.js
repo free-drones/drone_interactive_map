@@ -6,6 +6,7 @@
 import React from "react";
 import IMMMap from "../IMMMap.js";
 import CameraButton from "./CameraButton.js";
+import UserPriorityIndicator from "./UserPriorityIndicator.js";
 import { Navigate } from "react-router-dom";
 
 import {
@@ -188,6 +189,7 @@ class Main extends React.Component {
           allowDefine={false}
         />
         <CameraButton clickHandler={this.cameraClickHandler} />
+        <UserPriorityIndicator />
       </div>
     );
   }
