@@ -15,7 +15,7 @@ import Storage, {
   clearRequestQueue,
   addActivePicture,
   removeActivePicture,
-  setSensor,
+  setLayerType,
   setMode,
   setMapBounds,
 } from "../JS/Storage.js";
@@ -377,12 +377,12 @@ test("set bounds", () => {
   ]);
 });
 
-test("sets sensor", () => {
-  Storage.store.dispatch(setSensor("RGB"));
-  Storage.store.dispatch(setSensor("Map"));
-  Storage.store.dispatch(setSensor("IR"));
+test("sets layerType", () => {
+  Storage.store.dispatch(setLayerType("RGB"));
+  Storage.store.dispatch(setLayerType("Map"));
+  Storage.store.dispatch(setLayerType("IR"));
 
-  expect(Storage.store.getState().sensor).toEqual("IR");
+  expect(Storage.store.getState().layerType).toEqual("IR");
 });
 
 test("set bad bounds", () => {
