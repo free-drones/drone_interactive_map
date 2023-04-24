@@ -13,6 +13,7 @@ import queue
 
 LOGGER_NAME = "drone_manager"
 _logger = create_logger(LOGGER_NAME)
+_drone_logger = create_logger(LOGGER_NAME + "_drones", custom_file_name="drone_log.log")
 
 class DroneManager(Thread):
     def __init__(self):
@@ -68,6 +69,8 @@ class DroneManager(Thread):
             self.resource_management()
             self.assign_missions()
 
+            for drone in self.drones:
+                _drone_logger.debug(drone)
             time.sleep(WAIT_TIME)
 
 
@@ -81,7 +84,6 @@ class DroneManager(Thread):
             return True
         elif isinstance(route_list[0], Route):
             self.routes = route_list
-            print(self.routes)
             return True
         return False
 
@@ -176,10 +178,11 @@ class DroneManager(Thread):
                 _logger.info(f'got status update: {msg}')
                 if msg is None:
                     continue
+                
+                data = msg['data']
 
                 if msg['topic'] =='drone_status':
                     _logger.info(f'topic is drone_status, trying to get data')
-                    data = msg['data']
                     _logger.info(f'Recieved drone status update with the data being: {data}')
                     if data['drone_status'] == 'waiting':
                         #self.event_queue.put({'drone':data['drone'], 'update':'status_update', 'drone_status':data['drone_status']})
@@ -214,14 +217,12 @@ class DroneManager(Thread):
 
                 elif msg['topic'] == 'lost_drone':
                     _logger.info(f'topic is lost_drone, trying to get data')
-                    data = msg['data']
                     _logger.info(f'Recieved drone status update with the data being: {data}')
                     self.event_queue.put({'drone':data['drone'], 'update':'lost_drone'})
                     self.update_recieved_event.set()
 
                 elif msg['topic'] == 'gained_drone':
                     _logger.info(f'topic is new_drone, trying to get data')
-                    data = msg['data']
                     _logger.info(f'Recieved drone status update with the data being: {data}')
                     self.event_queue.put({'drone':data['drone'], 'update':'gained_drone'})
                     self.update_recieved_event.set()

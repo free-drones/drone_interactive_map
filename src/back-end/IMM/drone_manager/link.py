@@ -118,7 +118,7 @@ class Socket_REQ():
                 self.socket.close()
                 return None
             except zmq.Again as e:
-                _logger.error("Error receiving message (timeout): {e}")
+                _logger.error(f"Error receiving message (timeout): {e}")
                 return None
             except zmq.ZMQError as e:
                 _logger.error(f"Error receiving message: {e}")
