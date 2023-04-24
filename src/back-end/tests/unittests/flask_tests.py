@@ -75,8 +75,8 @@ class TestFlask(unittest.TestCase):
     def test_set_area(self):
         data = {"arg":{"client_id":1, "coordinates": [{"lat":58.39933088094993,"long":15.57485264561767}, 
                                                       {"lat":58.399332989149435, "long":15.575615734071752}, 
-                                                      {"lat":58.3999071174593,"long":15.574849963405917},
-                                                      {"lat":58.399911333789255,"long":15.575615734068975} ]}}
+                                                      {"lat":58.399911333789255,"long":15.575615734068975},
+                                                      {"lat":58.3999071174593,"long":15.574849963405917} ]}}
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})

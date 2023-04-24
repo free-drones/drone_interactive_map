@@ -56,7 +56,7 @@ class Triangle():
         PAB_area = Triangle.area(point, self.a, self.b)
         
         # ABC is the original triangle and PBC, PAC, PAB are the sub-triangles created with the parameter 'point'.
-        return ABC_area == PBC_area + PAC_area + PAB_area
+        return int(ABC_area) == int(PBC_area + PAC_area + PAB_area)
 
     def nodes(self):
         """ Return the nodes of the triangle as a list """
@@ -81,8 +81,8 @@ class Polygon():
         """
         start_location = Node(start_coordinates)
 
-        self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
+        self.triangles = self.earcut_triangulate()
         self.node_grid = self.create_node_grid(node_spacing, start_location)
         self.update_area_segments(start_location, num_seg)
  
@@ -97,30 +97,21 @@ class Polygon():
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
         nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
         
-        #print("---- NODES, yo ----")
-        #print(nodes)
-        
+        #bbox_x = self.bounding_box["x_min"]
+        #bbox_y = self.bounding_box["y_min"]
+        #normalized_nodes = np.array(
+        #    [(node.x - bbox_x, node.y - bbox_y) for node in self.nodes],
+        #    dtype=np.float32)\
+        #.reshape(-1, 2)
+
         rings = np.array([len(nodes)]) # Used to describe the geometry of the polygon. Can be used to define holes inside the polygon. (We don't)
-        result = earcut.triangulate_int32(nodes, rings) # List of node indices defining the triangles
+        result = earcut.triangulate_float32(nodes, rings) # List of node indices defining the triangles
         triangles = []
 
-        #print("TRIANGLEEEEEEES!")
-        #print("[")
         for i in range(0, len(result), 3): # Iterate over all such found triangles to create the triangle objects.
             
             triangle = Triangle([self.nodes[result[i]], self.nodes[result[i+1]], self.nodes[result[i+2]]])
-            #latlon = triangle.a.to_latlon()
-            #print('{"lat": ', latlon["lat"], ', "long": ', latlon["lon"], '}, ', end='')
-            #latlon = triangle.b.to_latlon()
-            #print('{"lat": ', latlon["lat"], ', "long": ', latlon["lon"], '}, ', end='')
-            #latlon = triangle.c.to_latlon()
-            #print('{"lat": ', latlon["lat"], ', "long": ', latlon["lon"], '}, ', end='')
-
             triangles.append(triangle)
-
-        #print("]")
-
-        #print("Triangles len: ", len(triangles), ", len results: ", len(result))
 
         return triangles
     
@@ -151,7 +142,9 @@ class Polygon():
                 for triangle in self.triangles:
                     node = Node(None, utm_coordinates=(x, y))
 
-                    if True: # triangle.contains(node):
+                    print("Checking...")
+                    if triangle.contains(node):
+                        print("-------- All good!")
                         # Find the zone num/letter of the closest node in the polygon node list.
                         # This is because the nodes are created with UTM coordinates, and the lat/lon coordinates
                         # are unknown, which means that the zone information cannot be derived.
