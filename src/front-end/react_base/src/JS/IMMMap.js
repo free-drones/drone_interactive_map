@@ -148,7 +148,7 @@ class IMMMap extends React.Component {
     });
 
     // Remove red lines if placing a new waypoint removes intersection
-    for (const i of redLinesToBeRemoved.reverse()) {
+    for (const i of redLinesToBeRemoved) {
       this.props.store.removeCrossingLine(i);
     }
     return redLinesToBeRemoved;
@@ -211,7 +211,7 @@ class IMMMap extends React.Component {
     });
 
     // Remove red lines if the one of its waypoints gets removed.
-    for (const i of redLinesToBeRemoved.reverse()) {
+    for (const i of redLinesToBeRemoved) {
       this.props.store.removeCrossingLine(i);
     }
     return redLinesToBeRemoved;

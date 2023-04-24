@@ -86,7 +86,7 @@ export function newWaypointLinesCrossing(waypoint, waypoints) {
 /**
  * Checks if removing a waypoint results in new crossing lines.
  *
- * @param {Integer} index index of waypoint that will be removed.
+ * @param {Integer} index of waypoint that will be removed.
  * @param {list} waypoints list of current waypoints on the map.
  * @returns waypoints for crossing line if there is one, otherwise null.
  */
@@ -141,7 +141,7 @@ export function removedWaypointLinesCrossing(index, waypoints) {
       }
     }
 
-    // Case 3: index is first element in waypoints.
+    // Case 3: index is a middle element in waypoints.
   } else {
     a = waypoints[index + 1].lat;
     b = waypoints[index + 1].lng;
@@ -187,8 +187,8 @@ export function removedWaypointLinesCrossing(index, waypoints) {
  *
  * @param {*} point1 starting point of red line.
  * @param {*} point2 end point of red line.
- * @param {*} waypoints list of all waypoints on the map.
- * @param {*} index index of waypoint about to be removed.
+ * @param {array} waypoints list of all waypoints on the map.
+ * @param {integer} index of waypoint about to be removed.
  * @returns true if red line intersects with other lines, otherwise false.
  */
 export function checkRedLinesCrossing(point1, point2, waypoints, index) {
