@@ -4,7 +4,18 @@ import mapbox_earcut as earcut
 from utility import coordinate_conversion
 
 
+
+def angle_diff(angle_a, angle_b):
+    """ Calculate the angle difference between two angles accounting for the angle period """
+    return np.mod(angle_b - angle_a + np.pi, 2*np.pi) - np.pi
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 class Triangle():
+    """
+    Triangles defined by a set of three nodes of utm coordinates to simplify calculations on an arbitrarily shaped polygon.
+    """
     def __init__(self, nodes):
         self.a = nodes[0]
         self.b = nodes[1]
@@ -64,6 +75,10 @@ class Triangle():
 
 
 class Polygon():
+    """
+    Creates a polygon from an ordered list of nodes defining an area of interest. Can call helper functions to create nodes and segments to process the area. 
+    
+    """
     def __init__(self, node_list):
         self.nodes = [Node((node_dict["lat"], node_dict["long"])) for node_dict in node_list]
         self.bounding_box = {}
@@ -96,14 +111,6 @@ class Polygon():
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
         nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
-        
-        #bbox_x = self.bounding_box["x_min"]
-        #bbox_y = self.bounding_box["y_min"]
-        #normalized_nodes = np.array(
-        #    [(node.x - bbox_x, node.y - bbox_y) for node in self.nodes],
-        #    dtype=np.float32)\
-        #.reshape(-1, 2)
-
         rings = np.array([len(nodes)]) # Used to describe the geometry of the polygon. Can be used to define holes inside the polygon. (We don't)
         result = earcut.triangulate_float32(nodes, rings) # List of node indices defining the triangles
         triangles = []
@@ -142,9 +149,7 @@ class Polygon():
                 for triangle in self.triangles:
                     node = Node(None, utm_coordinates=(x, y))
 
-                    print("Checking...")
                     if triangle.contains(node):
-                        print("-------- All good!")
                         # Find the zone num/letter of the closest node in the polygon node list.
                         # This is because the nodes are created with UTM coordinates, and the lat/lon coordinates
                         # are unknown, which means that the zone information cannot be derived.
@@ -155,8 +160,6 @@ class Polygon():
                         node.angle_to_start = start_location.angle_to(node)
                         node_grid.append(node)
                         break
-
-        node_grid.sort(key=lambda n: (n.angle_to_start - max_diff_ang), reverse=False)
         return node_grid    
     
     def create_segments(self, num_seg):
@@ -190,13 +193,10 @@ class Polygon():
         return start_location.angle_to(chosen_nodes[0])
     
     def set_node_angles(self, start_location):
-        def node_angle(angle_a, angle_b): # TODO: Move to util class or whatever
-            return np.mod(angle_b - angle_a + np.pi, 2*np.pi) - np.pi
+        """ Sort node grid based on individual nodes' angle to 'start_location' """
         max_diff_ang = self.max_diff_angle(start_location)
-        for node in self.node_grid:
-            node.angle_to_start = start_location.angle_to(node)
- 
-        self.node_grid.sort(key=lambda n: node_angle(n.angle_to_start, max_diff_ang), reverse=False)
+
+        self.node_grid.sort(key=lambda n: angle_diff(start_location.angle_to(n), max_diff_ang), reverse=False)
 
     @staticmethod
     def is_clockwise(nodes):
@@ -215,9 +215,17 @@ class Polygon():
         pass
 
 class Node():
+    """
+    Handles coordinate pairs interpreted as nodes and performs conversions and calculations relative to the node instance. 
+    Takes lat lon coordinates, and optionally utm coordinates, as input. If created without utm coordinates they are then derived from lat lon.
+
+    UTM (Universal Transverse Mercator) coordinates are a 2D Cartesian coordinate system that uses meters as its unit of measurement. 
+    Therefore, you can treat UTM coordinates as a 2D Cartesian coordinate system and perform mathematical calculations accordingly, such as calculating distances and angles between points.
+    This can simplify calculations that would be more complex when working with latitudes and longitudes.
+    """
     def __init__(self, coordinates, utm_coordinates=None):
         
-        if utm_coordinates:
+        if utm_coordinates: # If the node is initiated with 'utm_coordinates' and not lat, lon
             self.zone_num = None
             self.zone_letter = None
         else:
@@ -230,8 +238,6 @@ class Node():
             self.zone_letter = zone_letter
         
         self.x, self.y = utm_coordinates
-
-        self.angle_to_start = None
 
     def angle_to(self, other_node):
         """ Return the angle in radians of the node instance to the 'other_node' """
@@ -276,11 +282,15 @@ class Node():
         return f"Node: UTM data: ({self.x}, {self.y}), Zone: {self.zone_num}{self.zone_letter}:"
     
 class Segment():
+    """
+    Representation of a sub area within the polygon containing all nodes within this sub area. Can plan route between the segments nodes.
+    """
     def __init__(self, owned_nodes):
         self.owned_nodes = owned_nodes
         self.route = []
 
     def route_dicts(self):
+        """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
         return [node.to_latlon() for node in self.route]
 
     def plan_route(self, start_location):
@@ -306,6 +316,5 @@ class Segment():
                         insert_node = unexplored_node
             new_route.insert(insert_index + 1, insert_node)
             unexplored_nodes.remove(insert_node)
-        print("Len of new route: ", len(new_route))
         self.route = new_route              
-    
+
