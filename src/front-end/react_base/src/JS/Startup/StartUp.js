@@ -147,6 +147,8 @@ function StartUp(props) {
    */
   function calculateBounds() {
     let bounds = Leaflet.latLngBounds(props.store.areaWaypoints);
+    // Adds a padding so that the bounds are not strictly limited to the defined area
+    // which makes it easier to request pictures close to the edges of the area
     const paddingX = 3 * (bounds.getEast() - bounds.getWest());
     const paddingY = 3 * (bounds.getSouth() - bounds.getNorth());
 

@@ -54,7 +54,6 @@ export default function PriorityPictureListItem({ item, listID }) {
         <ListItemText
           disableTypography
           sx={styles.wrappingText}
-          //   primary={<Typography variant="body1">{item.id}</Typography>}
           secondary={<PriorityPictureRequestInfo data={item} />}
         />
       </Collapse>

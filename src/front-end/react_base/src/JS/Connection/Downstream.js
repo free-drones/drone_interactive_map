@@ -314,7 +314,7 @@ const downstreamExports = {
   disconnect,
   setArea,
   requestView,
-  requestPriorityPicture: requestPriorityPicture,
+  requestPriorityPicture,
   clearImageQueue,
   setMode,
   getInfo,

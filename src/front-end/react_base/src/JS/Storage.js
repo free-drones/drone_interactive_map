@@ -57,7 +57,6 @@ const startView = {
 
 /* Elements are structured like following example:
 {
-    "type" : #Choice "RGB/IR",
     "prioritized" : #Choice: "True/False",
     "image_id" : "integer(1, -)", # Id of image
     "url": tbd: "URL",

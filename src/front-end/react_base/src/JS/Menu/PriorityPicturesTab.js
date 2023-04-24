@@ -57,6 +57,7 @@ function PriorityPicturesTab(props) {
           .sort((i1, i2) => i2.requestTime - i1.requestTime)
           .map((item, index) => (
             <PriorityPictureListItem
+              key={`pictureRequestListItem${index}`}
               item={item}
               listID={props.store.pictureRequestQueue.length - index}
             />
