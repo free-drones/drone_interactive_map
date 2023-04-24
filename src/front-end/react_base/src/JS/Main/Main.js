@@ -21,7 +21,7 @@ import {
   zoomLevel,
   mapState,
   mapStateActions,
-  sensor,
+  layerType,
   mode,
   activePictures,
   activePicturesActions,
@@ -54,7 +54,7 @@ class Main extends React.Component {
     requestPriorityView(
       this.props.store.clientID,
       this.props.store.mapPosition,
-      this.props.store.sensor,
+      this.props.store.layerType,
       callbackWrapper((response) => {
         this.props.store.addRequest(response.arg.force_que_id);
       })
@@ -69,7 +69,7 @@ class Main extends React.Component {
       requestView(
         this.props.store.clientID,
         this.props.store.mapPosition,
-        this.props.store.sensor,
+        this.props.store.layerType,
         callbackWrapper((response) => {
           // Get IDs of currently active pictures.
           const currentImageIDs = this.props.store.activePictures.map(
@@ -203,7 +203,7 @@ export default connect(
     zoomLevel,
     mapState,
     mode,
-    sensor,
+    layerType,
     activePictures,
   },
   {
