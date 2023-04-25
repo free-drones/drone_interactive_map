@@ -90,7 +90,7 @@ class TestFlask(unittest.TestCase):
 
         clients.emit("request_priority_picture", data)
         recieved = clients.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_que_id":1}}, recieved[0]["args"][0])
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, recieved[0]["args"][0])
 
         with session_scope() as session:
             all_prioimage = session.query(PrioImage).all()
@@ -102,7 +102,7 @@ class TestFlask(unittest.TestCase):
         for i in range(2,10):
             clients.emit("request_priority_picture", data)
             recieved = clients.get_received()
-            self.assertEqual(i, recieved[0]["args"][0]["arg"]["force_que_id"])
+            self.assertEqual(i, recieved[0]["args"][0]["arg"]["force_queue_id"])
 
         with session_scope() as session:
             all_prioimage = session.query(PrioImage).all()

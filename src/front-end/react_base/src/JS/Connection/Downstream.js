@@ -206,7 +206,7 @@ export function getDrones(callback = null) {
  * @param {APICallback} callback Optional callback function
  */
 export function getQueueETA(callback = null) {
-  ServerConnection.sendDownstream("que_ETA", {}, callback);
+  ServerConnection.sendDownstream("queue_ETA", {}, callback);
 }
 
 /**

@@ -100,7 +100,7 @@ io.on("connect", (socket) => {
       fcn: "ack",
       fcn_name: "request_priority_picture",
       arg: {
-        force_que_id: 1,
+        force_queue_id: 1,
       },
     };
 
@@ -209,16 +209,16 @@ io.on("connect", (socket) => {
   });
 
   // GetQueueETA
-  socket.on("que_ETA", (request) => {
-    console.log("que_ETA call");
+  socket.on("queue_ETA", (request) => {
+    console.log("queue_ETA call");
 
     let reply = {
       fcn: "ack",
-      fcn_name: "que_ETA",
+      fcn_name: "queue_ETA",
       arg: {
         ETA: 9999999,
       },
     };
-    socket.emit("que_ETA_response", reply);
+    socket.emit("queue_ETA_response", reply);
   });
 });

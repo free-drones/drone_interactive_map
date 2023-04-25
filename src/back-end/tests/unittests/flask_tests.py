@@ -226,7 +226,7 @@ class TestFlask(unittest.TestCase):
 
         client.emit("request_priority_picture", data)
         recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_que_id":1}}, recieved[0]["args"][0])
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, recieved[0]["args"][0])
 
         data = {"arg":
                     {
@@ -238,7 +238,7 @@ class TestFlask(unittest.TestCase):
 
         client.emit("request_priority_picture", data)
         recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_que_id":2}}, recieved[0]["args"][0])
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":2}}, recieved[0]["args"][0])
 
     def test_clear_queue(self):
         client = socketio.test_client(app)

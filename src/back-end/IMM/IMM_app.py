@@ -230,7 +230,7 @@ def on_request_view(data):
         request_to_rds["fcn"] = "add_poi"
         request_to_rds["arg"] = {}
         request_to_rds["arg"]["client_id"] = sessionID
-        request_to_rds["arg"]["force_que_id"] = 0 # Not a prioritized image
+        request_to_rds["arg"]["force_queue_id"] = 0 # Not a prioritized image
         request_to_rds["arg"]["coordinates"] = requested_view
         thread_handler.get_rds_pub_thread().add_request(request_to_rds)
 
@@ -342,7 +342,7 @@ def on_request_priority_picture(data):
         request_to_rds["fcn"] = "add_poi"
         request_to_rds["arg"] = {}
         request_to_rds["arg"]["client_id"] = sessionID
-        request_to_rds["arg"]["force_que_id"] = prio_imageID
+        request_to_rds["arg"]["force_queue_id"] = prio_imageID
         request_to_rds["arg"]["coordinates"] = data["arg"]["coordinates"]
         request_to_rds["arg"]["type"] = data["arg"]["type"]
         thread_handler.get_rds_pub_thread().add_request(request_to_rds)
@@ -352,7 +352,7 @@ def on_request_priority_picture(data):
         response["fcn"] = "ack"
         response["fcn_name"] = "request_priority_picture"
         response["arg"] = {}
-        response["arg"]["force_que_id"] = prio_imageID
+        response["arg"]["force_queue_id"] = prio_imageID
 
         _logger.debug(f"request_priority_picture resp: {response}")
         emit("request_priority_picture_response", response)
@@ -362,15 +362,15 @@ def on_request_priority_picture(data):
 def on_clear_queue(unused_data):
     """This function will cancell all PRIOTIZED images that previously have been
     requested but not yet delivered. It will respond with an acknowledgement and
-    send a CLEAR_QUE request to RDS.
+    send a CLEAR_QUEUE request to RDS.
 
     Keyword arguments:
     unused_data -- N/A
     """
-    _logger.debug(f"Received clear_que API call with data: {unused_data}")
+    _logger.debug(f"Received clear_queue API call with data: {unused_data}")
     # Sends request to rds pub thread
     request_to_rds = {}
-    request_to_rds["fcn"] = "clear_que"
+    request_to_rds["fcn"] = "clear_queue"
     request_to_rds["arg"] = ""
     thread_handler.get_rds_pub_thread().add_request(request_to_rds)
 
@@ -383,7 +383,7 @@ def on_clear_queue(unused_data):
     response["fcn"] = "ack"
     response["fcn_name"] = "clear_queue"
 
-    _logger.debug(f"clear_que resp: {response}")
+    _logger.debug(f"clear_queue resp: {response}")
     emit("clear_queue_response", response)
 
 
@@ -458,7 +458,7 @@ def on_get_info(unused_data):
 
 
 @socketio.on("queue_ETA")
-def que_ETA(unused_data):
+def queue_ETA(unused_data):
     """This function will respond with the ETA for the next item.
     It will not send a request to RDS since this information is regularly fetched.
 
@@ -474,7 +474,7 @@ def que_ETA(unused_data):
         if next_eta_image is not None:
             response = {}
             response["fcn"] = "ack"
-            response["fcn_name"] = "que_ETA"
+            response["fcn_name"] = "queue_ETA"
             response["arg"] = {}
             response["arg"]["ETA"] = next_eta_image[0]
 
