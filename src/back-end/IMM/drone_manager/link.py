@@ -46,9 +46,9 @@ class Socket_SUB():
                 if msg['topic'] == 'lost_drone':
                     lost_drone = msg['data']['drone']
                     self.queue.put({'topic':'lost_drone', 'data': {'drone': lost_drone}})
-                elif msg['topic'] == 'gained_drone':
-                    gained_drone = msg['data']['drone']
-                    self.queue.put({'topic':'gained_drone', 'data': {'drone': gained_drone}})
+                elif msg['topic'] == 'gained_drones':
+                    gained_drones = msg['data']['drones']
+                    self.queue.put({'topic':'gained_drone', 'data': {'drone': gained_drones}})
                 elif msg['topic'] == 'battery_level':
                     battery_level = msg['data']['battery_level']
                     drone = msg['data']['drone']
