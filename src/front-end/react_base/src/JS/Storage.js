@@ -176,6 +176,19 @@ export const removeCrossingLine = createAction(
 
 export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
 
+export const setCrossingLines = createAction(
+  "SET_CROSSING_LINES", 
+  function prepare(list) {
+    if (list) {
+      return {
+        payload: list,
+      };
+    } else {
+      throw new Error("This is not a list.");
+    }
+  }
+);
+
 /**
  * Client ID, restricted to a number.
  */
@@ -532,6 +545,10 @@ export const _crossingLines = createReducer([], (builder) => {
     })
     .addCase(clearCrossingLines, (state, action) => {
       return [];
+    })
+    .addCase(setCrossingLines, (state, action) => {
+      const newList = action.payload;
+      return newList;
     });
 });
 
@@ -880,6 +897,7 @@ export const crossingLineActions = {
   addCrossingLine,
   removeCrossingLine,
   clearCrossingLines,
+  setCrossingLines,
 };
 
 const actions = {

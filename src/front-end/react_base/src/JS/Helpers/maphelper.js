@@ -1,3 +1,6 @@
+
+
+
 /**
  * Utility functions for map.
  */
@@ -41,13 +44,66 @@ export function boundsToView(bounds) {
 }
 
 /**
+ * 
+ * 
+ * 
+ *@param {any} waypoints Current list of waypoints
+ *@param {any} newWaypoint  Waypoint to be added
+ *@param {integer} removeWaypointIndex index of waypoint to be removed
+ */
+export function createRedLines(waypoints, newWaypoint = null, removeWaypointIndex = null) {
+  let crossingLines = [];
+  let newWaypoints = [];
+  // Add new waypoint to list
+  if (newWaypoint) {
+    newWaypoints = [...waypoints, newWaypoint];
+  }
+  // Or remove it from old list
+  else {
+    newWaypoints = [...waypoints.slice(0, removeWaypointIndex), ...waypoints.slice(removeWaypointIndex + 1)];
+  }
+
+  // standard case
+  for(let j = 0; j < newWaypoints.length - 1; j++){
+    // Check if lines intersect
+    const a = newWaypoints[j].lat;
+    const b = newWaypoints[j].lng;
+    const c = newWaypoints[j + 1].lat;
+    const d = newWaypoints[j + 1].lng;
+
+    for (let i = 0; i < newWaypoints.length - 1; i++) {
+      const p = newWaypoints[i].lat;
+      const q = newWaypoints[i].lng;
+
+      const r = newWaypoints[i + 1].lat;
+      const s = newWaypoints[i + 1].lng;
+
+      if(hasIntersectingVectors(c, d, a, b, p, q, r, s) && (j != i)) {
+        crossingLines.push([newWaypoints[i], newWaypoints[i + 1]]);
+      }
+    }
+    // special case for when list loops around (line from last to first waypoint)
+    const p = newWaypoints[newWaypoints.length - 1].lat;
+    const q = newWaypoints[newWaypoints.length - 1].lng;
+    const r = newWaypoints[0].lat;
+    const s = newWaypoints[0].lng;
+
+    if(hasIntersectingVectors(c, d, a, b, p, q, r, s)) {
+      crossingLines.push([newWaypoints[newWaypoints.length - 1], newWaypoints[0]]);
+    }
+  }
+  return crossingLines;
+  //props.store.setCrossingLines(crossingLines);
+}
+
+/**
  * Checks if adding a waypoint results in new crossing lines.
  *
- * @param {any} waypoint new waypoint that will be added.
+ * @param {any} newWaypoint new waypoint that will be added.
  *
  * @returns true if the new waypoint lines have intersections, otherwise false.
  */
-export function newWaypointLinesCrossing(waypoint, waypoints) {
+export function newWaypointLinesCrossing(newWaypoint, waypoints) {
   // vector 1: (c,d) -> (a,b) (neighbour 1, forward in list) intersects with (p,q) -> (r,s).
   // vector 2: (e,f) -> (a,b) (neighbour 2, backward in list) intersects with (p,q) -> (r,s).
 
@@ -58,8 +114,8 @@ export function newWaypointLinesCrossing(waypoint, waypoints) {
 
   let crossing = false;
 
-  const a = waypoint.lat;
-  const b = waypoint.lng;
+  const a = newWaypoint.lat;
+  const b = newWaypoint.lng;
 
   const c = waypoints[0].lat;
   const d = waypoints[0].lng;
@@ -81,6 +137,40 @@ export function newWaypointLinesCrossing(waypoint, waypoints) {
   }
 
   return crossing;
+}
+
+/**
+* 
+* Removes red lines that disappear when placing a new waypoint. 
+*
+* @returns list of removed lines
+*/
+export function removeRedLinesOnNewWaypoint() {
+  let redLinesToBeRemoved = [];
+  const firstWaypoint = this.props.store.areaWaypoints[0];
+  const lastWaypoint =
+  this.props.store.areaWaypoints[this.props.store.areaWaypoints.length - 1];
+
+  // Two cases of lines that will be removed when adding new waypoint, used to compare with red lines
+  const tempRemovedLine1 = [firstWaypoint, lastWaypoint];
+  const tempRemovedLine2 = [lastWaypoint, firstWaypoint];
+
+  // If removed line was part of crossing lines list, remove it.
+  this.props.store.crossingLines.forEach((line, index) => {
+    if (
+      !(line === tempRemovedLine1 || line === tempRemovedLine2) &&
+      (line[0] === firstWaypoint || line[1] === lastWaypoint) &&
+      (line[0] === lastWaypoint || [line[1] === firstWaypoint])
+    ) {
+      redLinesToBeRemoved.push(index);
+    }
+  });
+
+  // Remove red lines if placing a new waypoint removes intersection
+  for (const i of redLinesToBeRemoved) {
+    this.props.store.removeCrossingLine(i);
+  }
+  return redLinesToBeRemoved;
 }
 
 /**
@@ -280,11 +370,17 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
   return 0 < length_1 && length_1 < 1 && 0 < length_2 && length_2 < 1;
 }
 
+
+
 const mapHelperExports = {
   boundsToView,
   newWaypointLinesCrossing,
   removedWaypointLinesCrossing,
   checkRedLinesCrossing,
+  removeRedLinesOnNewWaypoint,
+  createRedLines,
 };
 
 export default mapHelperExports;
+
+
