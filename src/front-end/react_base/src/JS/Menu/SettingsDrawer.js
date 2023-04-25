@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { Navigate } from "react-router-dom";
 import ModeButtonGroup from "./ModeButtonGroup.js";
-import SensorModeButtonGroup from "./SensorModeButtonGroup.js";
+import LayerTypeModeButtonGroup from "./LayerTypeModeButtonGroup.js";
 import UndoIcon from "@mui/icons-material/Undo";
 import {
   connect,
@@ -74,7 +74,7 @@ function SettingsDrawer(props) {
             <ModeButtonGroup />
           </ListItem>
           <ListItem>
-            <SensorModeButtonGroup />
+            <LayerTypeModeButtonGroup />
           </ListItem>
           <ListItem>
             <DroneIconConfigGroup />

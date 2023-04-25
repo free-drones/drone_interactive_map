@@ -441,17 +441,20 @@ export const setMapState = createAction(
 );
 
 /**
- * Actions related to Sensor mode (RGB, IR or Map).
+ * Actions related to LayerType mode (RGB, IR or Map).
  */
-export const setSensor = createAction("SET_SENSOR", function prepare(sensor) {
-  if (sensor === "RGB" || sensor === "IR" || sensor === "Map") {
-    return {
-      payload: sensor,
-    };
-  } else {
-    throw new Error("Sensor must be either RGB, IR or Map.");
+export const setLayerType = createAction(
+  "SET_LAYER_TYPE",
+  function prepare(layerType) {
+    if (layerType === "RGB" || layerType === "IR" || layerType === "Map") {
+      return {
+        payload: layerType,
+      };
+    } else {
+      throw new Error("LayerType must be either RGB, IR or Map.");
+    }
   }
-});
+);
 
 /**
  * Actions related to messages.
@@ -647,15 +650,15 @@ export const _mapBounds = createReducer(null, (builder) => {
     });
 });
 
-export const _mode = createReducer("MAN", (builder) => {
+export const _mode = createReducer("AUTO", (builder) => {
   builder.addCase(setMode, (state, action) => {
     const newMode = action.payload;
     return newMode;
   });
 });
 
-export const _sensor = createReducer("RGB", (builder) => {
-  builder.addCase(setSensor, (state, action) => {
+export const _layerType = createReducer("RGB", (builder) => {
+  builder.addCase(setLayerType, (state, action) => {
     const newMode = action.payload;
     return newMode;
   });
@@ -765,9 +768,9 @@ export function mode(state) {
   };
 }
 
-export function sensor(state) {
+export function layerType(state) {
   return {
-    sensor: state.sensor,
+    layerType: state.layerType,
   };
 }
 
@@ -788,7 +791,6 @@ export function showWarning(state) {
     showWarning: state.showWarning,
   };
 }
-
 const states = {
   areaWaypoints,
   clientID,
@@ -800,7 +802,7 @@ const states = {
   activePictures,
   mapBounds,
   mode,
-  sensor,
+  layerType,
   messages,
   mapState,
   showWarning,
@@ -866,7 +868,7 @@ export const mapBoundsActions = { setMapBounds, clearMapBounds };
 
 export const modeActions = { setMode };
 
-export const sensorActions = { setSensor };
+export const layerTypeActions = { setLayerType };
 
 export const messagesActions = { addMessage, removeMessage, clearMessages };
 
@@ -891,7 +893,7 @@ const actions = {
   activePicturesActions,
   mapBoundsActions,
   modeActions,
-  sensorActions,
+  layerTypeActions,
   messagesActions,
   mapStateActions,
   showWarningActions,
@@ -927,7 +929,7 @@ export const store = configureStore({
     activePictures: _activePictures,
     mapBounds: _mapBounds,
     mode: _mode,
-    sensor: _sensor,
+    layerType: _layerType,
     messages: _messages,
     mapState: _mapState,
     showWarning: _showWarning,

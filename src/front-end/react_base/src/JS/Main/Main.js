@@ -6,6 +6,7 @@
 import React from "react";
 import IMMMap from "../IMMMap.js";
 import CameraButton from "./CameraButton.js";
+import UserPriorityIndicator from "./UserPriorityIndicator.js";
 import { Navigate } from "react-router-dom";
 
 import {
@@ -21,7 +22,7 @@ import {
   zoomLevel,
   mapState,
   mapStateActions,
-  sensor,
+  layerType,
   mode,
   activePictures,
   activePicturesActions,
@@ -54,7 +55,7 @@ class Main extends React.Component {
     requestPriorityView(
       this.props.store.clientID,
       this.props.store.mapPosition,
-      this.props.store.sensor,
+      this.props.store.layerType,
       callbackWrapper((response) => {
         this.props.store.addRequest(response.arg.force_que_id);
       })
@@ -69,7 +70,7 @@ class Main extends React.Component {
       requestView(
         this.props.store.clientID,
         this.props.store.mapPosition,
-        this.props.store.sensor,
+        this.props.store.layerType,
         callbackWrapper((response) => {
           // Get IDs of currently active pictures.
           const currentImageIDs = this.props.store.activePictures.map(
@@ -188,6 +189,7 @@ class Main extends React.Component {
           allowDefine={false}
         />
         <CameraButton clickHandler={this.cameraClickHandler} />
+        <UserPriorityIndicator />
       </div>
     );
   }
@@ -203,7 +205,7 @@ export default connect(
     zoomLevel,
     mapState,
     mode,
-    sensor,
+    layerType,
     activePictures,
   },
   {
