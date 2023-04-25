@@ -1,7 +1,6 @@
 import threading
 import zmq
 import json
-import socket
 from utility.helper_functions import create_logger
 from config_file import DRONE_APP_URL
 
@@ -10,14 +9,14 @@ from config_file import DRONE_APP_URL
 _context = zmq.Context()
 _logger = create_logger("link")
 
-class Socket():
+class Socket:
     def __init__(self):
         self.socket = _context.socket(zmq.REQ)
         # Port and IP of the drone_application
         self.socket.connect(DRONE_APP_URL)
         self.mutex = threading.Lock()
     
-    def send_and_recieve(self, data) -> dict:
+    def send_and_receive(self, data) -> dict:
         '''Sends a message to the drone_application and returns the reply'''
         with self.mutex:
             try:
@@ -60,8 +59,8 @@ class Socket():
         _logger.debug("Socket closed")      
 
 
-class Link():
-    '''This class is used to send and recieve information/requests from and to the drone_application'''
+class Link:
+    '''This class is used to send and receive information/requests from and to the drone_application'''
     def __init__(self):
         self.drone_dict = {}
         self.socket = Socket()
@@ -70,9 +69,9 @@ class Link():
         '''Attempts to connect to a drone'''
         msg = {'fcn':'connect_to_drone'}
         _logger.debug(f"Sending connect_to_drone message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
-            _logger.debug(f"succesfully connected to drone: {reply['message']}")
+            _logger.debug(f"successfully connected to drone: {reply['message']}")
             return True
         else:
             if reply['status'] == 'denied':
@@ -82,10 +81,11 @@ class Link():
             return False
         
     def connect_to_all_drones(self):
-        '''Attempts to connect to as many drones as possible'''
+        '''Attempts to connect to as many drones as possible, 
+            returns false if no drones could be reached, true otherwise'''
         msg = {'fcn':'connect_to_all_drones'}
         _logger.debug(f"Sending connect_to_all_drones message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug(f"connect_to_all_drones success: {reply['message']}")
             return reply["message"]
@@ -97,10 +97,11 @@ class Link():
             return False
     
     def get_list_of_drones(self):
-        '''Gets a list of all connected drones'''
+        '''Gets a list of all connected drones,
+            returns false if there was an error'''
         msg = {'fcn': 'get_list_of_drones'}
         _logger.debug(f"Sending get_list_of_drones message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug(f"Received drone list: {reply['drone_list']}")
             return reply['drone_list']
@@ -117,7 +118,7 @@ class Link():
         '''Attempts to fly the specified mission with the specified drone'''
         msg = {'fcn': 'fly', 'mission': mission.as_mission_dict(), 'drone_name': drone.id}
         _logger.debug(f"Sending fly message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug("request success for fly")
             return True
@@ -130,7 +131,7 @@ class Link():
         '''Attempts to fly a random mission with the specified drone'''
         msg = {'fcn': 'fly_random_mission', 'drone_name': drone.id, 'n_wps': n_wps}
         _logger.debug(f"Sending fly_random_mission message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug("request success for fly_random_mission")
             return True
@@ -140,10 +141,11 @@ class Link():
 
     def get_drone_status(self, drone):
         '''Gets the status of the mission, 'flying' = mission is in progress, 'waiting' = flying and waiting for a new mission, 
-        'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied, 'charging' = charging'''
+        'idle' = not flying and idle, 'landed' = on the ground, 'denied' = mission was denied, 'charging' = charging,
+        returns false if there was an error'''
         msg = {'fcn': 'get_drone_status', 'drone_name': drone.id}
         _logger.debug(f"Sending get_drone_status message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug(f"Received mission status: {reply['mission_status']}")
             return reply['mission_status']
@@ -155,7 +157,7 @@ class Link():
         '''Attempts to return the drone to its home position'''
         msg = {'fcn': 'return_to_home', 'drone_name': drone.id}
         _logger.debug(f"Sending return_to_home message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             print("request success for return_to_home")
             return True
@@ -164,10 +166,11 @@ class Link():
             return False
     
     def get_drone_position(self, drone):
-        '''Gets the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north}'''
+        '''Gets the current state of the drone in the form of a dictionary {Lat: Decimal degrees , Lon: Decimal degrees , Alt: AMSL , Heading: degrees relative true north},
+            returns false on error'''
         msg = {'fcn': 'get_drone_position', 'drone_name': drone.id}
         _logger.debug(f"Sending get_drone_position message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug(f"Received drone position: {reply['drone_position']}")
             return reply['drone_position']
@@ -179,7 +182,7 @@ class Link():
         '''Gets the current waypoint of the drone, {"lat" : lat , "lon": lon , "alt": new_alt, "alt_type": "amsl", "heading": degrees relative true north,  "speed": speed}'''
         msg = {'fcn': 'get_drone_waypoint', 'drone_name': drone.id}
         _logger.debug(f"Sending get_drone_waypoint message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug(f"Received drone waypoint: {reply['drone_waypoint']}")
             return reply['drone_waypoint']
@@ -191,7 +194,7 @@ class Link():
         '''Returns True if the drone name is valid, False otherwise'''
         msg = {'fcn': 'get_valid_drone_name', 'drone_name': drone.id}
         _logger.debug(f"Sending valid_drone_name message: {msg}")
-        reply = self.socket.send_and_recieve(msg)
+        reply = self.socket.send_and_receive(msg)
         if self.socket.request_success(reply):
             _logger.debug(f"Received valid drone name: {reply['valid']}")
             return reply['valid']
