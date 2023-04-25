@@ -12,7 +12,7 @@ def angle_diff(angle_a, angle_b):
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class Triangle():
+class Triangle:
     """
     Triangles defined by a set of three nodes of utm coordinates to simplify calculations on an arbitrarily shaped polygon.
     """
@@ -20,7 +20,6 @@ class Triangle():
         self.a = nodes[0]
         self.b = nodes[1]
         self.c = nodes[2]
-        self.area = self.area(self.a, self.b, self.c)
         self.bounding_box = self.create_bounding_box()
 
     def isConvex(self):
@@ -49,7 +48,7 @@ class Triangle():
         dic["y_max"] = max(y_coords)
         return dic
 
-    def check_bounding_box(self, point):
+    def is_within_bounding_box(self, point):
         """ Return True if the given point is within the bounding box """
         outside_x = point.x < self.bounding_box["x_min"] or point.x > self.bounding_box["x_max"]
         outside_y = point.y < self.bounding_box["y_min"] or point.y > self.bounding_box["y_max"]
@@ -57,7 +56,7 @@ class Triangle():
 
     def contains(self, point):
         """ Return True if the given point is within the triangle """
-        if not self.check_bounding_box(point):
+        if not self.is_within_bounding_box(point):
             return False
         # Calculate the area of each sub-triangle created by the point and each pairwise combination of point a, b and c.
         # The point is inside the triangle if the sum of these areas is the same as the area of the triangle itself.
@@ -74,7 +73,7 @@ class Triangle():
         return [self.a, self.b, self.c]
 
 
-class Polygon():
+class Polygon:
     """
     Creates a polygon from an ordered list of nodes defining an area of interest. Can call helper functions to create nodes and segments to process the area. 
     
@@ -89,8 +88,8 @@ class Polygon():
     def create_area_segments(self, node_spacing, start_coordinates, num_seg):
         """ This is the main function to perform area segmentation and calls the necessary helper functions in correct order
             Create area segments of the polygon instance:
-                1. Triangulate the polygon
-                2. Define the polygons bounding box
+                1. Define the polygons bounding box
+                2. Triangulate the polygon
                 3. Create a node grid inside the polygon
                 4. Segmentate the polygon into 'num_seg' segments
         """
@@ -117,7 +116,7 @@ class Polygon():
 
         for i in range(0, len(result), 3): # Iterate over all such found triangles to create the triangle objects.
             
-            triangle = Triangle([self.nodes[result[i]], self.nodes[result[i+1]], self.nodes[result[i+2]]])
+            triangle = Triangle([self.nodes[result[i]], self.nodes[result[i + 1]], self.nodes[result[i + 2]]])
             triangles.append(triangle)
 
         return triangles
@@ -139,7 +138,6 @@ class Polygon():
         """
         node_grid = []
         self.bounding_box = self.create_bounding_box()
-        max_diff_ang = self.max_diff_angle(start_location)
         
         x_min, x_max = self.bounding_box["x_min"], self.bounding_box["x_max"]
         y_min, y_max = self.bounding_box["y_min"], self.bounding_box["y_max"]
@@ -157,7 +155,6 @@ class Polygon():
                         node.zone_num = closest_poly_node.zone_num
                         node.zone_letter = closest_poly_node.zone_letter
                         
-                        node.angle_to_start = start_location.angle_to(node)
                         node_grid.append(node)
                         break
         return node_grid    
@@ -196,7 +193,7 @@ class Polygon():
         """ Sort node grid based on individual nodes' angle to 'start_location' """
         max_diff_ang = self.max_diff_angle(start_location)
 
-        self.node_grid.sort(key=lambda n: angle_diff(start_location.angle_to(n), max_diff_ang), reverse=False)
+        self.node_grid.sort(key=lambda n: angle_diff(start_location.angle_to(n), max_diff_ang))
 
     @staticmethod
     def is_clockwise(nodes):
@@ -206,22 +203,16 @@ class Polygon():
 
         for i in range(num_nodes):
             x1, y1 = nodes[i]
-            x2, y2 = nodes[(i+1) % num_nodes]
+            x2, y2 = nodes[(i + 1) % num_nodes]
             signed_area += (x2 - x1) * (y2 + y1)
 
         return signed_area <= 0
-        
-    def __repr__(self):
-        pass
 
-class Node():
+class Node:
     """
     Handles coordinate pairs interpreted as nodes and performs conversions and calculations relative to the node instance. 
-    Takes lat lon coordinates, and optionally utm coordinates, as input. If created without utm coordinates they are then derived from lat lon.
-
-    UTM (Universal Transverse Mercator) coordinates are a 2D Cartesian coordinate system that uses meters as its unit of measurement. 
-    Therefore, you can treat UTM coordinates as a 2D Cartesian coordinate system and perform mathematical calculations accordingly, such as calculating distances and angles between points.
-    This can simplify calculations that would be more complex when working with latitudes and longitudes.
+    Takes lat lon coordinates, and optionally utm coordinates, as input. If created without utm coordinates they are then derived from lat lon. 
+    See utility/coodrinate_conversion.py for details pertaining to UTM coordinates and conversion.
     """
     def __init__(self, coordinates, utm_coordinates=None):
         
@@ -281,7 +272,7 @@ class Node():
         """ String representation of a node object. """
         return f"Node: UTM data: ({self.x}, {self.y}), Zone: {self.zone_num}{self.zone_letter}:"
     
-class Segment():
+class Segment:
     """
     Representation of a sub area within the polygon containing all nodes within this sub area. Can plan route between the segments nodes.
     """
@@ -304,7 +295,7 @@ class Segment():
             min_insert_cost = float('inf')
             for i in range(len(new_route) - 1):
                 node_A = new_route[i]
-                node_B = new_route[i+1]
+                node_B = new_route[i + 1]
                 for unexplored_node in unexplored_nodes:
                     if unexplored_node in new_route:
                         continue
