@@ -1,5 +1,4 @@
-class Link():
-    # TODO: handle connection errors appropriately, both on initial connection and if it drops after a while
+class Link:
     def __init__(self):
         self.link = None
     
