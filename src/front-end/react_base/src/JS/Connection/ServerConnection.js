@@ -76,7 +76,7 @@ var messageQueue = [];
 function upstreamRequestEventHandler(message) {
   switch (message.fcn) {
     case "new_pic":
-      Upstream.newImage(message.type, message.prioritized, message.imageID);
+      Upstream.newImage(message.prioritized, message.imageID);
       break;
     default:
       throw new Error("Unknown function type '" + message.fcn + "'.");

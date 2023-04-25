@@ -6,6 +6,7 @@
 import React from "react";
 import IMMMap from "../IMMMap.js";
 import CameraButton from "./CameraButton.js";
+import Crosshair from "./Crosshair.js";
 import UserPriorityIndicator from "./UserPriorityIndicator.js";
 import { Navigate } from "react-router-dom";
 
@@ -14,8 +15,8 @@ import {
   clientID,
   mapPosition,
   mapPositionActions,
-  requestQueue,
-  requestQueueActions,
+  pictureRequestQueue,
+  pictureRequestQueueActions,
   areaWaypoints,
   areaWaypointActions,
   mapBounds,
@@ -33,7 +34,7 @@ import StatusDrawer from "../Menu/StatusDrawer.js";
 
 import {
   requestView,
-  requestPriorityView,
+  requestPriorityPicture,
   callbackWrapper,
 } from "../Connection/Downstream.js";
 
@@ -51,13 +52,17 @@ class Main extends React.Component {
   /**
    * On click event for camera button.
    */
-  cameraClickHandler() {
-    requestPriorityView(
+  cameraClickHandler(isUrgent) {
+    requestPriorityPicture(
       this.props.store.clientID,
       this.props.store.mapPosition,
-      this.props.store.layerType,
+      isUrgent,
       callbackWrapper((response) => {
-        this.props.store.addRequest(response.arg.force_que_id);
+        this.props.store.addPictureRequest(
+          response.arg.force_que_id,
+          this.props.store.mapPosition,
+          isUrgent
+        );
       })
     );
   }
@@ -70,7 +75,6 @@ class Main extends React.Component {
       requestView(
         this.props.store.clientID,
         this.props.store.mapPosition,
-        this.props.store.layerType,
         callbackWrapper((response) => {
           // Get IDs of currently active pictures.
           const currentImageIDs = this.props.store.activePictures.map(
@@ -189,6 +193,7 @@ class Main extends React.Component {
           allowDefine={false}
         />
         <CameraButton clickHandler={this.cameraClickHandler} />
+        {this.props.store.mode !== "AUTO" ? <Crosshair /> : ""}
         <UserPriorityIndicator />
       </div>
     );
@@ -199,7 +204,7 @@ export default connect(
   {
     clientID,
     mapPosition,
-    requestQueue,
+    pictureRequestQueue,
     areaWaypoints,
     mapBounds,
     zoomLevel,
@@ -210,7 +215,7 @@ export default connect(
   },
   {
     ...mapPositionActions,
-    ...requestQueueActions,
+    ...pictureRequestQueueActions,
     ...areaWaypointActions,
     ...mapStateActions,
     ...activePicturesActions,

@@ -21,7 +21,7 @@ import {
   connect,
   areaWaypoints,
   areaWaypointActions,
-  requestQueueActions,
+  pictureRequestQueueActions,
   mapState,
   mapStateActions,
   activePicturesActions,
@@ -128,7 +128,7 @@ export default connect(
   {
     ...areaWaypointActions,
     ...mapStateActions,
-    ...requestQueueActions,
+    ...pictureRequestQueueActions,
     ...activePicturesActions,
   }
 )(SettingsDrawer);

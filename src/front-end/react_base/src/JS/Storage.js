@@ -54,13 +54,9 @@ const startView = {
     ]
     }
  */
-var initialRequestQueue = {
-  size: 0,
-  items: [],
-};
+
 /* Elements are structured like following example:
 {
-    "type" : #Choice "RGB/IR",
     "prioritized" : #Choice: "True/False",
     "image_id" : "integer(1, -)", # Id of image
     "url": tbd: "URL",
@@ -244,24 +240,31 @@ export const setMapPosition = createAction(
 /**
  * Actions related to priority picture request queue.
  */
-export const clearRequestQueue = createAction("CLEAR_REQUEST_QUEUE");
+export const clearPictureRequestQueue = createAction(
+  "CLEAR_PICTURE_REQUEST_QUEUE"
+);
 
-export const addRequest = createAction("ADD_REQUEST", function prepare(id) {
-  if (!isNaN(id)) {
-    return {
-      payload: {
-        id: id,
-        requestTime: Date.now(),
-        receiveTime: null,
-        received: false,
-      },
-    };
-  } else {
-    throw new Error("Invalid request ID!");
+export const addPictureRequest = createAction(
+  "ADD_PICTURE_REQUEST",
+  function prepare(id, view, isUrgent) {
+    if (!isNaN(id)) {
+      return {
+        payload: {
+          id: id,
+          requestTime: Date.now(),
+          receiveTime: null,
+          received: false,
+          view: view,
+          isUrgent: isUrgent,
+        },
+      };
+    } else {
+      throw new Error("Invalid request ID!");
+    }
   }
-});
+);
 
-export const removeRequest = createAction(
+export const removePictureRequest = createAction(
   "REMOVE_REQUEST",
   function prepare(index) {
     if (0 <= index && !isNaN(index)) {
@@ -274,7 +277,7 @@ export const removeRequest = createAction(
   }
 );
 
-export const receiveRequest = createAction(
+export const receivePictureRequest = createAction(
   "RECEIVE_REQUEST",
   function prepare(id) {
     if (!isNaN(id)) {
@@ -522,50 +525,40 @@ export const _mapPosition = createReducer(startView, (builder) => {
   });
 });
 
-export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
+export const _pictureRequestQueue = createReducer([], (builder) => {
   builder
-    .addCase(addRequest, (state, action) => {
-      var newState = {
-        size: state.size + 1,
-        items: [...state.items, action.payload],
-      };
+    .addCase(addPictureRequest, (state, action) => {
+      const newState = [...state, action.payload];
       return newState;
     })
-    .addCase(removeRequest, (state, action) => {
+    .addCase(removePictureRequest, (state, action) => {
       const index = action.payload;
-      return {
-        size: state.size - 1,
-        items: [
-          //Removes item "index" from id list.
-          ...state.items.slice(0, index),
-          ...state.items.slice(index + 1),
-        ],
-      };
+      return [
+        //Removes item "index" from id list.
+        ...state.slice(0, index),
+        ...state.slice(index + 1),
+      ];
     })
-    .addCase(receiveRequest, (state, action) => {
-      const index = state.items.map((e) => e.id).indexOf(action.payload);
+    .addCase(receivePictureRequest, (state, action) => {
+      const index = state.map((e) => e.id).indexOf(action.payload);
 
       if (index !== -1) {
-        return {
-          size: state.size,
-          items: [
-            ...state.items.slice(0, index),
-            {
-              ...state.items[index],
-              received: true,
-              receivedTime: Date.now(),
-            },
-            ...state.items.slice(index + 1),
-          ],
-        };
+        return [
+          ...state.slice(0, index),
+          {
+            ...state[index],
+            received: true,
+            receivedTime: Date.now(),
+          },
+          ...state.slice(index + 1),
+        ];
       }
 
       // If ID is not found, make no change
       return state;
     })
-    .addCase(clearRequestQueue, (state) => {
-      var newState = { size: 0, items: [] };
-      return newState;
+    .addCase(clearPictureRequestQueue, (state) => {
+      return [];
     });
 });
 
@@ -689,9 +682,9 @@ export function mapPosition(state) {
   };
 }
 
-export function requestQueue(state) {
+export function pictureRequestQueue(state) {
   return {
-    requestQueue: state.requestQueue,
+    pictureRequestQueue: state.pictureRequestQueue,
   };
 }
 
@@ -743,7 +736,7 @@ const states = {
   userPriority,
   zoomLevel,
   mapPosition,
-  requestQueue,
+  pictureRequestQueue,
   activePictures,
   mapBounds,
   mode,
@@ -795,11 +788,11 @@ export const zoomLevelActions = { setZoomLevel };
 
 export const mapPositionActions = { setMapPosition };
 
-export const requestQueueActions = {
-  addRequest,
-  removeRequest,
-  receiveRequest: receiveRequest,
-  clearRequestQueue,
+export const pictureRequestQueueActions = {
+  addPictureRequest,
+  removePictureRequest,
+  receivePictureRequest,
+  clearPictureRequestQueue,
 };
 
 export const activePicturesActions = {
@@ -827,7 +820,7 @@ const actions = {
   userPriorityActions,
   zoomLevelActions,
   mapPositionActions,
-  requestQueueActions,
+  pictureRequestQueueActions,
   activePicturesActions,
   mapBoundsActions,
   modeActions,
@@ -862,7 +855,7 @@ export const store = configureStore({
     config: _config,
     zoomLevel: _zoomLevel,
     mapPosition: _mapPosition,
-    requestQueue: _requestQueue,
+    pictureRequestQueue: _pictureRequestQueue,
     activePictures: _activePictures,
     mapBounds: _mapBounds,
     mode: _mode,

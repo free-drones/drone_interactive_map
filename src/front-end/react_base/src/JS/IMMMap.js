@@ -11,10 +11,12 @@ import {
   ImageOverlay,
   useMapEvents,
   ScaleControl,
+  Popup,
 } from "react-leaflet";
 import "../CSS/Map.scss";
 import {
   connect,
+  pictureRequestQueue,
   config,
   areaWaypoints,
   zoomLevel,
@@ -32,16 +34,13 @@ import {
 } from "./Storage.js";
 import { boundsToView } from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
+import { markedIcon, userPosIcon, pictureIndicatorIcon } from "./SvgIcons.js";
 
 import Leaflet from "leaflet";
-
-// Room Icon pre-rendered + sizing style
-const markedIcon =
-  '<svg style="font-size: 2.25rem; width: 36px; height: 36px;" class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>';
-const userPosIcon =
-  '<svg class="svg-icon" style="width: 22px;height: 22px;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 512m-442.7 0a442.7 442.7 0 1 0 885.4 0 442.7 442.7 0 1 0-885.4 0Z" fill="#9BBFFF" /><path d="M512 512m-263 0a263 263 0 1 0 526 0 263 263 0 1 0-526 0Z" fill="#377FFC" /></svg>';
+import PriorityPictureRequestInfo from "./Menu/PriorityPictureRequestInfo";
 
 let hasLocationPanned = false;
+let lastBoundUpdate = Date.now();
 
 /**
  * ====================================================================================================
@@ -221,10 +220,10 @@ class IMMMap extends React.Component {
    */
   fitBounds(map) {
     if (this.props.store.mapState === "Main") {
-      let bounds = this.props.store.mapBounds;
+      const bounds = Leaflet.latLngBounds(this.props.store.areaWaypoints);
 
-      // Check that bounds has a value
-      if (bounds) {
+      // Check that bounds has are valid value
+      if (bounds && bounds.isValid()) {
         map.fitBounds(bounds);
       }
     }
@@ -236,13 +235,13 @@ class IMMMap extends React.Component {
    * @param {MapConstructor} map Reference to the MapContainer element
    */
   updateBounds(map) {
-    const bounds = map.getBounds();
-    const zoom = map.getZoom();
-    // Make sure zoom level is not already set, ignore update if already set.
-    if (this.props.store.zoomLevel === zoom) {
+    // Prevent the bounds from updating too frequently which can cause a crash
+    if (Date.now() - lastBoundUpdate < 100) {
       return;
     }
-
+    lastBoundUpdate = Date.now();
+    const bounds = map.getBounds();
+    const zoom = map.getZoom();
     this.props.store.setZoomLevel(zoom);
     this.props.store.setMapPosition(boundsToView(bounds));
   }
@@ -337,6 +336,28 @@ class IMMMap extends React.Component {
         })}
         eventHandlers={{ click: () => this.markerClick(i) }}
       />
+    ));
+
+    return markers;
+  }
+  /**
+   * Places indicators where pictures have been requested.
+   */
+  pictureRequestIndicatorFactory() {
+    const markers = this.props.store.pictureRequestQueue.map((data, i) => (
+      <Marker
+        position={[data.view.center.lat, data.view.center.lng]}
+        key={`pictureRequestIndicator${i}`}
+        icon={Leaflet.divIcon({
+          className: data.isUrgent ? "urgent-picture" : "normal-picture",
+          iconAnchor: Leaflet.point(13, 13),
+          html: pictureIndicatorIcon,
+        })}
+      >
+        <Popup>
+          <PriorityPictureRequestInfo data={data} />
+        </Popup>
+      </Marker>
     ));
 
     return markers;
@@ -449,8 +470,14 @@ class IMMMap extends React.Component {
         zoom: () => {
           this.updateBounds(map);
         },
-        moveend: () => {
+        move: () => {
           this.updateBounds(map);
+        },
+        moveend: () => {
+          // This makes sure the bounds remain accurate, even with the 100ms rate limit for updating
+          setTimeout(() => {
+            this.updateBounds(map);
+          }, 100);
         },
         locationfound: (location) => {
           // Called when user's gps location has been found
@@ -530,6 +557,9 @@ class IMMMap extends React.Component {
         {/* Draws markers */}
         {this.props.allowDefine ? this.markerFactory() : ""}
 
+        {/* Draws requested picture indicators */}
+        {this.pictureRequestIndicatorFactory()}
+
         {/* Draws drone icons. */}
         {this.props.store.config.showDroneIcons && this.state.drones
           ? this.droneFactory()
@@ -569,6 +599,7 @@ class IMMMap extends React.Component {
 export default connect(
   {
     config,
+    pictureRequestQueue,
     areaWaypoints,
     zoomLevel,
     mapPosition,

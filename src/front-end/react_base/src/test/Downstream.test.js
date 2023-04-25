@@ -235,7 +235,7 @@ test("send request_view", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "request_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
+        arg: { client_id: 1, coordinates: validViewReceived },
       });
 
       // Emulate server response
@@ -252,24 +252,24 @@ test("send request_view", (done) => {
     }
   });
 
-  Downstream.requestView(1, validViewSend, Downstream.TYPE.rgb, () => {
+  Downstream.requestView(1, validViewSend, () => {
     done();
   });
 });
 
-test("send request_priority_view", (done) => {
-  downstreamSocket.once("request_priority_view", (request) => {
+test("send request_priority_picture", (done) => {
+  downstreamSocket.once("request_priority_picture", (request) => {
     try {
       // Validate request
       expect(request).toEqual({
-        fcn: "request_priority_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
+        fcn: "request_priority_picture",
+        arg: { client_id: 1, coordinates: validViewReceived, isUrgent: false },
       });
 
       // Emulate server response
       let response = {
         fcn: "ack",
-        fcn_name: "request_priority_view",
+        fcn_name: "request_priority_picture",
         arg: {
           force_que_id: 1,
         },
@@ -280,13 +280,13 @@ test("send request_priority_view", (done) => {
     }
   });
 
-  Downstream.requestPriorityView(1, validViewSend, Downstream.TYPE.rgb, () => {
+  Downstream.requestPriorityPicture(1, validViewSend, false, () => {
     done();
   });
 });
 
-test("send clear_que", (done) => {
-  downstreamSocket.once("clear_que", (request) => {
+test("send clear_queue", (done) => {
+  downstreamSocket.once("clear_queue", (request) => {
     try {
       // Validate request
       expect(request).toEqual({});
@@ -294,7 +294,7 @@ test("send clear_que", (done) => {
       // Emulate server response
       let response = {
         fcn: "ack",
-        fcn_name: "clear_que",
+        fcn_name: "clear_queue",
       };
       downstreamSocket.emit("response", response);
     } catch (error) {
