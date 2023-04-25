@@ -222,8 +222,8 @@ class IMMMap extends React.Component {
     if (this.props.store.mapState === "Main") {
       const bounds = Leaflet.latLngBounds(this.props.store.areaWaypoints);
 
-      // Check that bounds has a value
-      if (bounds) {
+      // Check that bounds has are valid value
+      if (bounds && bounds.isValid()) {
         map.fitBounds(bounds);
       }
     }
