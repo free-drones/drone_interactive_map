@@ -41,98 +41,69 @@ export function boundsToView(bounds) {
 }
 
 /**
- * 
- * 
+ * Checks all lines for intersections with each other.
+ * Handles both new and removed waypoints based on input parameters.
  * 
  *@param {any} waypoints Current list of waypoints
  *@param {any} newWaypoint  Waypoint to be added
  *@param {integer} removeWaypointIndex index of waypoint to be removed
+ *
+ *@returns List of all crossing lines 
  */
 export function createRedLines(waypoints, newWaypoint = null, removeWaypointIndex = null) {
   let crossingLines = [];
   let newWaypoints = [];
-  // Add new waypoint to list
+
+  /* Creates a new waypoint list based on if a waypoint should be added or removed. */
   if (newWaypoint) {
+    // Add new waypoint to list
     newWaypoints = [...waypoints, newWaypoint];
   }
-  // Or remove it from old list
-  else {
+  else if (removeWaypointIndex) {
+    // Remove waypoint from old list
     newWaypoints = [...waypoints.slice(0, removeWaypointIndex), ...waypoints.slice(removeWaypointIndex + 1)];
   }
+  else {
+    // No parameters were passed when calling function
+    return crossingLines;
+  }
 
-  // standard case
+  // Standard case
+  // Checks if vector (c,d) -> (a,b) intersects with vector (p,q) -> (r,s).
   for(let j = 0; j < newWaypoints.length - 1; j++){
-    // Check if lines intersect
+    // Creation of first line
     const a = newWaypoints[j].lat;
     const b = newWaypoints[j].lng;
     const c = newWaypoints[j + 1].lat;
     const d = newWaypoints[j + 1].lng;
 
     for (let i = 0; i < newWaypoints.length - 1; i++) {
+      // Creation of second line
       const p = newWaypoints[i].lat;
       const q = newWaypoints[i].lng;
 
       const r = newWaypoints[i + 1].lat;
       const s = newWaypoints[i + 1].lng;
 
+      // Check if lines intersect
       if(hasIntersectingVectors(c, d, a, b, p, q, r, s) && (j != i)) {
         crossingLines.push([newWaypoints[i], newWaypoints[i + 1]]);
       }
     }
-    // special case for when list loops around (line from last to first waypoint)
+    // Special case when list loops around (line between last and first waypoint)
     const p = newWaypoints[newWaypoints.length - 1].lat;
     const q = newWaypoints[newWaypoints.length - 1].lng;
     const r = newWaypoints[0].lat;
     const s = newWaypoints[0].lng;
 
+    // Check if lines intersect
     if(hasIntersectingVectors(c, d, a, b, p, q, r, s)) {
+      crossingLines.push([newWaypoints[j], newWaypoints[j + 1]]);
       crossingLines.push([newWaypoints[newWaypoints.length - 1], newWaypoints[0]]);
     }
   }
+
   return crossingLines;
-}
-
-/**
- * Checks if adding a waypoint results in new crossing lines.
- *
- * @param {any} newWaypoint new waypoint that will be added.
- *
- * @returns true if the new waypoint lines have intersections, otherwise false.
- */
-export function newWaypointLinesCrossing(newWaypoint, waypoints) {
-  // vector 1: (c,d) -> (a,b) (neighbour 1, forward in list) intersects with (p,q) -> (r,s).
-  // vector 2: (e,f) -> (a,b) (neighbour 2, backward in list) intersects with (p,q) -> (r,s).
-
-  // No lines can cross if there are only 3 waypoints.
-  if (waypoints.length < 3) {
-    return false;
-  }
-
-  let crossing = false;
-
-  const a = newWaypoint.lat;
-  const b = newWaypoint.lng;
-
-  const c = waypoints[0].lat;
-  const d = waypoints[0].lng;
-
-  const e = waypoints[waypoints.length - 1].lat;
-  const f = waypoints[waypoints.length - 1].lng;
-
-  // Check if new lines will intersect with old lines.
-  for (let i = 0; i < waypoints.length - 1; i++) {
-    const p = waypoints[i].lat;
-    const q = waypoints[i].lng;
-
-    const r = waypoints[i + 1].lat;
-    const s = waypoints[i + 1].lng;
-    crossing =
-      crossing ||
-      hasIntersectingVectors(c, d, a, b, p, q, r, s) ||
-      hasIntersectingVectors(e, f, a, b, p, q, r, s);
-  }
-
-  return crossing;
 }
 
 /**
@@ -156,11 +127,8 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
   return 0 < length_1 && length_1 < 1 && 0 < length_2 && length_2 < 1;
 }
 
-
-
 const mapHelperExports = {
   boundsToView,
-  newWaypointLinesCrossing,
   createRedLines,
 };
 

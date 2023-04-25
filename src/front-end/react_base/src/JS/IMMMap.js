@@ -35,7 +35,6 @@ import {
 } from "./Storage.js";
 import {
   boundsToView,
-  newWaypointLinesCrossing,
   createRedLines,
 } from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
@@ -66,6 +65,28 @@ class IMMMap extends React.Component {
       oldDrones: null,
       getDronesTimer: null,
     };
+  }
+
+  /**
+   * Drone position update, componentDidMount runs once on startup.
+   */
+  componentDidMount() {
+    const updateDronesTimer = 1000;
+    this.setState({
+      getDronesTimer: setInterval(() => {
+        getDrones((response) => {
+          this.setState({ oldDrones: this.state.drones });
+          this.setState({ drones: response.arg.drones });
+        });
+      }, updateDronesTimer),
+    });
+  }
+
+  /**
+   * Remove double timer from componentDidMount
+   */
+  componentWillUnmount() {
+    clearInterval(this.state.getDronesTimer);
   }
 
   /**
@@ -105,47 +126,32 @@ class IMMMap extends React.Component {
    */
   addAreaWaypoint(e) {
     const waypoint = { lat: e.latlng.lat, lng: e.latlng.lng };
-    this.setState({ paintRedLine: false });
-
     if (
-      this.props.allowDefine &&
-      !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)
-    ) {
+      this.props.allowDefine) {
       // Add new waypoint and check for crossing lines
       this.props.store.addAreaWaypoint(waypoint);
-      // Find what lines are crossing
-      const newRedLines = createRedLines(this.props.store.areaWaypoints, waypoint, null);
-      this.props.store.setCrossingLines(newRedLines);
+      this.updateCrossingLines(null, waypoint);
 
-      // Show error message if there are any crossing lines
-      this.props.store.setShowWarning((newRedLines.length != 0));
     } else {
-      // Shows popup with crossing lines warning
+      // Shows warning if placing waypoint would result in crossing lines
       this.props.store.setShowWarning(true);
     }
   }
   
   /**
-   * Drone position update, componentDidMount runs once on startup.
+   * Calculates and updates crossing lines. Shows warning message if lines cross.
+   * 
+   * @param {integer} i Index of waypoint to be removed
+   * @param {*} waypoint Waypoint to be added
    */
-  componentDidMount() {
-    const updateDronesTimer = 1000;
-    this.setState({
-      getDronesTimer: setInterval(() => {
-        getDrones((response) => {
-          this.setState({ oldDrones: this.state.drones });
-          this.setState({ drones: response.arg.drones });
-        });
-      }, updateDronesTimer),
-    });
-  }
+  updateCrossingLines(i = null, waypoint = null) {
+    const newCrossingLines = createRedLines(this.props.store.areaWaypoints, waypoint, i);
+    this.props.store.setCrossingLines(newCrossingLines);
 
-  /**
-   * Remove double timer from componentDidMount
-   */
-  componentWillUnmount() {
-    clearInterval(this.state.getDronesTimer);
-  }
+    // Show error message if there are any crossing lines
+    this.props.store.setShowWarning((newCrossingLines.length != 0));
+    return
+  };
 
   /**
    * Restructures the waypoint list so that the clicked markers waypoint is the first in the list and the waypoint that is added next is its neighbor.
@@ -160,25 +166,19 @@ class IMMMap extends React.Component {
         ...waypoints.slice(i + 1, waypoints.length),
         ...waypoints.slice(0, i + 1),
       ];
-
       // Remove all waypoints.
       this.props.store.clearAreaWaypoints();
 
       // Add restructured waypoints.
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
-    } else {
 
+    } else {
+      // Remove waypoint and check for crossing lines
       this.props.store.removeAreaWaypoint(i);
-      // Find what lines are crossing
-      const newRedLines = createRedLines(this.props.store.areaWaypoints, null, i);
-      this.props.store.setCrossingLines(newRedLines);
-      
-      // Show error message if there are any crossing lines
-      this.props.store.setShowWarning((newRedLines.length != 0));
+      this.updateCrossingLines(i, null);
     }
   }
 
-  
   /**
    * Places all waypoints as markers on the map.
    */
