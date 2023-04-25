@@ -142,38 +142,6 @@ export const removeAreaWaypoint = createAction(
 
 export const clearAreaWaypoints = createAction("CLEAR_AREA_WAYPOINTS");
 
-export const addCrossingLine = createAction(
-  "ADD_CROSSING_LINES",
-  function prepare(line) {
-    if (
-      line !== undefined &&
-      !isNaN(line[0].lat) &&
-      !isNaN(line[0].lng) &&
-      !isNaN(line[1].lat) &&
-      !isNaN(line[1].lng)
-    ) {
-      return {
-        payload: line,
-      };
-    } else {
-      throw new Error("Invalid line!");
-    }
-  }
-);
-
-export const removeCrossingLine = createAction(
-  "REMOVE_CROSSING_LINES",
-  function prepare(index) {
-    if (0 <= index && !isNaN(index)) {
-      return {
-        payload: index,
-      };
-    } else {
-      throw new Error("Index not found in crossing lists.");
-    }
-  }
-);
-
 export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
 
 export const setCrossingLines = createAction(
@@ -535,14 +503,6 @@ export const _areaWaypoints = createReducer([], (builder) => {
 
 export const _crossingLines = createReducer([], (builder) => {
   builder
-    .addCase(addCrossingLine, (state, action) => {
-      const newLine = action.payload;
-      return [...state, newLine];
-    })
-    .addCase(removeCrossingLine, (state, action) => {
-      const index = action.payload;
-      return [...state.slice(0, index), ...state.slice(index + 1)];
-    })
     .addCase(clearCrossingLines, (state, action) => {
       return [];
     })
@@ -894,8 +854,6 @@ export const mapStateActions = { setMapState };
 export const showWarningActions = { setShowWarning };
 
 export const crossingLineActions = {
-  addCrossingLine,
-  removeCrossingLine,
   clearCrossingLines,
   setCrossingLines,
 };
