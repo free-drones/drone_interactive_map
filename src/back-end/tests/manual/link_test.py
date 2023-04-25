@@ -14,7 +14,7 @@ After that ssh in to the RISE server (for us it is at 10.44.170.10 with openvpn 
 link_object = Link()
 alive = True
 _logger = create_logger("link_test")
-class Drone():
+class Drone:
     def __init__(self, drone_name) -> None:
         self.id = drone_name
         
