@@ -36,9 +36,6 @@ import {
 import {
   boundsToView,
   newWaypointLinesCrossing,
-  removedWaypointLinesCrossing,
-  checkRedLinesCrossing,
-  removeRedLinesOnNewWaypoint,
   createRedLines,
 } from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
@@ -116,16 +113,12 @@ class IMMMap extends React.Component {
     ) {
       // Add new waypoint and check for crossing lines
       this.props.store.addAreaWaypoint(waypoint);
+      // Find what lines are crossing
       const newRedLines = createRedLines(this.props.store.areaWaypoints, waypoint, null);
       this.props.store.setCrossingLines(newRedLines);
 
-
-      //const removedLines = removeRedLinesOnNewWaypoint();
-
       // Show error message if there are any crossing lines
-      // this.props.store.setShowWarning(
-      //   this.props.store.crossingLines.length > removedLines.length
-      // );
+      this.props.store.setShowWarning((newRedLines.length != 0));
     } else {
       // Shows popup with crossing lines warning
       this.props.store.setShowWarning(true);
@@ -140,8 +133,8 @@ class IMMMap extends React.Component {
     this.setState({
       getDronesTimer: setInterval(() => {
         getDrones((response) => {
-          //this.setState({ oldDrones: this.state.drones });
-          //this.setState({ drones: response.arg.drones });
+          this.setState({ oldDrones: this.state.drones });
+          this.setState({ drones: response.arg.drones });
         });
       }, updateDronesTimer),
     });
@@ -175,77 +168,17 @@ class IMMMap extends React.Component {
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
     } else {
 
-      
-      // Add new red lines from removing waypoint.
-     // const addedLine = this.addRedLines(i);
-      // Remove red lines from removing waypoint.
-     // const removedLines = this.removeRedLines(i);
-      // Show warning if there are any red lines left
-     // this.props.store.setShowWarning(
-     //   this.props.store.crossingLines.length > removedLines.length || addedLine
-     // );
-      // Marked node was clicked, remove it.
       this.props.store.removeAreaWaypoint(i);
+      // Find what lines are crossing
       const newRedLines = createRedLines(this.props.store.areaWaypoints, null, i);
       this.props.store.setCrossingLines(newRedLines);
+      
+      // Show error message if there are any crossing lines
+      this.props.store.setShowWarning((newRedLines.length != 0));
     }
-    
   }
 
-  /**
-   * Removing red lines that disappear when removing a waypoint.
-   * @param {integer} i index of waypoint about to be removed.
-   * @returns list of removed lines
-   */
-  removeRedLines(i) {
-    let redLinesToBeRemoved = [];
-    // Check if removed waypoint was one edge of a red line. If so, remove the red line.
-    this.props.store.crossingLines.forEach((redLine, index) => {
-      if (
-        redLine[0] === this.props.store.areaWaypoints[i] ||
-        redLine[1] === this.props.store.areaWaypoints[i] ||
-        !checkRedLinesCrossing(
-          redLine[0],
-          redLine[1],
-          this.props.store.areaWaypoints,
-          i
-        )
-      ) {
-        redLinesToBeRemoved.push(index);
-      }
-    });
-
-    // Remove red lines if the one of its waypoints gets removed.
-    for (const i of redLinesToBeRemoved) {
-      this.props.store.removeCrossingLine(i);
-    }
-    return redLinesToBeRemoved;
-  }
-
-  /**
-   * Add new red lines that appear when removing a waypoint.
-   *
-   * @param {integer} i index of waypoint about to be removed.
-   * @returns true if a line has been removed
-   */
-  addRedLines(i) {
-    // If removing waypoint results in crossing lines, paint it red.
-    let newCrossingLine = removedWaypointLinesCrossing(
-      i,
-      this.props.store.areaWaypoints
-    );
-    let lineAdded = false;
-    // Adds red line that is crossing lines.
-    if (
-      newCrossingLine &&
-      !this.props.store.crossingLines.includes(newCrossingLine)
-    ) {
-      this.props.store.addCrossingLine(newCrossingLine);
-      lineAdded = true;
-    }
-    return lineAdded;
-  }
-
+  
   /**
    * Places all waypoints as markers on the map.
    */
