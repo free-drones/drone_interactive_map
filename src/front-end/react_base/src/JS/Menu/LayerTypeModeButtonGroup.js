@@ -3,29 +3,29 @@
  */
 import React, { Component } from "react";
 import RadioGroup from "@mui/material/RadioGroup";
-import { connect, sensor, sensorActions } from "../Storage.js";
+import { connect, layerType, layerTypeActions } from "../Storage.js";
 import Typography from "@mui/material/Typography";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
 
-class SensorModeButtonGroup extends Component {
+class LayerTypeModeButtonGroup extends Component {
   constructor() {
     super();
     this.onRadioChange = this.onRadioChange.bind(this);
   }
 
   onRadioChange = (e) => {
-    this.props.store.setSensor(e.target.value);
+    this.props.store.setLayerType(e.target.value);
   };
 
   render() {
     return (
       <div>
         <RadioGroup
-          value={this.props.store.sensor}
+          value={this.props.store.layerType}
           onChange={this.onRadioChange}
         >
-          <Typography variant="h5">Sensor:</Typography>
+          <Typography variant="h5">Layer Type:</Typography>
           <FormControlLabel value="RGB" control={<Radio />} label="RGB" />
           <FormControlLabel value="IR" control={<Radio />} label="IR" />
           <FormControlLabel value="Map" control={<Radio />} label="Map" />
@@ -35,4 +35,7 @@ class SensorModeButtonGroup extends Component {
   }
 }
 
-export default connect({ sensor }, { ...sensorActions })(SensorModeButtonGroup);
+export default connect(
+  { layerType },
+  { ...layerTypeActions }
+)(LayerTypeModeButtonGroup);

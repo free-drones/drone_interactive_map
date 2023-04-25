@@ -7,6 +7,7 @@ import React from "react";
 import IMMMap from "../IMMMap.js";
 import CameraButton from "./CameraButton.js";
 import Crosshair from "./Crosshair.js";
+import UserPriorityIndicator from "./UserPriorityIndicator.js";
 import { Navigate } from "react-router-dom";
 
 import {
@@ -22,7 +23,7 @@ import {
   zoomLevel,
   mapState,
   mapStateActions,
-  sensor,
+  layerType,
   mode,
   activePictures,
   activePicturesActions,
@@ -193,6 +194,7 @@ class Main extends React.Component {
         />
         <CameraButton clickHandler={this.cameraClickHandler} />
         {this.props.store.mode !== "AUTO" ? <Crosshair /> : ""}
+        <UserPriorityIndicator />
       </div>
     );
   }
@@ -208,7 +210,7 @@ export default connect(
     zoomLevel,
     mapState,
     mode,
-    sensor,
+    layerType,
     activePictures,
   },
   {
