@@ -43,14 +43,18 @@ export function boundsToView(bounds) {
 /**
  * Checks all lines for intersections with each other.
  * Handles both new and removed waypoints based on input parameters.
- * 
+ *
  *@param {any} waypoints Current list of waypoints
  *@param {any} newWaypoint  Waypoint to be added
  *@param {integer} removeWaypointIndex index of waypoint to be removed
  *
- *@returns List of all crossing lines 
+ *@returns List of all crossing lines
  */
-export function createRedLines(waypoints, newWaypoint = null, removeWaypointIndex = null) {
+export function createRedLines(
+  waypoints,
+  newWaypoint = null,
+  removeWaypointIndex = null
+) {
   let crossingLines = [];
   let newWaypoints = [];
 
@@ -58,19 +62,20 @@ export function createRedLines(waypoints, newWaypoint = null, removeWaypointInde
   if (newWaypoint) {
     // Add new waypoint to list
     newWaypoints = [...waypoints, newWaypoint];
-  }
-  else if (removeWaypointIndex) {
+  } else if (removeWaypointIndex) {
     // Remove waypoint from old list
-    newWaypoints = [...waypoints.slice(0, removeWaypointIndex), ...waypoints.slice(removeWaypointIndex + 1)];
-  }
-  else {
+    newWaypoints = [
+      ...waypoints.slice(0, removeWaypointIndex),
+      ...waypoints.slice(removeWaypointIndex + 1),
+    ];
+  } else {
     // No parameters were passed when calling function
     return crossingLines;
   }
 
   // Standard case
   // Checks if vector (c,d) -> (a,b) intersects with vector (p,q) -> (r,s).
-  for(let j = 0; j < newWaypoints.length - 1; j++){
+  for (let j = 0; j < newWaypoints.length - 1; j++) {
     // Creation of first line
     const a = newWaypoints[j].lat;
     const b = newWaypoints[j].lng;
@@ -86,7 +91,7 @@ export function createRedLines(waypoints, newWaypoint = null, removeWaypointInde
       const s = newWaypoints[i + 1].lng;
 
       // Check if lines intersect
-      if(hasIntersectingVectors(c, d, a, b, p, q, r, s) && (j != i)) {
+      if (hasIntersectingVectors(c, d, a, b, p, q, r, s) && j != i) {
         crossingLines.push([newWaypoints[i], newWaypoints[i + 1]]);
       }
     }
@@ -97,9 +102,12 @@ export function createRedLines(waypoints, newWaypoint = null, removeWaypointInde
     const s = newWaypoints[0].lng;
 
     // Check if lines intersect
-    if(hasIntersectingVectors(c, d, a, b, p, q, r, s)) {
+    if (hasIntersectingVectors(c, d, a, b, p, q, r, s)) {
       crossingLines.push([newWaypoints[j], newWaypoints[j + 1]]);
-      crossingLines.push([newWaypoints[newWaypoints.length - 1], newWaypoints[0]]);
+      crossingLines.push([
+        newWaypoints[newWaypoints.length - 1],
+        newWaypoints[0],
+      ]);
     }
   }
 
@@ -133,5 +141,3 @@ const mapHelperExports = {
 };
 
 export default mapHelperExports;
-
-

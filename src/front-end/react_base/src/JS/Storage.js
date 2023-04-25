@@ -145,7 +145,7 @@ export const clearAreaWaypoints = createAction("CLEAR_AREA_WAYPOINTS");
 export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
 
 export const setCrossingLines = createAction(
-  "SET_CROSSING_LINES", 
+  "SET_CROSSING_LINES",
   function prepare(list) {
     if (list) {
       return {

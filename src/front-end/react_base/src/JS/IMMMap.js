@@ -33,12 +33,8 @@ import {
   showWarningActions,
   crossingLineActions,
 } from "./Storage.js";
-import {
-  boundsToView,
-  createRedLines,
-} from "./Helpers/maphelper.js";
+import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
-
 
 import Leaflet from "leaflet";
 
@@ -126,32 +122,34 @@ class IMMMap extends React.Component {
    */
   addAreaWaypoint(e) {
     const waypoint = { lat: e.latlng.lat, lng: e.latlng.lng };
-    if (
-      this.props.allowDefine) {
+    if (this.props.allowDefine) {
       // Add new waypoint and check for crossing lines
       this.props.store.addAreaWaypoint(waypoint);
       this.updateCrossingLines(null, waypoint);
-
     } else {
       // Shows warning if placing waypoint would result in crossing lines
       this.props.store.setShowWarning(true);
     }
   }
-  
+
   /**
    * Calculates and updates crossing lines. Shows warning message if lines cross.
-   * 
+   *
    * @param {integer} i Index of waypoint to be removed
    * @param {*} waypoint Waypoint to be added
    */
   updateCrossingLines(i = null, waypoint = null) {
-    const newCrossingLines = createRedLines(this.props.store.areaWaypoints, waypoint, i);
+    const newCrossingLines = createRedLines(
+      this.props.store.areaWaypoints,
+      waypoint,
+      i
+    );
     this.props.store.setCrossingLines(newCrossingLines);
 
     // Show error message if there are any crossing lines
-    this.props.store.setShowWarning((newCrossingLines.length != 0));
-    return
-  };
+    this.props.store.setShowWarning(newCrossingLines.length != 0);
+    return;
+  }
 
   /**
    * Restructures the waypoint list so that the clicked markers waypoint is the first in the list and the waypoint that is added next is its neighbor.
@@ -171,7 +169,6 @@ class IMMMap extends React.Component {
 
       // Add restructured waypoints.
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
-
     } else {
       // Remove waypoint and check for crossing lines
       this.props.store.removeAreaWaypoint(i);
