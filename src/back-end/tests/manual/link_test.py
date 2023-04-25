@@ -1,7 +1,5 @@
 from IMM.drone_manager.link import Link
 import time
-import threading
-import queue
 from utility.helper_functions import create_logger
 '''
 This is a test script for the link module. It is not intended to be run as a part of the main program.
@@ -12,14 +10,10 @@ you can find this information on c2m2 (in a webbrowser type 10.44.170.10 when co
 When this is done and you are connected to the drones, set them to guided mode in qgroundcontrol.
 After that ssh in to the RISE server (for us it is at 10.44.170.10 with openvpn running) and run app_drone_link, then run this script.
 '''
-STATUS_TEST = True
-MONITOR_TEST = False
-link_object = Link()
-ALIVE = True
-_event_queue = queue.Queue()
-_update_recieved_event = threading.Event()
-_logger = create_logger("link_test")
 
+link_object = Link()
+alive = True
+_logger = create_logger("link_test")
 class Drone():
     def __init__(self, drone_name) -> None:
         self.id = drone_name
@@ -89,106 +83,10 @@ def test_link_new_mission():
         link_object.kill()
         alive = False
 
-def status_printer():
-    alive = True
-    while alive:
-        try:
-            #_logger.info('trying to get status update')
-            msg = link_object.msg_queue.get()
-            #_logger.info(f'got status update: {msg}')
-            if msg is not None:
-                if msg['topic'] =='drone_status':
-                    #_logger.info(f'topic is drone_status, trying to get data')
-                    data = msg['data']
-                    #_logger.info(f'Recieved drone status update with the data being: {data}')
-                    if data['drone_status'] == 'waiting':
-                        _event_queue.put({'drone':data['drone'], 'update':'status_update', 'drone_status':data['drone_status']})
-                        _update_recieved_event.set()
-                        _logger.info(f'update recieved: {_update_recieved_event.is_set()}')
-                        #_logger.info('mission done')
-                elif msg['topic'] == 'lost_drone':
-                    _logger.info(f'topic is lost_drone, trying to get data')
-                    data = msg['data']
-                    _logger.info(f'Recieved drone status update with the data being: {data}')
-                    _event_queue.put({'drone':data['drone'], 'update':'lost_drone'})
-                    _update_recieved_event.set()
-                elif msg['topic'] == 'gained_drone':
-                    _logger.info(f'topic is new_drone, trying to get data')
-                    data = msg['data']
-                    _logger.info(f'Recieved drone status update with the data being: {data}')
-                    _event_queue.put({'drone':data['drone'], 'update':'gained_drone'})
-                    _update_recieved_event.set()
-            while _update_recieved_event.is_set():
-                time.sleep(1)
-        except KeyboardInterrupt:
-            alive = False
-        except Exception as e:
-            _logger.info(e)
-            pass
-
-def update_logic_test():
-    alive = True
-    while alive:
-        try:
-            link_object.connect_to_all_drones()
-            drone_list = link_object.get_list_of_drones()
-            drone_object_list = {}
-            for drone in drone_list:
-                drone_object_list[drone] = Drone(drone)
-            for drone in drone_object_list:
-                link_object.fly_random_mission(drone_object_list[drone])
-                _logger.info('mission started')
-            try:
-                while True:
-                    if _update_recieved_event.is_set():
-                        update = _event_queue.get()
-                        _update_recieved_event.clear()
-                        _logger.info(f'update recieved: {update}')
-                        if update['update'] == 'status_update':
-                            if update['drone_status'] == 'waiting':
-                                _logger.info(f'mission done for drone: {update["drone"]}')
-                                link_object.fly_random_mission(drone_object_list[update["drone"]])
-                                _logger.info(f'mission started again for drone: {update["drone"]}')
-                        elif update['update'] == 'lost_drone':
-                            _logger.info(f'drone lost: {update["drone"]}')
-                            _logger.info(f'old drone list: {drone_object_list}')
-                            drone_object_list.pop(update['drone'])
-                            _logger.info(f'new drone list: {drone_object_list}')
-                        elif update['update'] == 'gained_drone':
-                            if link_object.connect_to_drone():
-                                new_drone_list = link_object.get_list_of_drones()
-                                for drone in new_drone_list:
-                                    if drone not in drone_object_list:
-                                        _logger.info(f'old drone list: {drone_object_list}')
-                                        drone_object_list[drone] = Drone(drone)
-                                        link_object.fly_random_mission(drone_object_list[drone])
-                                        _logger.info(f'mission started for new drone: {drone}')
-                                _logger.info(f'new drone list: {drone_object_list}')
-                    else:
-                        _logger.info('business as usual')
-                        time.sleep(1)
-            except KeyboardInterrupt:
-                _logger.info('KeyboardInterrupt')
-                link_object.kill()
-                alive = False
-        except KeyboardInterrupt:
-            _logger.info('KeyboardInterrupt')
-            link_object.kill()
-            alive = False
-        except Exception as e:
-            _logger.info(e)
-            link_object.kill()
-            alive = False
-
 
 if __name__ == '__main__':
     try:
-        
-        if STATUS_TEST:
-            _logger.info('Starting status test thread')
-            status_test_thread = threading.Thread(target=status_printer, daemon=True)
-            status_test_thread.start()
-        update_logic_test()
+        test_link_new_mission()
     except KeyboardInterrupt:
         _logger.info('KeyboardInterrupt')
         link_object.kill()
