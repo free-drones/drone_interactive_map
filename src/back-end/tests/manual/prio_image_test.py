@@ -35,7 +35,7 @@ client.emit("init_connection", data={})
 @client.on('response')
 def on_response(data):
     if data["fcn"] == "ack" and data["fcn_name"] == "connect":
-        client.emit("request_priority_view", data_req)
+        client.emit("request_priority_picture", data_req)
 
 
 @client.on('notify')

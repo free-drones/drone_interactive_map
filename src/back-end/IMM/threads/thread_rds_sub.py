@@ -108,7 +108,7 @@ def save_to_database(image_args, image_coordinates, image_array, file_data):
 
     Keyword arguments:
     image_args -- A json containing information about the image
-                  (type of image, force_que_id etc).
+                  (type of image, force_queue_id etc).
     image_coordinates -- A json containing the coordinates for image's corners
                          and its center point.
     image_array -- A numpy 2d array representing the image.
@@ -151,9 +151,9 @@ def save_to_database(image_args, image_coordinates, image_array, file_data):
         session.commit()
         image_id = image.id
 
-    if int(image_args["force_que_id"]) > 0: # Check if prio image
+    if int(image_args["force_queue_id"]) > 0: # Check if prio image
         with session_scope() as session:
-            prio_image = session.query(PrioImage).filter_by(id=int(image_args["force_que_id"]))
+            prio_image = session.query(PrioImage).filter_by(id=int(image_args["force_queue_id"]))
             prio_image.image_id = image_id
 
 
@@ -303,7 +303,7 @@ class RDSSubThread(Thread):
         """
         while self.running:
             request = self.RDS_sub_socket.recv_json()
-            keys_exists = check_keys_exists(request, [("arg", "coordinates"), ("arg", "type"), ("arg", "force_que_id")])
+            keys_exists = check_keys_exists(request, [("arg", "coordinates"), ("arg", "type"), ("arg", "force_queue_id")])
 
             if keys_exists and "array_info" in request:
                 # We have a new image
@@ -323,19 +323,19 @@ class RDSSubThread(Thread):
                 if not check_keys_exists(request, ("arg", "type")):
                     save_to_database(request["arg"], new_coordinates, new_image_array, img_file_data)
                 _logger.info(f"Added image {img_file_data[1]} to database")
-                self.notify_gui(img_file_data[1], int(request["arg"]["force_que_id"]))
+                self.notify_gui(img_file_data[1], int(request["arg"]["force_queue_id"]))
 
             elif request["fcn"] == "stop": # For debugging
                 self.RDS_sub_socket.send_json({"fcn":"ack"})
                 self.running = False
 
 
-    def notify_gui(self, image_file_name, force_que_id):
+    def notify_gui(self, image_file_name, force_queue_id):
         """Notifies gui about new image
 
         Keyword arguments:
         image_file_name -- A string representing the name of an image.
-        force_que_id -- A integer. If bigger than 0 the image is prioritized,
+        force_queue_id -- A integer. If bigger than 0 the image is prioritized,
                         otherwise not.
         """
 
@@ -344,7 +344,7 @@ class RDSSubThread(Thread):
             image = session.query(Image).filter_by(file_name=image_file_name).first()
             if image is not None:
                 args["type"] = image.type
-                args["prioritized"] = force_que_id > 0
+                args["prioritized"] = force_queue_id > 0
                 args["image_id"] = image.id
                 args["time_taken"] = image.time_taken
                 args["coordinates"] = image.get_coordinate_json()

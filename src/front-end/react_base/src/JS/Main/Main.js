@@ -59,7 +59,7 @@ class Main extends React.Component {
       isUrgent,
       callbackWrapper((response) => {
         this.props.store.addPictureRequest(
-          response.arg.force_que_id,
+          response.arg.force_queue_id,
           this.props.store.mapPosition,
           isUrgent
         );

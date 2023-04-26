@@ -24,13 +24,13 @@ class RDSImage(_Base):
     coordinates = Column(JSON, unique=True)
     mode = Column(String, unique=False)
     image_path = Column(String, unique=True)
-    force_que_id = Column(Integer, unique=False)
+    force_queue_id = Column(Integer, unique=False)
 
-    def __init__(self, coordinates, image_path, mode, force_que_id):
+    def __init__(self, coordinates, image_path, mode, force_queue_id):
         self.coordinates = coordinates
         self.image_path = image_path
         self.mode = mode
-        self.force_que_id = force_que_id
+        self.force_queue_id = force_queue_id
 
 
 class _Database:

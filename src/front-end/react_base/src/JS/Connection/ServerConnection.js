@@ -141,7 +141,7 @@ function _sendDownstream(event, data, callback = null) {
     throw new Error("Response to '" + event + "' event timed out.");
   }, TIME_OUT_MS);
 
-  socket.once("response", (reply) => {
+  socket.once(`${event}_response`, (reply) => {
     clearTimeout(responseTimeout);
 
     if (callback !== null && callback !== undefined) callback(reply);

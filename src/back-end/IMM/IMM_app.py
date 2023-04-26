@@ -92,7 +92,7 @@ def on_init_connection(unused_data):
     response["arg"]["client_id"] = client_id
 
     _logger.debug(f"init_connection resp: {response}")
-    emit("response", response)
+    emit("init_connection_response", response)
 
 
 @socketio.on("check_alive")
@@ -110,7 +110,7 @@ def on_check_alive(unused_data):
     response["fcn_name"] = "check_alive"
 
     _logger.debug(response)
-    emit("response", response)
+    emit("check_alive_response", response)
 
 
 @socketio.on("quit")
@@ -133,7 +133,7 @@ def on_quit(unused_data):
     response["fcn_name"] = "quit"
 
     _logger.debug(f"quit resp: {response}")
-    emit("response", response)
+    emit("quit_response", response)
 
 
 @socketio.on("set_area")
@@ -189,7 +189,7 @@ def on_set_area(data):
         response["fcn_name"] = "set_area"
 
         _logger.debug(f"set_area resp: {response}")
-        emit("response", response)
+        emit("set_area_response", response)
 
 
 @socketio.on("request_view")
@@ -209,6 +209,8 @@ def on_request_view(data):
             return
         if not check_coord_dict(data["arg"]["coordinates"], "request_view", _logger):
             return
+        if "type" not in data["arg"]:
+            data["arg"]["type"] = "RGB"  # request RGB pictures by default
         if not check_type(data["arg"]["type"], "request_view", _logger):
             return
 
@@ -228,7 +230,7 @@ def on_request_view(data):
         request_to_rds["fcn"] = "add_poi"
         request_to_rds["arg"] = {}
         request_to_rds["arg"]["client_id"] = sessionID
-        request_to_rds["arg"]["force_que_id"] = 0 # Not a prioritized image
+        request_to_rds["arg"]["force_queue_id"] = 0 # Not a prioritized image
         request_to_rds["arg"]["coordinates"] = requested_view
         thread_handler.get_rds_pub_thread().add_request(request_to_rds)
 
@@ -282,27 +284,30 @@ def on_request_view(data):
         response["arg"]["image_data"] = img_data
 
         _logger.debug(f"request_view resp: {response}")
-        emit("response", response)
+        emit("request_view_response", response)
 
-@socketio.on("request_priority_view")
-def on_request_priority_view(data):
+@socketio.on("request_priority_picture")
+def on_request_priority_picture(data):
     """This function will NOT respond with images that overlap with the area.
     Instead it will send a POI (prioritized) request to the RDS which will respond
     later to back-end. It will respond with an acknowledgement.
     When the priotized image is then recieved it will be sent seperately to front-end.
 
     Keyword arguments:
-    data -- Will specify the current VIEW. See internal document (API.md) for details.
+    data -- Will specify the current view which specifies where the picture shall be taken. 
+            See internal document (API.md) for details.
     """
-    _logger.debug(f"Received request_priority_view API call with data: {data}")
+    _logger.debug(f"Received request_priority_picture API call with data: {data}")
     # Check arguments
     keys_exists = check_keys_exists(data, [("arg", "client_id")])
     if keys_exists:
-        if not check_client_id(data["arg"]["client_id"], "request_priority_view", _logger):
+        if not check_client_id(data["arg"]["client_id"], "request_priority_picture", _logger):
             return
-        if not check_coord_dict(data["arg"]["coordinates"], "request_priority_view", _logger):
+        if not check_coord_dict(data["arg"]["coordinates"], "request_priority_picture", _logger):
             return
-        if not check_type(data["arg"]["type"], "request_priority_view", _logger):
+        if "type" not in data["arg"]:
+            data["arg"]["type"] = "RGB"  # request RGB pictures by default
+        if not check_type(data["arg"]["type"], "request_priority_picture", _logger):
             return
 
         sessionID = None
@@ -337,7 +342,7 @@ def on_request_priority_view(data):
         request_to_rds["fcn"] = "add_poi"
         request_to_rds["arg"] = {}
         request_to_rds["arg"]["client_id"] = sessionID
-        request_to_rds["arg"]["force_que_id"] = prio_imageID
+        request_to_rds["arg"]["force_queue_id"] = prio_imageID
         request_to_rds["arg"]["coordinates"] = data["arg"]["coordinates"]
         request_to_rds["arg"]["type"] = data["arg"]["type"]
         thread_handler.get_rds_pub_thread().add_request(request_to_rds)
@@ -345,27 +350,27 @@ def on_request_priority_view(data):
         # Assemble response to GUI.
         response={}
         response["fcn"] = "ack"
-        response["fcn_name"] = "request_priority_view"
+        response["fcn_name"] = "request_priority_picture"
         response["arg"] = {}
-        response["arg"]["force_que_id"] = prio_imageID
+        response["arg"]["force_queue_id"] = prio_imageID
 
-        _logger.debug(f"request_priority_view resp: {response}")
-        emit("response", response)
+        _logger.debug(f"request_priority_picture resp: {response}")
+        emit("request_priority_picture_response", response)
 
 
-@socketio.on("clear_que")
+@socketio.on("clear_queue")
 def on_clear_queue(unused_data):
     """This function will cancell all PRIOTIZED images that previously have been
     requested but not yet delivered. It will respond with an acknowledgement and
-    send a CLEAR_QUE request to RDS.
+    send a CLEAR_QUEUE request to RDS.
 
     Keyword arguments:
     unused_data -- N/A
     """
-    _logger.debug(f"Received clear_que API call with data: {unused_data}")
+    _logger.debug(f"Received clear_queue API call with data: {unused_data}")
     # Sends request to rds pub thread
     request_to_rds = {}
-    request_to_rds["fcn"] = "clear_que"
+    request_to_rds["fcn"] = "clear_queue"
     request_to_rds["arg"] = ""
     thread_handler.get_rds_pub_thread().add_request(request_to_rds)
 
@@ -376,10 +381,10 @@ def on_clear_queue(unused_data):
 
     response = {}
     response["fcn"] = "ack"
-    response["fcn_name"] = "clear_que"
+    response["fcn_name"] = "clear_queue"
 
-    _logger.debug(f"clear_que resp: {response}")
-    emit("response", response)
+    _logger.debug(f"clear_queue resp: {response}")
+    emit("clear_queue_response", response)
 
 
 @socketio.on("set_mode")
@@ -415,7 +420,7 @@ def on_set_mode(data):
         response["fcn_name"] = "set_mode"
 
         _logger.debug(f"set_mode resp: {response}")
-        emit("response", response)
+        emit("set_mode_response", response)
 
 
 @socketio.on("get_info")
@@ -445,22 +450,22 @@ def on_get_info(unused_data):
 
             # Response is assembled
             _logger.debug(f"get_info resp: {response}")
-            emit("response", response)
+            emit("get_info_response", response)
 
         else:
             emit_error_response("get_info", "Unable to find drones", _logger)
             return
 
 
-@socketio.on("que_ETA")
-def que_ETA(unused_data):
+@socketio.on("queue_ETA")
+def queue_ETA(unused_data):
     """This function will respond with the ETA for the next item.
     It will not send a request to RDS since this information is regularly fetched.
 
     Keyword arguments:
     unused_data -- N/A
     """
-    _logger.debug(f"Received que_ETA API call with data: {unused_data}")
+    _logger.debug(f"Received queue_ETA API call with data: {unused_data}")
     next_eta_drone = None  # Holds drone with next ETA.
     with session_scope() as session:
         next_eta_image = session.query(func.min(PrioImage.eta)).first()
@@ -469,15 +474,15 @@ def que_ETA(unused_data):
         if next_eta_image is not None:
             response = {}
             response["fcn"] = "ack"
-            response["fcn_name"] = "que_ETA"
+            response["fcn_name"] = "queue_ETA"
             response["arg"] = {}
             response["arg"]["ETA"] = next_eta_image[0]
 
-            _logger.debug(f"que_ETA resp: {response}")
-            emit("response", response)
+            _logger.debug(f"queue_ETA resp: {response}")
+            emit("queue_ETA_response", response)
 
         else:
-            emit_error_response("que_ETA", "Unable to find drone", _logger)
+            emit_error_response("queue_ETA", "Unable to find drone", _logger)
             return
 
 

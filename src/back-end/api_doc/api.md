@@ -384,21 +384,21 @@ which cover specified area (this is to allow front-end to cache images).
          "fcn_name" : "request_priority_view",
          "arg" :
             {
-              "force_que_id" : "integer(1,-)"
+              "force_queue_id" : "integer(1,-)"
             }
         }
     ```
-    - Note that the images will be sent later in a separete request to front-end.
-    - `force_que_id` is a unique identifier for the requested view.
+    - Note that the images will be sent later in a separate request to front-end.
+    - `force_queue_id` is a unique identifier for the requested view.
 
 ----
-**Clear que of prioritized views.**
+**Clear queue of prioritized views.**
 ----
   Clear the queue of previously prioritized views.
 
 * **Event Name**
 
-  `"clear_que"`
+  `"clear_queue"`
 
 * **Data to be sent (JSON format)**
   `N/A`
@@ -410,7 +410,7 @@ which cover specified area (this is to allow front-end to cache images).
     ```json
         {
          "fcn" : "ack",
-         "fcn_name" : "clear_que"
+         "fcn_name" : "clear_queue"
         }
     ```
 
@@ -499,12 +499,12 @@ which cover specified area (this is to allow front-end to cache images).
     ```
 
 ----
-**Get que_ETA**
+**Get queue_ETA**
 ----
   Get time until next item is completed (seconds).
 
 * **Event Name**
-  `"que_ETA"`
+  `"queue_ETA"`
 
 * **Data to be sent (JSON format)**
   `N/A`
@@ -516,7 +516,7 @@ which cover specified area (this is to allow front-end to cache images).
     ```json
         {
          "fcn" : "ack",
-         "fcn_name" : "que_ETA",
+         "fcn_name" : "queue_ETA",
          "arg" : {"ETA" : "integer(1,-)"}
         }
     ```
