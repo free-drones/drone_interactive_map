@@ -36,7 +36,7 @@ LOGGER_NAME = "drone_manager_link_test"
 _logger = create_logger(LOGGER_NAME)
 
 def test_fly_auto_routes():
-    """ See dosctring for the while file for details """
+    """ See docstring for the whole file for details """
     try:
         alive = True
         NUM_OF_ROUTES = 2
