@@ -10,6 +10,7 @@ from utility.helper_functions import get_path_from_root
 from IMM.IMM_app import *
 import IMM.database.database as dbx
 
+
 example_coordinates =  {"up_left":
                             {
                                 "lat": 59.0,
@@ -72,7 +73,10 @@ class TestFlask(unittest.TestCase):
         self.assertEqual({"fcn":"ack", "fcn_name":"quit"}, recieved[0]["args"][0])
 
     def test_set_area(self):
-        data = {"arg":{"client_id":1, "coordinates": [{"lat":1.0,"long":2.0}, {"lat":3.0, "long":4.0}, {"lat":3.0,"long":4.0}]}}
+        data = {"arg":{"client_id":1, "coordinates": [{"lat":58.39933088094993,"long":15.57485264561767}, 
+                                                      {"lat":58.399332989149435, "long":15.575615734071752}, 
+                                                      {"lat":58.399911333789255,"long":15.575615734068975},
+                                                      {"lat":58.3999071174593,"long":15.574849963405917} ]}}
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})

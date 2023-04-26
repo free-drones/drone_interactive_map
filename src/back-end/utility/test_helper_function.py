@@ -60,15 +60,15 @@ class IMMTestThread(threading.Thread):
         super().__init__()
 
     def run(self) -> None:
-        self.rds_handler = RDSThreadHandler()
-        self.rds_handler.start_threads()
+        #self.rds_handler = RDSThreadHandler()
+        #self.rds_handler.start_threads()
         use_test_database(False)
-        use_test_database_rds(False, remove=False)
+        #use_test_database_rds(False, remove=False)
         thread_handler.start_threads()
         run_imm()
 
     def stop(self):
-        self.rds_handler.stop_threads()
+        #self.rds_handler.stop_threads()
         thread_handler.stop_threads()
         stop_imm()
 

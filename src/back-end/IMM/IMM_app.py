@@ -19,6 +19,7 @@ from utility.helper_functions import is_overlapping, get_path_from_root, check_k
 import os
 from IMM.error_handler import check_client_id, check_coordinates_list, check_coords_in_list, check_coord_dict, \
     check_type, check_mode, emit_error_response
+from IMM.drone_allocator import area_segmentation
 
 """Initiate the flask application and the socketIO wrapper"""
 app = Flask(__name__)
@@ -190,6 +191,21 @@ def on_set_area(data):
 
         _logger.debug(f"set_area resp: {response}")
         emit("set_area_response", response)
+
+        # Area segmentation and route planning, and give routes to drone manager
+        area_coordinates = data["arg"]["coordinates"] 
+        START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
+        NODE_SPACING = 13.0 # TODO: Change to use drone input to set node spacing
+
+        drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
+        if drone_count:
+            polygon = area_segmentation.Polygon(area_coordinates) 
+            polygon.create_area_segments(NODE_SPACING, START_LOCATION, drone_count)
+            route_list = [segment.route_dicts() for segment in polygon.segments]
+
+            thread_handler.get_drone_manager_thread().set_routes(route_list)
+        else:
+            _logger.warning("No drones available when attempting route planning!")  # TODO: handle this case better
 
 
 @socketio.on("request_view")
@@ -414,6 +430,8 @@ def on_set_mode(data):
 
         # Update the global mode.
         current_mode = data["arg"]["mode"]
+
+        thread_handler.get_drone_manager_thread().set_mode(current_mode)
 
         response = {}
         response["fcn"] = "ack"

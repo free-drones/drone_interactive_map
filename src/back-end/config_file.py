@@ -10,7 +10,7 @@ TILE_SERVER_BASE_URL is used in /IMM/threads/thread_rds_sub.py.
 
 It's specifies at which address the Tile Server is being hosted.
 """
-TILE_SERVER_AVAILABLE = True
+TILE_SERVER_AVAILABLE = False
 TILE_SERVER_BASE_URL = "http://localhost/osm"
 
 """BACKEND_BASE_URL specifies at which adress the Server is being hosted."""
@@ -33,10 +33,13 @@ UPDATE_INTERVAL = 2
 ENABLE_IMAGE_PROCESSING = True
 
 """File where log messages should be written."""
-LOG_FILE = "log.txt"
+LOG_FILE = "log.log"
 
 """Minimum log level to write to console."""
 CONSOLE_LOG_LEVEL = logging.WARNING
 
 """Minimum log level to write to log file."""
 FILE_LOG_LEVEL = logging.DEBUG
+
+"""Drone application socket url"""
+DRONE_APP_URL = 'tcp://10.44.170.10:17720'

@@ -12,6 +12,7 @@ from utility.helper_functions import get_path_from_root
 from IMM.IMM_app import *
 import IMM.database.database as dbx
 
+
 example_coordinates =  {"up_left": { "lat": 59.0, "long": 16.0 },
                         "up_right": { "lat": 58.0, "long": 16.0 },
                         "down_left": { "lat": 58.0, "long": 16.0 },
