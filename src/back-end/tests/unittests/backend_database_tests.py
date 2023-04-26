@@ -12,6 +12,7 @@ from utility.helper_functions import get_path_from_root
 from IMM.IMM_app import *
 import IMM.database.database as dbx
 
+
 example_coordinates =  {"up_left": { "lat": 59.0, "long": 16.0 },
                         "up_right": { "lat": 58.0, "long": 16.0 },
                         "down_left": { "lat": 58.0, "long": 16.0 },
@@ -77,7 +78,7 @@ class TestFlask(unittest.TestCase):
             for i in range(9):
                 self.assertEqual(all_clients[i].id, i+1)
 
-    def test_request_priority_view(self):
+    def test_request_priority_picture(self):
         clients = connect_to_backend(self)
 
         data = {"arg":
@@ -88,9 +89,9 @@ class TestFlask(unittest.TestCase):
                     }
                }
 
-        clients.emit("request_priority_view", data)
+        clients.emit("request_priority_picture", data)
         recieved = clients.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_view", "arg":{"force_que_id":1}}, recieved[0]["args"][0])
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, recieved[0]["args"][0])
 
         with session_scope() as session:
             all_prioimage = session.query(PrioImage).all()
@@ -100,9 +101,9 @@ class TestFlask(unittest.TestCase):
 
         # Add 8 prioImage
         for i in range(2,10):
-            clients.emit("request_priority_view", data)
+            clients.emit("request_priority_picture", data)
             recieved = clients.get_received()
-            self.assertEqual(i, recieved[0]["args"][0]["arg"]["force_que_id"])
+            self.assertEqual(i, recieved[0]["args"][0]["arg"]["force_queue_id"])
 
         with session_scope() as session:
             all_prioimage = session.query(PrioImage).all()

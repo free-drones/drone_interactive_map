@@ -48,7 +48,7 @@ def init_db_and_add_all_images():
         for img_path in img_file_paths:
             img_name = img_path.split(os.sep)[-1]
             img_coordinates = coordinates[img_name]
-            image = RDSImage(img_coordinates, img_path, "AUTO", force_que_id=0)
+            image = RDSImage(img_coordinates, img_path, "AUTO", force_queue_id=0)
             session.add(image)
 
 # -----------INIT------------------
@@ -60,15 +60,15 @@ class IMMTestThread(threading.Thread):
         super().__init__()
 
     def run(self) -> None:
-        self.rds_handler = RDSThreadHandler()
-        self.rds_handler.start_threads()
+        #self.rds_handler = RDSThreadHandler()
+        #self.rds_handler.start_threads()
         use_test_database(False)
-        use_test_database_rds(False, remove=False)
+        #use_test_database_rds(False, remove=False)
         thread_handler.start_threads()
         run_imm()
 
     def stop(self):
-        self.rds_handler.stop_threads()
+        #self.rds_handler.stop_threads()
         thread_handler.stop_threads()
         stop_imm()
 

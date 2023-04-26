@@ -150,9 +150,16 @@ function StartUp(props) {
    */
   function calculateBounds() {
     let bounds = Leaflet.latLngBounds(props.store.areaWaypoints);
+    // Adds a padding so that the bounds are not strictly limited to the defined area
+    // which makes it easier to request pictures close to the edges of the area
+    const paddingX = 3 * (bounds.getEast() - bounds.getWest());
+    const paddingY = 3 * (bounds.getSouth() - bounds.getNorth());
 
-    let topLeft = [bounds.getNorth(), bounds.getWest()];
-    let bottomRight = [bounds.getSouth(), bounds.getEast()];
+    let topLeft = [bounds.getNorth() - paddingY, bounds.getWest() - paddingX];
+    let bottomRight = [
+      bounds.getSouth() + paddingY,
+      bounds.getEast() + paddingX,
+    ];
 
     return [topLeft, bottomRight];
   }

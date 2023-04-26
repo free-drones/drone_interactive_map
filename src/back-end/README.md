@@ -320,7 +320,7 @@ Images are sent to IMM by first sending metadata of the image and then the image
 
 Metadata contains the usual arguments like
 - coordinates
-- force_que_id
+- force_queue_id
 - etc....
 
 On top of this, information about how the image array (variable *image_array* in the code below) shall be
@@ -338,7 +338,7 @@ Example on how the metadata could look like:
         {
         "drone_id": "one",
         "type": "RGB",
-        "force_que_id": "1",
+        "force_queue_id": "1",
         "coordinates": {"up_left": {"lat": 12, "long": 133}, ...}
         }
     "array_info":
@@ -387,7 +387,7 @@ def new_pic(self, image):
         "arg": {
             "drone_id": "one",
             "type": "RGB",
-            "force_que_id": image.force_que_id,
+            "force_queue_id": image.force_queue_id,
             "coordinates": image.coordinates
         }
     }
@@ -455,7 +455,7 @@ After this, the image_array itself is sent.
         """
         while self.running:
             request = self.RDS_sub_socket.recv_json()
-            keys_exists = check_keys_exists(request, [("arg", "coordinates"), ("arg", "type"), ("arg", "force_que_id")])
+            keys_exists = check_keys_exists(request, [("arg", "coordinates"), ("arg", "type"), ("arg", "force_queue_id")])
 
             if keys_exists and "array_info" in request:
                 # We have a new image
