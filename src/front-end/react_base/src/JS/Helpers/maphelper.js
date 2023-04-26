@@ -115,7 +115,7 @@ export function createRedLines(
 }
 
 /**
- * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s) then return true, otherwise false.
+ * If vector 1: (a,b) -> (c,d) intersects with vector 2: (p,q) -> (r,s) then return true, otherwise false.
  *
  * a, b, c, d, p, q, r, s are integers
  */
@@ -123,15 +123,19 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
   // det = determinant
   let det, length_1, length_2;
   det = (c - a) * (s - q) - (r - p) * (d - b);
+
+  // Lines are parallel and will never intersect
   if (det === 0) {
     return false;
   }
 
-  // length_1 & length_2 = lengths to intersecting point of vectors.
+  // Finds a point where the two vectors intersect.
+  // Length_1 and length_2 are the distances to the intersecting point as a percentage of the vectors' original length.
   length_1 = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
   length_2 = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
 
-  // If intersecting point is farther away than original vectors' length, then lengths will not be between 0 and 1.
+  // A value between 1 and 0 means that the intersecting point is on the original vectors length.
+  // If intersecting point is farther away than original vectors' length, then vectors do not cross.
   return 0 < length_1 && length_1 < 1 && 0 < length_2 && length_2 < 1;
 }
 
