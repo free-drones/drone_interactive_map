@@ -147,7 +147,7 @@ class IMMMap extends React.Component {
     this.props.store.setCrossingLines(newCrossingLines);
 
     // Show error message if there are any crossing lines
-    this.props.store.setShowWarning(newCrossingLines.length != 0);
+    this.props.store.setShowWarning(newCrossingLines.length !== 0);
     return;
   }
 

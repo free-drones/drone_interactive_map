@@ -91,7 +91,7 @@ export function createRedLines(
       const s = newWaypoints[i + 1].lng;
 
       // Check if lines intersect
-      if (hasIntersectingVectors(c, d, a, b, p, q, r, s) && j != i) {
+      if (hasIntersectingVectors(c, d, a, b, p, q, r, s) && j !== i) {
         crossingLines.push([newWaypoints[i], newWaypoints[i + 1]]);
       }
     }
