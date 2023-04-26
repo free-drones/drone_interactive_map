@@ -78,9 +78,10 @@ class IMMMap extends React.Component {
   }
 
   /**
-   * Remove double timer from componentDidMount
+   * Clears timer when component is unmounted
    */
   componentWillUnmount() {
+    // To avoid duplicate instances of getDronesTimer
     clearInterval(this.state.getDronesTimer);
   }
 
