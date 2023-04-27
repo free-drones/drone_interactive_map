@@ -269,11 +269,16 @@ class IMMMap extends React.Component {
    * Drone position update, componentDidMount runs once on startup.
    */
   componentDidMount() {
-    const updateDronesTimer = 1000;
+    const updateDronesTimer = 3000;
+    if (this.state.getDronesTimer) {
+      clearInterval(this.state.getDronesTimer);
+    }
+
     this.setState({
       getDronesTimer: setInterval(() => {
         getDrones((response) => {
           this.setState({ oldDrones: this.state.drones });
+          console.log("received get_drones_info response: ", response, response.arg)
           this.setState({ drones: response.arg.drones });
         });
       }, updateDronesTimer),
@@ -329,8 +334,8 @@ class IMMMap extends React.Component {
             (i === this.props.store.areaWaypoints.length - 1
               ? "last-marker" // If it is the last marker add special styling
               : i === 0
-              ? "first-marker" // If it is the first marker add special styling
-              : "") + " marker", // Always use the base marker styling
+                ? "first-marker" // If it is the first marker add special styling
+                : "") + " marker", // Always use the base marker styling
           iconAnchor: Leaflet.point(18, 34),
           html: markedIcon,
         })}
@@ -432,9 +437,9 @@ class IMMMap extends React.Component {
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
                     transform="rotate(${this.droneAngle(
-                      this.state.oldDrones[key].location,
-                      drone.location
-                    )})"
+            this.state?.oldDrones[key]?.location,
+            drone.location
+          )})"
                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
 	                  viewBox="0 0 1792 1792" xml:space="preserve">
                     <path d="M187.8,1659L896,132.9L1604.2,1659L896,1285.5L187.8,1659z"/>
@@ -542,7 +547,7 @@ class IMMMap extends React.Component {
 
         {/*Draws an overlay for the whole world except for defined area.*/}
         {!this.props.allowDefine &&
-        Object.keys(this.props.store.areaWaypoints).length > 0 ? (
+          Object.keys(this.props.store.areaWaypoints).length > 0 ? (
           <Polygon
             positions={[
               worldPolygon,
