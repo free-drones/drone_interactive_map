@@ -26,6 +26,8 @@ import {
   mapStateActions,
   activePicturesActions,
   userPriority,
+  showWarning,
+  showWarningActions,
 } from "../Storage.js";
 import ModeIcon from "./ModeIcon.js";
 import ColorWrapper from "../ColorWrapper.js";
@@ -48,6 +50,7 @@ function SettingsDrawer(props) {
    */
   function redefineClickHandler() {
     setDialogState(true);
+    props.store.setShowWarning(false);
   }
 
   /**
@@ -124,11 +127,12 @@ function SettingsDrawer(props) {
 }
 
 export default connect(
-  { userPriority, areaWaypoints, mapState },
+  { userPriority, areaWaypoints, mapState, showWarning },
   {
     ...areaWaypointActions,
     ...mapStateActions,
     ...pictureRequestQueueActions,
     ...activePicturesActions,
+    ...showWarningActions,
   }
 )(SettingsDrawer);

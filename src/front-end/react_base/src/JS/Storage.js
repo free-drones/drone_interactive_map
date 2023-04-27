@@ -138,6 +138,21 @@ export const removeAreaWaypoint = createAction(
 
 export const clearAreaWaypoints = createAction("CLEAR_AREA_WAYPOINTS");
 
+export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
+
+export const setCrossingLines = createAction(
+  "SET_CROSSING_LINES",
+  function prepare(list) {
+    if (list) {
+      return {
+        payload: list,
+      };
+    } else {
+      throw new Error("This is not a list.");
+    }
+  }
+);
+
 /**
  * Client ID, restricted to a number.
  */
@@ -489,6 +504,17 @@ export const _areaWaypoints = createReducer([], (builder) => {
     });
 });
 
+export const _crossingLines = createReducer([], (builder) => {
+  builder
+    .addCase(clearCrossingLines, (state, action) => {
+      return [];
+    })
+    .addCase(setCrossingLines, (state, action) => {
+      const newList = action.payload;
+      return newList;
+    });
+});
+
 export const _clientID = createReducer(null, (builder) => {
   builder.addCase(setClientID, (state, action) => {
     const newID = action.payload;
@@ -652,6 +678,12 @@ export function areaWaypoints(state) {
   };
 }
 
+export function crossingLines(state) {
+  return {
+    crossingLines: state.crossingLines,
+  };
+}
+
 export function clientID(state) {
   return {
     clientID: state.clientID,
@@ -744,6 +776,7 @@ const states = {
   messages,
   mapState,
   showWarning,
+  crossingLines,
 };
 
 /**
@@ -813,6 +846,11 @@ export const mapStateActions = { setMapState };
 
 export const showWarningActions = { setShowWarning };
 
+export const crossingLineActions = {
+  clearCrossingLines,
+  setCrossingLines,
+};
+
 const actions = {
   areaWaypointActions,
   clientIDActions,
@@ -828,6 +866,7 @@ const actions = {
   messagesActions,
   mapStateActions,
   showWarningActions,
+  crossingLineActions,
 };
 
 /**
@@ -863,6 +902,7 @@ export const store = configureStore({
     messages: _messages,
     mapState: _mapState,
     showWarning: _showWarning,
+    crossingLines: _crossingLines,
   },
 });
 
