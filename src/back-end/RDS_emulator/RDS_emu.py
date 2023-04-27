@@ -170,7 +170,7 @@ class IMMPubThread(Thread):
             "arg": {
                 "drone_id": "one",
                 "type": "RGB",
-                "force_que_id": image.force_que_id,
+                "force_queue_id": image.force_queue_id,
                 "coordinates": image.coordinates
             }
         }
@@ -275,7 +275,7 @@ class IMMSubThread(Thread):
                 image = session.query(RDSImage).first()
 
                 if image is not None:
-                    image.force_que_id = poi["force_que_id"]
+                    image.force_queue_id = poi["force_queue_id"]
                     self.drone_thread.add_image_to_queue(image)
                     return {"msg": "Image added to queue"}
                 else:
@@ -313,7 +313,7 @@ class IMMRepThread(Thread):
         while self.running:
             request = self.socket.recv_json()
             self.drone_thread.start_change()
-            if request["fcn"] == "que_ETA":
+            if request["fcn"] == "queue_ETA":
                 self.eta()
             elif request["fcn"] == "set_mode":
                 self.socket.send_json(self.set_mode(request))
@@ -353,7 +353,7 @@ class IMMRepThread(Thread):
         """
         pass
 
-    def clear_que(self):
+    def clear_queue(self):
         """
         Returns info on connected drones, for now.
         """
@@ -366,7 +366,7 @@ class IMMRepThread(Thread):
 
         res = {
             "fcn": "ack",
-            "arg": "que_ETA",
+            "arg": "queue_ETA",
             "arg2": str(self.drone_thread.next_image_eta())
         }
         # print("ETA", res)

@@ -34,6 +34,8 @@ import {
   showWarning,
   showWarningActions,
   userPriority,
+  crossingLines,
+  crossingLineActions,
 } from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import { Check, Delete, MyLocation } from "@mui/icons-material";
@@ -138,6 +140,7 @@ function StartUp(props) {
    * Clears waypoints.
    */
   function clearWaypoints() {
+    props.store.clearCrossingLines();
     props.store.setShowWarning(false);
     props.store.clearAreaWaypoints();
   }
@@ -147,9 +150,16 @@ function StartUp(props) {
    */
   function calculateBounds() {
     let bounds = Leaflet.latLngBounds(props.store.areaWaypoints);
+    // Adds a padding so that the bounds are not strictly limited to the defined area
+    // which makes it easier to request pictures close to the edges of the area
+    const paddingX = 3 * (bounds.getEast() - bounds.getWest());
+    const paddingY = 3 * (bounds.getSouth() - bounds.getNorth());
 
-    let topLeft = [bounds.getNorth(), bounds.getWest()];
-    let bottomRight = [bounds.getSouth(), bounds.getEast()];
+    let topLeft = [bounds.getNorth() - paddingY, bounds.getWest() - paddingX];
+    let bottomRight = [
+      bounds.getSouth() + paddingY,
+      bounds.getEast() + paddingX,
+    ];
 
     return [topLeft, bottomRight];
   }
@@ -196,7 +206,10 @@ function StartUp(props) {
             props.store.setShowWarning(false);
           }}
           sx={[styles.fab, styles.fabRight]}
-          disabled={props.store.areaWaypoints.length < 3}
+          disabled={
+            props.store.areaWaypoints.length < 3 ||
+            props.store.crossingLines.length > 0
+          }
         >
           <Check />
         </Fab>
@@ -300,6 +313,7 @@ export default connect(
     messages,
     showWarning,
     userPriority,
+    crossingLines,
   },
   {
     ...areaWaypointActions,
@@ -309,5 +323,6 @@ export default connect(
     ...clientIDActions,
     ...configActions,
     ...showWarningActions,
+    ...crossingLineActions,
   }
 )(StartUp);

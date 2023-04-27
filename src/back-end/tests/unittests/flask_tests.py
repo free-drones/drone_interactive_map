@@ -10,6 +10,7 @@ from utility.helper_functions import get_path_from_root
 from IMM.IMM_app import *
 import IMM.database.database as dbx
 
+
 example_coordinates =  {"up_left":
                             {
                                 "lat": 59.0,
@@ -76,7 +77,10 @@ class TestFlask(unittest.TestCase):
         self.assertEqual({"fcn":"ack", "fcn_name":"quit"}, received[0]["args"][0])
 
     def test_set_area(self):
-        data = {"arg":{"client_id":1, "coordinates": [{"lat":1.0,"long":2.0}, {"lat":3.0, "long":4.0}, {"lat":3.0,"long":4.0}], "bounds": [[3,4],[5,6]]}}
+        data = {"arg":{"client_id":1, "coordinates": [{"lat":58.39933088094993,"long":15.57485264561767}, 
+                                                      {"lat":58.399332989149435, "long":15.575615734071752}, 
+                                                      {"lat":58.399911333789255,"long":15.575615734068975},
+                                                      {"lat":58.3999071174593,"long":15.574849963405917} ]}}
         client = socketio.test_client(app)
         self.assert_connection(client)
         
@@ -217,7 +221,7 @@ class TestFlask(unittest.TestCase):
         self.assertEqual(received[0]["args"][0]["arg"]["image_data"][1]["image_id"], 555)
 
 
-    def test_request_priority_view(self):
+    def test_request_priority_picture(self):
         client = socketio.test_client(app)
         self.assert_connection(client)
         
@@ -230,9 +234,9 @@ class TestFlask(unittest.TestCase):
                     }
                }
 
-        client.emit("request_priority_view", data)
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_view", "arg":{"force_que_id":1}}, received[0]["args"][0])
+        client.emit("request_priority_picture", data)
+        recieved = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, recieved[0]["args"][0])
 
         data = {"arg":
                     {
@@ -242,9 +246,9 @@ class TestFlask(unittest.TestCase):
                     }
                }
 
-        client.emit("request_priority_view", data)
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_view", "arg":{"force_que_id":2}}, received[0]["args"][0])
+        client.emit("request_priority_picture", data)
+        recieved = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":2}}, recieved[0]["args"][0])
 
     def test_clear_queue(self):
         client = socketio.test_client(app)
@@ -269,9 +273,9 @@ class TestFlask(unittest.TestCase):
         with dbx.session_scope() as session:
             self.assertEqual(session.query(dbx.PrioImage).first().status, "PENDING")
 
-        client.emit("clear_que", {})
-        received = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"clear_que"}, received[0]["args"][0])
+        client.emit("clear_queue", {})
+        recieved = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"clear_queue"}, recieved[0]["args"][0])
 
         with dbx.session_scope() as session:
             self.assertEqual(session.query(dbx.PrioImage).first().status, "CANCELLED")
@@ -320,7 +324,7 @@ class TestFlask(unittest.TestCase):
 
         self.assertEqual({"fcn":"ack", "fcn_name":"get_info", "arg":{"data":[{"drone-id":"one","time2bingo":20}, {"drone-id":"two","time2bingo":11}]}}, received[0]["args"][0])
 
-    def test_que_ETA(self):
+    def test_queue_ETA(self):
         client = socketio.test_client(app)
         self.assert_connection(client)
         
@@ -339,9 +343,9 @@ class TestFlask(unittest.TestCase):
             )
             session.add(image)
 
-        client.emit("que_ETA", {})
-        received = client.get_received()
-        self.assertEqual(2121, received[0]["args"][0]["arg"]["ETA"])
+        client.emit("queue_ETA", {})
+        recieved = client.get_received()
+        self.assertEqual(2121, recieved[0]["args"][0]["arg"]["ETA"])
 
 
     def test_send_to_gui(self):

@@ -82,7 +82,7 @@ class InfoFetcherThread(Thread):
         """
 
         request = {
-            "fcn": "que_ETA",
+            "fcn": "queue_ETA",
             "arg": ""
         }
         response = self.__send_request(request)

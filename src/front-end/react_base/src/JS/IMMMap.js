@@ -11,10 +11,13 @@ import {
   ImageOverlay,
   useMapEvents,
   ScaleControl,
+  Polyline,
+  Popup,
 } from "react-leaflet";
 import "../CSS/Map.scss";
 import {
   connect,
+  pictureRequestQueue,
   config,
   areaWaypoints,
   zoomLevel,
@@ -22,6 +25,7 @@ import {
   mapState,
   mapBounds,
   activePictures,
+  crossingLines,
 } from "./Storage.js";
 import {
   mapPositionActions,
@@ -29,173 +33,17 @@ import {
   areaWaypointActions,
   mapStateActions,
   showWarningActions,
+  crossingLineActions,
 } from "./Storage.js";
-import { boundsToView } from "./Helpers/maphelper.js";
+import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
+import { getDrones } from "./Connection/Downstream.js";
+import { markedIcon, userPosIcon, pictureIndicatorIcon } from "./SvgIcons.js";
 
 import Leaflet from "leaflet";
-
-// Room Icon pre-rendered + sizing style
-const markedIcon =
-  '<svg style="font-size: 2.25rem; width: 36px; height: 36px;" class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>';
-const userPosIcon =
-  '<svg class="svg-icon" style="width: 22px;height: 22px;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 512m-442.7 0a442.7 442.7 0 1 0 885.4 0 442.7 442.7 0 1 0-885.4 0Z" fill="#9BBFFF" /><path d="M512 512m-263 0a263 263 0 1 0 526 0 263 263 0 1 0-526 0Z" fill="#377FFC" /></svg>';
+import PriorityPictureRequestInfo from "./Menu/PriorityPictureRequestInfo";
 
 let hasLocationPanned = false;
-
-/**
- * ====================================================================================================
- *                                         Help functions
- * ====================================================================================================
- */
-
-/**
- * Checks if there are waypoints having crossing connections when a new waypoint is added.
- *
- * @param {any} waypoint that will be added and have it connections checked.
- *
- * Returns true if waypoint lines cross
- */
-function newWaypointLinesCrossing(waypoint, waypoints) {
-  // vectors to be checked lat=y long=x
-  // vector 1: (c,d) -> (a,b) (neighbour 1, forward in list) intersects with (p,q) -> (r,s)
-  // vector 2: (e,f) -> (a,b) (neighbour 2, backward in list) intersects with (p,q) -> (r,s)
-
-  if (waypoints.length < 3) {
-    return false;
-  }
-
-  let crossing = false;
-
-  const a = waypoint.lat;
-  const b = waypoint.lng;
-
-  const c = waypoints[0].lat;
-  const d = waypoints[0].lng;
-
-  const e = waypoints[waypoints.length - 1].lat;
-  const f = waypoints[waypoints.length - 1].lng;
-
-  // Do the check for every line on the map.
-  for (let i = 0; i < waypoints.length - 1; i++) {
-    const p = waypoints[i].lat;
-    const q = waypoints[i].lng;
-
-    const r = waypoints[i + 1].lat;
-    const s = waypoints[i + 1].lng;
-    crossing =
-      crossing ||
-      hasIntersectingVectors(c, d, a, b, p, q, r, s) ||
-      hasIntersectingVectors(e, f, a, b, p, q, r, s);
-  }
-
-  return crossing;
-}
-
-/**
- * Checks if any waypoints have crossing connections when waypoint of index is removed.
- *
- * @param {Integer} index of waypoint that will be removed.
- *
- * Returns true if waypoint lines cross
- */
-function removedWaypointLinesCrossing(index, waypoints) {
-  // vectors to be checked lat=y long=x
-  // vector 1: (a,b) -> (c,d) intersects with (p,q) -> (r,s)
-
-  if (waypoints.length - 1 < 3) {
-    return false;
-  }
-
-  let crossing, a, b, c, d;
-
-  // Removing waypoints should only happen when (index == waypoints.length - 1) but this is more secure.
-  if (index === 0) {
-    a = waypoints[1].lat;
-    b = waypoints[1].lng;
-
-    c = waypoints[waypoints.length - 1].lat;
-    d = waypoints[waypoints.length - 1].lng;
-
-    // Do the check for every line on the map.
-    for (let i = 1; i < waypoints.length - 1; i++) {
-      crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
-    }
-  } else if (index === waypoints.length - 1) {
-    a = waypoints[0].lat;
-    b = waypoints[0].lng;
-
-    c = waypoints[index - 1].lat;
-    d = waypoints[index - 1].lng;
-
-    // Do the check for every line on the map.
-    for (let i = 0; i < waypoints.length - 2; i++) {
-      crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
-    }
-  } else {
-    a = waypoints[index + 1].lat;
-    b = waypoints[index + 1].lng;
-
-    c = waypoints[index - 1].lat;
-    d = waypoints[index - 1].lng;
-
-    // Do the check for every line on the map.
-    for (let i = 0; i <= waypoints.length; i++) {
-      if (i === index || i + 1 === index) {
-        // skip this vector
-      }
-      if (i === waypoints.length) {
-        const p = waypoints[i].lat;
-        const q = waypoints[i].lng;
-
-        const r = waypoints[0].lat;
-        const s = waypoints[0].lng;
-        crossing = crossing || hasIntersectingVectors(a, b, c, d, p, q, r, s);
-      } else {
-        crossing = crossing || vectorHelper(a, b, c, d, waypoints, i);
-      }
-    }
-  }
-
-  return crossing;
-}
-
-/**
- * Configures points  (p, q) and (r, s) to be used in hasIntersectingVectors.
- *
- * a, b, c, d are integers making up points (a, b) and (c, d).
- *
- * @param {*} waypoints
- * @param {*} i index of what part of waypoint should be used
- */
-
-function vectorHelper(a, b, c, d, waypoints, i) {
-  const p = waypoints[i].lat;
-  const q = waypoints[i].lng;
-
-  const r = waypoints[i + 1].lat;
-  const s = waypoints[i + 1].lng;
-  return hasIntersectingVectors(a, b, c, d, p, q, r, s);
-}
-
-/**
- * If vector (a,b) -> (c,d) intersects with vector (p,q) -> (r,s) then return true.
- * a, b, c, d, p, q, r, s are integers
- */
-function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
-  // det = determinant
-  let det, length_1, length_2;
-  det = (c - a) * (s - q) - (r - p) * (d - b);
-  if (det === 0) {
-    return false;
-  }
-
-  // length_2 & length_2 = lengths to intersecting point of vectors
-  length_1 = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-  length_2 = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-
-  // if intersecting point is farther away than original vectors' length, then lengths will not be between 0 and 1.
-  return 0 < length_1 && length_1 < 1 && 0 < length_2 && length_2 < 1;
-}
+let lastBoundUpdate = Date.now();
 
 /**
  * ====================================================================================================
@@ -206,7 +54,35 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
 class IMMMap extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { userPosition: null };
+    this.state = {
+      userPosition: null,
+      drones: null,
+      oldDrones: null,
+      getDronesTimer: null,
+    };
+  }
+
+  /**
+   * Drone position update, componentDidMount runs once on startup.
+   */
+  componentDidMount() {
+    const updateDronesTimer = 1000;
+    this.setState({
+      getDronesTimer: setInterval(() => {
+        getDrones((response) => {
+          this.setState({ oldDrones: this.state.drones });
+          this.setState({ drones: response.arg.drones });
+        });
+      }, updateDronesTimer),
+    });
+  }
+
+  /**
+   * Clears timer when component is unmounted
+   */
+  componentWillUnmount() {
+    // To avoid duplicate instances of getDronesTimer
+    clearInterval(this.state.getDronesTimer);
   }
 
   /**
@@ -215,10 +91,10 @@ class IMMMap extends React.Component {
    */
   fitBounds(map) {
     if (this.props.store.mapState === "Main") {
-      let bounds = this.props.store.mapBounds;
+      const bounds = Leaflet.latLngBounds(this.props.store.areaWaypoints);
 
-      // Check that bounds has a value
-      if (bounds) {
+      // Check that bounds has are valid value
+      if (bounds && bounds.isValid()) {
         map.fitBounds(bounds);
       }
     }
@@ -230,13 +106,13 @@ class IMMMap extends React.Component {
    * @param {MapConstructor} map Reference to the MapContainer element
    */
   updateBounds(map) {
-    const bounds = map.getBounds();
-    const zoom = map.getZoom();
-    // Make sure zoom level is not already set, ignore update if already set.
-    if (this.props.store.zoomLevel === zoom) {
+    // Prevent the bounds from updating too frequently which can cause a crash
+    if (Date.now() - lastBoundUpdate < 100) {
       return;
     }
-
+    lastBoundUpdate = Date.now();
+    const bounds = map.getBounds();
+    const zoom = map.getZoom();
     this.props.store.setZoomLevel(zoom);
     this.props.store.setMapPosition(boundsToView(bounds));
   }
@@ -247,17 +123,33 @@ class IMMMap extends React.Component {
    */
   addAreaWaypoint(e) {
     const waypoint = { lat: e.latlng.lat, lng: e.latlng.lng };
-
-    if (
-      this.props.allowDefine &&
-      !newWaypointLinesCrossing(waypoint, this.props.store.areaWaypoints)
-    ) {
-      this.props.store.setShowWarning(false);
+    if (this.props.allowDefine) {
+      // Add new waypoint and check for crossing lines
       this.props.store.addAreaWaypoint(waypoint);
+      this.updateCrossingLines(null, waypoint);
     } else {
-      // Shows popup with crossing lines warning message
+      // Shows warning if placing waypoint would result in crossing lines
       this.props.store.setShowWarning(true);
     }
+  }
+
+  /**
+   * Calculates and updates crossing lines. Shows warning message if lines cross.
+   *
+   * @param {integer} i Index of waypoint to be removed
+   * @param {*} waypoint Waypoint to be added
+   */
+  updateCrossingLines(i = null, waypoint = null) {
+    const newCrossingLines = createRedLines(
+      this.props.store.areaWaypoints,
+      waypoint,
+      i
+    );
+    this.props.store.setCrossingLines(newCrossingLines);
+
+    // Show error message if there are any crossing lines
+    this.props.store.setShowWarning(newCrossingLines.length !== 0);
+    return;
   }
 
   /**
@@ -273,19 +165,15 @@ class IMMMap extends React.Component {
         ...waypoints.slice(i + 1, waypoints.length),
         ...waypoints.slice(0, i + 1),
       ];
-
-      // Remove all waypoints
+      // Remove all waypoints.
       this.props.store.clearAreaWaypoints();
-      // Add restructured waypoints
+
+      // Add restructured waypoints.
       newWP.forEach((wp) => this.props.store.addAreaWaypoint(wp));
     } else {
-      // Marked node was clicked, remove it
-      if (!removedWaypointLinesCrossing(i, this.props.store.areaWaypoints)) {
-        this.props.store.removeAreaWaypoint(i);
-      } else {
-        // Shows popup with crossing lines warning message
-        this.props.store.setShowWarning(true);
-      }
+      // Remove waypoint and check for crossing lines
+      this.props.store.removeAreaWaypoint(i);
+      this.updateCrossingLines(i, null);
     }
   }
 
@@ -312,6 +200,108 @@ class IMMMap extends React.Component {
     ));
 
     return markers;
+  }
+  /**
+   * Places indicators where pictures have been requested.
+   */
+  pictureRequestIndicatorFactory() {
+    const markers = this.props.store.pictureRequestQueue.map((data, i) => (
+      <Marker
+        position={[data.view.center.lat, data.view.center.lng]}
+        key={`pictureRequestIndicator${i}`}
+        icon={Leaflet.divIcon({
+          className: data.isUrgent ? "urgent-picture" : "normal-picture",
+          iconAnchor: Leaflet.point(13, 13),
+          html: pictureIndicatorIcon,
+        })}
+      >
+        <Popup>
+          <PriorityPictureRequestInfo data={data} />
+        </Popup>
+      </Marker>
+    ));
+
+    return markers;
+  }
+
+  /**
+   * Set Drone icon color based on current status
+   *
+   * @param {*} drone
+   */
+  droneColor(drone) {
+    let status = drone.status;
+    switch (status) {
+      case "Auto":
+        return "#000000"; // BLACK
+      case "Manual":
+        return "#FF0000"; // RED
+      case "Photo":
+        return "#0000FF"; // BLUE
+      default:
+        return "#A200FF"; // PURPLE
+    }
+  }
+
+  /**
+   * Calculates drone angle using linear trajectory based on two points
+   *
+   * @param {*} oldPoint
+   * @param {*} newPoint
+   */
+  droneAngle(oldPoint, newPoint) {
+    // Estimate latitude scale factor for each drone given its current position
+    let latitudeScaleFactor = 1 / Math.cos((newPoint.lat * Math.PI) / 180);
+
+    // Calculate angle in degrees
+    const p1 = {
+      x: oldPoint.lat * latitudeScaleFactor,
+      y: oldPoint.lng,
+    };
+
+    const p2 = {
+      x: newPoint.lat * latitudeScaleFactor,
+      y: newPoint.lng,
+    };
+
+    const angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
+    return angleDeg;
+  }
+
+  /**
+   * Places all drone icons on the map
+   */
+  droneFactory() {
+    if (!this.state.oldDrones) {
+      return [];
+    }
+
+    const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
+      <Marker
+        position={[drone.location.lat, drone.location.lng]}
+        key={`drone${i}`}
+        icon={Leaflet.divIcon({
+          className: "tmp",
+          iconAnchor: Leaflet.point(
+            this.props.store.config.droneIconPixelSize / 2,
+            this.props.store.config.droneIconPixelSize / 2
+          ),
+          html: `<svg fill=${this.droneColor(drone)}
+                    height="${this.props.store.config.droneIconPixelSize}px" 
+                    width="${this.props.store.config.droneIconPixelSize}px" 
+                    version="1.1" id="Layer_1" 
+                    transform="rotate(${this.droneAngle(
+                      this.state.oldDrones[key].location,
+                      drone.location
+                    )})"
+                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	                  viewBox="0 0 1792 1792" xml:space="preserve">
+                    <path d="M187.8,1659L896,132.9L1604.2,1659L896,1285.5L187.8,1659z"/>
+                    </svg> `,
+        })}
+      />
+    ));
+    return drones;
   }
 
   /**
@@ -341,8 +331,14 @@ class IMMMap extends React.Component {
         zoom: () => {
           this.updateBounds(map);
         },
-        moveend: () => {
+        move: () => {
           this.updateBounds(map);
+        },
+        moveend: () => {
+          // This makes sure the bounds remain accurate, even with the 100ms rate limit for updating
+          setTimeout(() => {
+            this.updateBounds(map);
+          }, 100);
         },
         locationfound: (location) => {
           // Called when user's gps location has been found
@@ -403,6 +399,23 @@ class IMMMap extends React.Component {
           ""
         )}
 
+        {/* Paint crossing lines red.*/}
+        {this.props.allowDefine &&
+        this.props.store.areaWaypoints.length !== 0 &&
+        this.props.store.crossingLines ? (
+          <Polyline
+            pathOptions={{ color: "red" }}
+            positions={[
+              this.props.store.crossingLines.map((waypointPair) => [
+                [waypointPair[0].lat, waypointPair[0].lng],
+                [waypointPair[1].lat, waypointPair[1].lng],
+              ]),
+            ]}
+          />
+        ) : (
+          ""
+        )}
+
         {/*Draws an overlay for the whole world except for defined area.*/}
         {!this.props.allowDefine &&
         Object.keys(this.props.store.areaWaypoints).length > 0 ? (
@@ -419,37 +432,32 @@ class IMMMap extends React.Component {
           ""
         )}
 
-        {/*Draws markers*/}
+        {/* Draws markers */}
         {this.props.allowDefine ? this.markerFactory() : ""}
 
-        {/* This marker is only here to show the effects of the drone icon configs until the actual drone icons are added */}
-        {this.props.store.config.showDroneIcons ? (
-          <Marker
-            position={[59.815636, 17.649551]}
-            icon={Leaflet.divIcon({
-              className: "tmp",
-              iconAnchor: Leaflet.point(
-                this.props.store.config.droneIconPixelSize / 2,
-                this.props.store.config.droneIconPixelSize / 2
-              ),
-              html: `<svg fill="#000000" height="${this.props.store.config.droneIconPixelSize}px" width="${this.props.store.config.droneIconPixelSize}px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1792 1792" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M103,703.4L1683,125L1104.6,1705L867.9,940.1L103,703.4z"></path></g></svg>`,
-            })}
-          />
-        ) : (
-          ""
-        )}
-        {this.state.userPosition !== null ? (
-          <Marker
-            position={this.state.userPosition}
-            icon={Leaflet.divIcon({
-              className: "userIcon",
-              iconAnchor: Leaflet.point(11, 11),
-              html: userPosIcon,
-            })}
-          />
-        ) : (
-          ""
-        )}
+        {/* Draws requested picture indicators */}
+        {this.pictureRequestIndicatorFactory()}
+
+        {/* Draws drone icons. */}
+        {this.props.store.config.showDroneIcons && this.state.drones
+          ? this.droneFactory()
+          : ""}
+
+        {
+          /* Draws user position. */
+          this.state.userPosition !== null ? (
+            <Marker
+              position={this.state.userPosition}
+              icon={Leaflet.divIcon({
+                className: "userIcon",
+                iconAnchor: Leaflet.point(11, 11),
+                html: userPosIcon,
+              })}
+            />
+          ) : (
+            ""
+          )
+        }
         {this.props.store.activePictures.map((img) => (
           <ImageOverlay
             url={img.url}
@@ -469,12 +477,14 @@ class IMMMap extends React.Component {
 export default connect(
   {
     config,
+    pictureRequestQueue,
     areaWaypoints,
     zoomLevel,
     mapPosition,
     mapState,
     mapBounds,
     activePictures,
+    crossingLines,
   },
   {
     ...areaWaypointActions,
@@ -482,5 +492,6 @@ export default connect(
     ...zoomLevelActions,
     ...mapStateActions,
     ...showWarningActions,
+    ...crossingLineActions,
   }
 )(IMMMap);

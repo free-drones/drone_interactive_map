@@ -15,17 +15,19 @@ import {
 } from "@mui/material";
 import { Navigate } from "react-router-dom";
 import ModeButtonGroup from "./ModeButtonGroup.js";
-import SensorModeButtonGroup from "./SensorModeButtonGroup.js";
+import LayerTypeModeButtonGroup from "./LayerTypeModeButtonGroup.js";
 import UndoIcon from "@mui/icons-material/Undo";
 import {
   connect,
   areaWaypoints,
   areaWaypointActions,
-  requestQueueActions,
+  pictureRequestQueueActions,
   mapState,
   mapStateActions,
   activePicturesActions,
   userPriority,
+  showWarning,
+  showWarningActions,
 } from "../Storage.js";
 import ModeIcon from "./ModeIcon.js";
 import ColorWrapper from "../ColorWrapper.js";
@@ -48,6 +50,7 @@ function SettingsDrawer(props) {
    */
   function redefineClickHandler() {
     setDialogState(true);
+    props.store.setShowWarning(false);
   }
 
   /**
@@ -71,7 +74,7 @@ function SettingsDrawer(props) {
             <ModeButtonGroup />
           </ListItem>
           <ListItem>
-            <SensorModeButtonGroup />
+            <LayerTypeModeButtonGroup />
           </ListItem>
           <ListItem>
             <DroneIconConfigGroup />
@@ -124,11 +127,12 @@ function SettingsDrawer(props) {
 }
 
 export default connect(
-  { userPriority, areaWaypoints, mapState },
+  { userPriority, areaWaypoints, mapState, showWarning },
   {
     ...areaWaypointActions,
     ...mapStateActions,
-    ...requestQueueActions,
+    ...pictureRequestQueueActions,
     ...activePicturesActions,
+    ...showWarningActions,
   }
 )(SettingsDrawer);
