@@ -131,7 +131,6 @@ io.on("connect", (socket) => {
     socket.emit("set_mode_response", reply);
   });
 
-
   // "fake" drone data for testing GUI
   const simulatedDrones = {
     drone1: {
