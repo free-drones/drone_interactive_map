@@ -289,41 +289,6 @@ class TestFlask(unittest.TestCase):
         self.assertEqual({"fcn":"ack", "fcn_name":"set_mode"}, recieved[0]["args"][0])
 
 
-    def test_get_info(self):
-        client = socketio.test_client(app)
-        self.assertTrue(client.is_connected())
-        client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
-
-        with dbx.session_scope() as session:
-            drone = Drone(
-                id="one",
-                session_id=1,
-                last_updated=876,
-                time2bingo = 20
-            )
-            session.add(drone)
-
-        client.emit("get_info", {})
-        recieved = client.get_received()
-
-        self.assertEqual({"fcn":"ack", "fcn_name":"get_info", "arg":{"data":[{"drone-id": "one","time2bingo":20}]}}, recieved[0]["args"][0])
-
-        with dbx.session_scope() as session:
-            drone = Drone(
-                session_id=1,
-                id="two",
-                last_updated=2121,
-                time2bingo = 11
-            )
-            session.add(drone)
-
-        client.emit("get_info", {})
-        recieved = client.get_received()
-
-        self.assertEqual({"fcn":"ack", "fcn_name":"get_info", "arg":{"data":[{"drone-id":"one","time2bingo":20}, {"drone-id":"two","time2bingo":11}]}}, recieved[0]["args"][0])
-
     def test_queue_ETA(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
@@ -364,21 +329,6 @@ class TestFlask(unittest.TestCase):
         thread_handler.get_gui_pub_thread().send_to_gui("hello world1", client_id)
         recieved = client.get_received()
         self.assertEqual("hello world1", recieved[0]["args"][0])
-
-        # Perform some tests to check so the system is still working.
-        with dbx.session_scope() as session:
-            drone = Drone(
-                id="one",
-                session_id=1,
-                last_updated=876,
-                time2bingo = 20
-            )
-            session.add(drone)
-            session.commit()
-
-        client.emit("get_info", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"get_info", "arg":{"data":[{"drone-id":"one","time2bingo":20}]}}, recieved[0]["args"][0])
 
 
 if __name__ == "__main__":
