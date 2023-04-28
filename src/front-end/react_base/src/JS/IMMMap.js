@@ -116,7 +116,7 @@ class IMMMap extends React.Component {
    */
   updateBounds(map) {
     // Prevent the bounds from updating too frequently which can cause a crash
-    if (Date.now() - lastBoundUpdate < 100) {
+    if (!map || !map._mapPane || Date.now() - lastBoundUpdate < 100) {
       return;
     }
     lastBoundUpdate = Date.now();
