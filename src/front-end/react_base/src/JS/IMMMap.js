@@ -66,11 +66,20 @@ class IMMMap extends React.Component {
    * Drone position update, componentDidMount runs once on startup.
    */
   componentDidMount() {
-    const updateDronesTimer = 1000;
+    const updateDronesTimer = 3000;
+    if (this.state.getDronesTimer) {
+      clearInterval(this.state.getDronesTimer);
+    }
+
     this.setState({
       getDronesTimer: setInterval(() => {
         getDrones((response) => {
           this.setState({ oldDrones: this.state.drones });
+          console.log(
+            "received get_drones_info response: ",
+            response,
+            response.arg
+          );
           this.setState({ drones: response.arg.drones });
         });
       }, updateDronesTimer),
@@ -107,7 +116,7 @@ class IMMMap extends React.Component {
    */
   updateBounds(map) {
     // Prevent the bounds from updating too frequently which can cause a crash
-    if (Date.now() - lastBoundUpdate < 100) {
+    if (!map || !map._mapPane || Date.now() - lastBoundUpdate < 100) {
       return;
     }
     lastBoundUpdate = Date.now();
@@ -230,13 +239,13 @@ class IMMMap extends React.Component {
    * @param {*} drone
    */
   droneColor(drone) {
-    let status = drone.status;
-    switch (status) {
-      case "Auto":
+    const mode = drone.mode;
+    switch (mode) {
+      case "AUTO":
         return "#000000"; // BLACK
-      case "Manual":
+      case "MAN":
         return "#FF0000"; // RED
-      case "Photo":
+      case "PHOTO":
         return "#0000FF"; // BLUE
       default:
         return "#A200FF"; // PURPLE
@@ -250,18 +259,21 @@ class IMMMap extends React.Component {
    * @param {*} newPoint
    */
   droneAngle(oldPoint, newPoint) {
+    if (!oldPoint || !newPoint) {
+      return 0;
+    }
     // Estimate latitude scale factor for each drone given its current position
     let latitudeScaleFactor = 1 / Math.cos((newPoint.lat * Math.PI) / 180);
 
     // Calculate angle in degrees
     const p1 = {
       x: oldPoint.lat * latitudeScaleFactor,
-      y: oldPoint.lng,
+      y: oldPoint.long,
     };
 
     const p2 = {
       x: newPoint.lat * latitudeScaleFactor,
-      y: newPoint.lng,
+      y: newPoint.long,
     };
 
     const angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
@@ -278,10 +290,10 @@ class IMMMap extends React.Component {
 
     const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
       <Marker
-        position={[drone.location.lat, drone.location.lng]}
+        position={[drone.location.lat, drone.location.long]}
         key={`drone${i}`}
         icon={Leaflet.divIcon({
-          className: "tmp",
+          className: "drones",
           iconAnchor: Leaflet.point(
             this.props.store.config.droneIconPixelSize / 2,
             this.props.store.config.droneIconPixelSize / 2
