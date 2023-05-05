@@ -18,7 +18,14 @@ import Storage, {
   setLayerType,
   setMode,
   setMapBounds,
+  setUserPriority,
+  setConfigValue,
+  setShowWarning,
+  setCrossingLines,
+  clearCrossingLines,
 } from "../JS/Storage.js";
+
+import defaultConfigValues from "../frontendConfig.json";
 
 const exampleView = {
   upLeft: {
@@ -42,6 +49,10 @@ const exampleView = {
     lng: 15.609948,
   },
 };
+
+/**
+ * -------------------- WAYPOINT LIST TESTS --------------------
+ */
 
 test("adds waypoint to list", () => {
   Storage.store.dispatch(addAreaWaypoint({ lat: 1, lng: 2 }));
@@ -92,19 +103,27 @@ test("clears waypoint list", () => {
   expect(Storage.store.getState().areaWaypoints).toEqual([]);
 });
 
+/**
+ * -------------------- CLIENT ID TESTS --------------------
+ */
+
 test("sets client ID", () => {
   Storage.store.dispatch(setClientID(1337));
 
   expect(Storage.store.getState().clientID).toEqual(1337);
 });
 
-test("sets bad connection token", () => {
+test("sets bad Client ID", () => {
   try {
     Storage.store.dispatch(setClientID("CAT"));
   } catch (e) {
     expect(e.message).toBe("Client ID must be a number.");
   }
 });
+
+/**
+ * -------------------- MAP POSITION TESTS --------------------
+ */
 
 test("sets map position", () => {
   Storage.store.dispatch(setMapPosition(exampleView));
@@ -151,6 +170,10 @@ test("sets bad map position", () => {
   }
 });
 
+/**
+ * -------------------- ZOOM LEVEL TESTS --------------------
+ */
+
 test("sets zoom level", () => {
   Storage.store.dispatch(setZoomLevel(5));
 
@@ -166,6 +189,10 @@ test("sets low zoom level", () => {
   Storage.store.dispatch(setZoomLevel(-50));
   expect(Storage.store.getState().zoomLevel).toEqual(0);
 });
+
+/**
+ * -------------------- PICTURE REQUEST TESTS --------------------
+ */
 
 test("adds a picture request", () => {
   Storage.store.dispatch(addPictureRequest(1, exampleView));
@@ -246,6 +273,10 @@ test("clears the request queue", () => {
   expect(Storage.store.getState().pictureRequestQueue).toEqual([]);
 });
 
+/**
+ * -------------------- ACTIVE PICTURE TESTS --------------------
+ */
+
 test("adds an active picture", () => {
   Storage.store.dispatch(
     addActivePicture({
@@ -321,6 +352,10 @@ test('removes an active picture', () => {
     expect(Storage.store.getState().activePictures).toEqual([]);
 });*/
 
+/**
+ * -------------------- MODE TESTS --------------------
+ */
+
 test("set mode", () => {
   Storage.store.dispatch(setMode("MAN"));
 
@@ -341,6 +376,10 @@ test("set bad mode", () => {
   }
 });
 
+/**
+ * -------------------- BOUNDS TESTS --------------------
+ */
+
 test("set bounds", () => {
   Storage.store.dispatch(
     setMapBounds([
@@ -354,14 +393,6 @@ test("set bounds", () => {
   ]);
 });
 
-test("sets layerType", () => {
-  Storage.store.dispatch(setLayerType("RGB"));
-  Storage.store.dispatch(setLayerType("Map"));
-  Storage.store.dispatch(setLayerType("IR"));
-
-  expect(Storage.store.getState().layerType).toEqual("IR");
-});
-
 test("set bad bounds", () => {
   try {
     Storage.store.dispatch(setMapBounds({ lat: [1, 2], lng: [2, 1] }));
@@ -370,4 +401,123 @@ test("set bad bounds", () => {
       "Bounds should be a pair of coordinates. Ex: [[1,2], [2,1]]"
     );
   }
+});
+
+/**
+ * -------------------- LAYER TYPE TESTS --------------------
+ */
+
+test("sets layerType", () => {
+  Storage.store.dispatch(setLayerType("RGB"));
+  Storage.store.dispatch(setLayerType("Map"));
+  Storage.store.dispatch(setLayerType("IR"));
+
+  expect(Storage.store.getState().layerType).toEqual("IR");
+});
+
+test("sets bad layerType", () => {
+  try {
+    Storage.store.dispatch(setLayerType("CAT"));
+  } catch (e) {
+    expect(e.message).toBe("LayerType must be either RGB, IR or Map.");
+  }
+});
+
+/**
+ * -------------------- USER PRIORITY TESTS --------------------
+ */
+
+test("sets User Priority", () => {
+  Storage.store.dispatch(setUserPriority(5));
+
+  expect(Storage.store.getState().userPriority).toEqual(5);
+});
+
+test("sets bad User Priority", () => {
+  try {
+    Storage.store.dispatch(setUserPriority("CAT"));
+  } catch (e) {
+    expect(e.message).toBe("User Priority must be a number.");
+  }
+});
+
+/**
+ * -------------------- CONFIG TESTS --------------------
+ */
+
+test("checks if default config looks correct", () => {
+  expect(Storage.store.getState().config).toEqual(defaultConfigValues);
+});
+
+test("sets droneIconPixelSize", () => {
+  Storage.store.dispatch(setConfigValue("droneIconPixelSize", 5));
+
+  expect(Storage.store.getState().config).toHaveProperty(
+    "droneIconPixelSize",
+    5
+  );
+  expect(JSON.parse(sessionStorage.getItem("config"))).toHaveProperty(
+    "droneIconPixelSize",
+    5
+  );
+  // Make sure it only changes the value it is supposed to change
+  expect(Storage.store.getState().config).toHaveProperty(
+    "showDroneIcons",
+    true
+  );
+});
+
+test("sets random value", () => {
+  Storage.store.dispatch(setConfigValue("CAT", "FELINE"));
+
+  expect(Storage.store.getState().config).toHaveProperty("CAT", "FELINE");
+  // Make sure it only changes the value it is supposed to change
+  expect(Storage.store.getState().config).toHaveProperty(
+    "showDroneIcons",
+    true
+  );
+});
+
+/**
+ * -------------------- SHOW WARNING TESTS --------------------
+ */
+
+test("sets show warning", () => {
+  Storage.store.dispatch(setShowWarning(true));
+
+  expect(Storage.store.getState().showWarning).toEqual(true);
+});
+
+/**
+ * -------------------- CROSSING LINES TESTS --------------------
+ */
+test("sets crossing lines to list of one line", () => {
+  Storage.store.dispatch(
+    setCrossingLines([
+      [
+        { lat: 1, lng: 2 },
+        { lat: 2, lng: 3 },
+      ],
+    ])
+  );
+  expect(Storage.store.getState().crossingLines).toEqual([
+    [
+      { lat: 1, lng: 2 },
+      { lat: 2, lng: 3 },
+    ],
+  ]);
+});
+
+test("clears waypoint list", () => {
+  Storage.store.dispatch(
+    setCrossingLines([
+      [
+        { lat: 1, lng: 2 },
+        { lat: 2, lng: 3 },
+      ],
+    ])
+  );
+  Storage.store.dispatch(clearCrossingLines());
+
+  expect(Storage.store.getState().crossingLines).toEqual([]);
 });
