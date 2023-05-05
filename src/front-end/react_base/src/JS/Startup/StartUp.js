@@ -52,10 +52,6 @@ import ColorWrapper from "../ColorWrapper.js";
  */
 const ALERT_ELEVATION = 6;
 
-function Alerter(props) {
-  return <Alert elevation={ALERT_ELEVATION} variant="filled" {...props} />;
-}
-
 const styles = {
   fab: {
     position: "absolute",
@@ -236,14 +232,15 @@ function StartUp(props) {
         autoHideDuration={5000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alerter
+        <Alert
+          elevation={ALERT_ELEVATION}
+          variant="filled"
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
         >
           {snackbar.message}
-        </Alerter>
+        </Alert>
       </Snackbar>
-
       <Dialog
         open={dialogOpen}
         onClose={() => {
