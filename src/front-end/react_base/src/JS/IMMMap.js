@@ -35,7 +35,11 @@ import {
   showWarningActions,
   crossingLineActions,
 } from "./Storage.js";
-import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
+import {
+  boundsToView,
+  createRedLines,
+  isPointInsidePolygon,
+} from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
 import { markedIcon, userPosIcon, pictureIndicatorIcon } from "./SvgIcons.js";
 
@@ -59,6 +63,7 @@ class IMMMap extends React.Component {
       drones: null,
       oldDrones: null,
       getDronesTimer: null,
+      isInsidePolygon: false,
     };
   }
 
@@ -316,6 +321,45 @@ class IMMMap extends React.Component {
     return drones;
   }
 
+  test() {
+    const mapPos = this.props.store.mapPosition;
+    const portionOfScreenHeight = 0.1;
+    const squareHeight =
+      (mapPos.downRight.lat - mapPos.upRight.lat) * portionOfScreenHeight;
+    let squareWidth =
+      (mapPos.upRight.lng - mapPos.upLeft.lng) * portionOfScreenHeight;
+
+    if (window) {
+      const scaleToFourThree = 4 / 3 / (window.innerWidth / window.innerHeight);
+      squareWidth = squareWidth * scaleToFourThree;
+    }
+
+    return (
+      <Polygon
+        fillColor="#555555"
+        color="#55555599"
+        dashArray={10}
+        positions={[
+          [mapPos.center.lat + squareHeight, mapPos.center.lng + squareWidth],
+          [mapPos.center.lat - squareHeight, mapPos.center.lng + squareWidth],
+          [mapPos.center.lat - squareHeight, mapPos.center.lng - squareWidth],
+          [mapPos.center.lat + squareHeight, mapPos.center.lng - squareWidth],
+        ]}
+      />
+    );
+  }
+
+  definedAreaPolygon() {
+    return (
+      <Polygon
+        fill={false}
+        positions={[
+          this.props.store.areaWaypoints.map((coord) => [coord.lat, coord.lng]),
+        ]}
+      />
+    );
+  }
+
   /**
    * Renders the map and markers.
    */
@@ -347,6 +391,13 @@ class IMMMap extends React.Component {
           this.updateBounds(map);
         },
         moveend: () => {
+          this.setState({
+            isInsidePolygon: isPointInsidePolygon(
+              this.props.store.mapPosition.center,
+              this.props.store.areaWaypoints
+            ),
+          });
+          console.log(this.state.isInsidePolygon)
           // This makes sure the bounds remain accurate, even with the 100ms rate limit for updating
           setTimeout(() => {
             this.updateBounds(map);
@@ -381,6 +432,7 @@ class IMMMap extends React.Component {
         className="map"
         center={this.props.center}
         zoom={this.props.zoom}
+        zoomSnap={0.1}
         zoomControl={false}
         maxBounds={this.props.maxBounds}
         maxBoundsViscosity={0.5}
@@ -397,19 +449,7 @@ class IMMMap extends React.Component {
         />
 
         {/*Draws the polygon of the defined area.*/}
-        {this.props.allowDefine ? (
-          <Polygon
-            fill={false}
-            positions={[
-              this.props.store.areaWaypoints.map((coord) => [
-                coord.lat,
-                coord.lng,
-              ]),
-            ]}
-          />
-        ) : (
-          ""
-        )}
+        {this.props.allowDefine ? this.definedAreaPolygon() : ""}
 
         {/* Paint crossing lines red.*/}
         {this.props.allowDefine &&
@@ -457,7 +497,7 @@ class IMMMap extends React.Component {
 
         {
           /* Draws user position. */
-          this.state.userPosition !== null ? (
+          this.state.userPosition !== null && this.state.isInsidePolygon ? (
             <Marker
               position={this.state.userPosition}
               icon={Leaflet.divIcon({
@@ -470,6 +510,9 @@ class IMMMap extends React.Component {
             ""
           )
         }
+        {this.props.store.mapBounds
+          ? this.test()
+          : "AAAAAAAAAAAAAAAAAAAAAAAAAA"}
         {this.props.store.activePictures.map((img) => (
           <ImageOverlay
             url={img.url}

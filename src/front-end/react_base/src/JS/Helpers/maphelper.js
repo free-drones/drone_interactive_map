@@ -139,9 +139,39 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
   return 0 < length_1 && length_1 < 1 && 0 < length_2 && length_2 < 1;
 }
 
+export function isPointInsidePolygon(point, polygonMarkers) {
+  let inside = false;
+  const x = point.lat;
+  const y = point.lng;
+  // i iterates from 0 to the end
+  // j starts from the last marker and then follows one step behind i
+  // e.g. i => 0, 1, 2, 3 and j => 3, 0, 1, 2
+  for (
+    let i = 0, j = polygonMarkers.length - 1;
+    i < polygonMarkers.length;
+    j = i++
+  ) {
+    console.log(i, j)
+    const xi = polygonMarkers[i].lat;
+    const yi = polygonMarkers[i].lng;
+    const xj = polygonMarkers[j].lat;
+    const yj = polygonMarkers[j].lng;
+
+    const intersect =
+      ((yi > y && yj <= y) || (yi <= y && yj > y)) &&
+      x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersect) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+
 const mapHelperExports = {
   boundsToView,
   createRedLines,
+  isPointInsidePolygon,
 };
 
 export default mapHelperExports;

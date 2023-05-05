@@ -30,16 +30,11 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
+    backgroundColor: "#50505066",
     pointerEvents: "none",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-  },
-  pictureFocus: {
-    width: "10vw",
-    height: "10vw",
-    borderRadius: 1000,
-    boxShadow: "inset 0 0 1vw #50505090, 0 0 0 9999px #50505066",
   },
   extendedFabLike: {
     backgroundColor: "white",
@@ -51,21 +46,13 @@ const styles = {
   },
 };
 /**
- * A floating camera button component which extends into selecting urgency and also has an overlay and a crosshair in the urgency selection.
+ * A floating camera button component which extends into selecting urgency and also has an overlay.
  */
 function CameraButton(props) {
   const [shouldChooseUrgency, setShouldChooseUrgency] = React.useState(false);
   return (
     <Box>
-      {shouldChooseUrgency ? (
-        <Box sx={styles.pictureDarkenOverlay}>
-          <Box sx={styles.pictureFocus}>
-            <Crosshair />
-          </Box>
-        </Box>
-      ) : (
-        ""
-      )}
+      {shouldChooseUrgency ? <Box sx={styles.pictureDarkenOverlay} /> : ""}
       {/* Creates the extended urgency selection button */}
       <Collapse
         sx={styles.cameraButton}
