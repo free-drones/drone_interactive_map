@@ -100,7 +100,7 @@ function StartUp(props) {
 
   let [snackbar, setSnackbar] = useState({
     open: false,
-    severity: "",
+    severity: "info",
     message: "",
   });
 
