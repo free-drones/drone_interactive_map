@@ -143,37 +143,42 @@ class IMMMap extends React.Component {
   }
 
   updatePictureRequestView() {
+    // mapPos contains the map coordinates corresponding to the screens corners.
     const mapPos = this.props.store.mapPosition;
     if (!mapPos) {
       return;
     }
     const portionOfScreenHeight = 0.1;
-    const rectangleHeight =
-      (mapPos.downRight.lat - mapPos.upRight.lat) * portionOfScreenHeight;
-    let rectangleWidth =
+    // Calculates the lat difference that equals portionOfScreenHeight of the height of the browser window
+    const halfRectangleHeight =
+      (mapPos.upRight.lat - mapPos.downRight.lat) * portionOfScreenHeight;
+    // Calculates lng the same way, but if the window sizes are known this gets overwritten by the
+    // lng needed for the rectangle to have a 4:3 ratio
+    let halfRectangleWidth =
       (mapPos.upRight.lng - mapPos.upLeft.lng) * portionOfScreenHeight;
 
+    // Scales the width of the rectangle to give it a 4:3 ratio
     if (window) {
       const scaleToFourThree = 4 / 3 / (window.innerWidth / window.innerHeight);
-      rectangleWidth = rectangleWidth * scaleToFourThree;
+      halfRectangleWidth = halfRectangleWidth * scaleToFourThree;
     }
 
     this.props.store.setPictureRequestView({
       upLeft: {
-        lat: mapPos.center.lat + rectangleHeight,
-        lng: mapPos.center.lng - rectangleWidth,
+        lat: mapPos.center.lat + halfRectangleHeight,
+        lng: mapPos.center.lng - halfRectangleWidth,
       },
       upRight: {
-        lat: mapPos.center.lat + rectangleHeight,
-        lng: mapPos.center.lng + rectangleWidth,
+        lat: mapPos.center.lat + halfRectangleHeight,
+        lng: mapPos.center.lng + halfRectangleWidth,
       },
       downLeft: {
-        lat: mapPos.center.lat - rectangleHeight,
-        lng: mapPos.center.lng - rectangleWidth,
+        lat: mapPos.center.lat - halfRectangleHeight,
+        lng: mapPos.center.lng - halfRectangleWidth,
       },
       downRight: {
-        lat: mapPos.center.lat - rectangleHeight,
-        lng: mapPos.center.lng + rectangleWidth,
+        lat: mapPos.center.lat - halfRectangleHeight,
+        lng: mapPos.center.lng + halfRectangleWidth,
       },
       center: {
         lat: mapPos.center.lat,
