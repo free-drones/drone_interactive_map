@@ -356,9 +356,7 @@ export const setPictureRequestView = createAction(
         payload: view,
       };
     } else {
-      throw new Error(
-        "Invalid picture request view"
-      );
+      throw new Error("Invalid picture request view");
     }
   }
 );

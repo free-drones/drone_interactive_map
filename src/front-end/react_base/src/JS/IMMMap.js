@@ -158,30 +158,28 @@ class IMMMap extends React.Component {
       rectangleWidth = rectangleWidth * scaleToFourThree;
     }
 
-    this.props.store.setPictureRequestView(
-      {
-        upLeft: {
-          lat: mapPos.center.lat + rectangleHeight,
-          lng: mapPos.center.lng - rectangleWidth,
-        },
-        upRight: {
-          lat: mapPos.center.lat + rectangleHeight,
-          lng: mapPos.center.lng + rectangleWidth,
-        },
-        downLeft: {
-          lat: mapPos.center.lat - rectangleHeight,
-          lng: mapPos.center.lng - rectangleWidth,
-        },
-        downRight: {
-          lat: mapPos.center.lat - rectangleHeight,
-          lng: mapPos.center.lng + rectangleWidth,
-        },
-        center: {
-          lat: mapPos.center.lat,
-          lng: mapPos.center.lng,
-        },
-      }
-    );
+    this.props.store.setPictureRequestView({
+      upLeft: {
+        lat: mapPos.center.lat + rectangleHeight,
+        lng: mapPos.center.lng - rectangleWidth,
+      },
+      upRight: {
+        lat: mapPos.center.lat + rectangleHeight,
+        lng: mapPos.center.lng + rectangleWidth,
+      },
+      downLeft: {
+        lat: mapPos.center.lat - rectangleHeight,
+        lng: mapPos.center.lng - rectangleWidth,
+      },
+      downRight: {
+        lat: mapPos.center.lat - rectangleHeight,
+        lng: mapPos.center.lng + rectangleWidth,
+      },
+      center: {
+        lat: mapPos.center.lat,
+        lng: mapPos.center.lng,
+      },
+    });
   }
 
   /**
