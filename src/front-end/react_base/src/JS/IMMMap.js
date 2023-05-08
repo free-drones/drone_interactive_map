@@ -26,6 +26,8 @@ import {
   mapBounds,
   activePictures,
   crossingLines,
+  isInsideArea,
+  isInsideAreaActions,
 } from "./Storage.js";
 import {
   mapPositionActions,
@@ -34,6 +36,8 @@ import {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  pictureRequestView,
+  pictureRequestViewActions,
 } from "./Storage.js";
 import {
   boundsToView,
@@ -63,7 +67,6 @@ class IMMMap extends React.Component {
       drones: null,
       oldDrones: null,
       getDronesTimer: null,
-      isInsidePolygon: false,
     };
   }
 
@@ -129,6 +132,56 @@ class IMMMap extends React.Component {
     const zoom = map.getZoom();
     this.props.store.setZoomLevel(zoom);
     this.props.store.setMapPosition(boundsToView(bounds));
+
+    this.props.store.setIsInsideArea(
+      isPointInsidePolygon(
+        this.props.store.mapPosition.center,
+        this.props.store.areaWaypoints
+      )
+    );
+    this.updatePictureRequestView();
+  }
+
+  updatePictureRequestView() {
+    const mapPos = this.props.store.mapPosition;
+    if (!mapPos) {
+      return;
+    }
+    const portionOfScreenHeight = 0.1;
+    const rectangleHeight =
+      (mapPos.downRight.lat - mapPos.upRight.lat) * portionOfScreenHeight;
+    let rectangleWidth =
+      (mapPos.upRight.lng - mapPos.upLeft.lng) * portionOfScreenHeight;
+
+    if (window) {
+      const scaleToFourThree = 4 / 3 / (window.innerWidth / window.innerHeight);
+      rectangleWidth = rectangleWidth * scaleToFourThree;
+    }
+
+    this.props.store.setPictureRequestView(
+      {
+        upLeft: {
+          lat: mapPos.center.lat + rectangleHeight,
+          lng: mapPos.center.lng - rectangleWidth,
+        },
+        upRight: {
+          lat: mapPos.center.lat + rectangleHeight,
+          lng: mapPos.center.lng + rectangleWidth,
+        },
+        downLeft: {
+          lat: mapPos.center.lat - rectangleHeight,
+          lng: mapPos.center.lng - rectangleWidth,
+        },
+        downRight: {
+          lat: mapPos.center.lat - rectangleHeight,
+          lng: mapPos.center.lng + rectangleWidth,
+        },
+        center: {
+          lat: mapPos.center.lat,
+          lng: mapPos.center.lng,
+        },
+      }
+    );
   }
 
   /**
@@ -321,34 +374,6 @@ class IMMMap extends React.Component {
     return drones;
   }
 
-  test() {
-    const mapPos = this.props.store.mapPosition;
-    const portionOfScreenHeight = 0.1;
-    const squareHeight =
-      (mapPos.downRight.lat - mapPos.upRight.lat) * portionOfScreenHeight;
-    let squareWidth =
-      (mapPos.upRight.lng - mapPos.upLeft.lng) * portionOfScreenHeight;
-
-    if (window) {
-      const scaleToFourThree = 4 / 3 / (window.innerWidth / window.innerHeight);
-      squareWidth = squareWidth * scaleToFourThree;
-    }
-
-    return (
-      <Polygon
-        fillColor="#555555"
-        color="#55555599"
-        dashArray={10}
-        positions={[
-          [mapPos.center.lat + squareHeight, mapPos.center.lng + squareWidth],
-          [mapPos.center.lat - squareHeight, mapPos.center.lng + squareWidth],
-          [mapPos.center.lat - squareHeight, mapPos.center.lng - squareWidth],
-          [mapPos.center.lat + squareHeight, mapPos.center.lng - squareWidth],
-        ]}
-      />
-    );
-  }
-
   definedAreaPolygon() {
     return (
       <Polygon
@@ -391,13 +416,6 @@ class IMMMap extends React.Component {
           this.updateBounds(map);
         },
         moveend: () => {
-          this.setState({
-            isInsidePolygon: isPointInsidePolygon(
-              this.props.store.mapPosition.center,
-              this.props.store.areaWaypoints
-            ),
-          });
-          console.log(this.state.isInsidePolygon)
           // This makes sure the bounds remain accurate, even with the 100ms rate limit for updating
           setTimeout(() => {
             this.updateBounds(map);
@@ -497,7 +515,7 @@ class IMMMap extends React.Component {
 
         {
           /* Draws user position. */
-          this.state.userPosition !== null && this.state.isInsidePolygon ? (
+          this.state.userPosition !== null ? (
             <Marker
               position={this.state.userPosition}
               icon={Leaflet.divIcon({
@@ -510,9 +528,6 @@ class IMMMap extends React.Component {
             ""
           )
         }
-        {this.props.store.mapBounds
-          ? this.test()
-          : "AAAAAAAAAAAAAAAAAAAAAAAAAA"}
         {this.props.store.activePictures.map((img) => (
           <ImageOverlay
             url={img.url}
@@ -540,6 +555,8 @@ export default connect(
     mapBounds,
     activePictures,
     crossingLines,
+    pictureRequestView,
+    isInsideArea,
   },
   {
     ...areaWaypointActions,
@@ -548,5 +565,7 @@ export default connect(
     ...mapStateActions,
     ...showWarningActions,
     ...crossingLineActions,
+    ...pictureRequestViewActions,
+    ...isInsideAreaActions,
   }
 )(IMMMap);

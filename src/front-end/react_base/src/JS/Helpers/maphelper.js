@@ -143,6 +143,8 @@ export function isPointInsidePolygon(point, polygonMarkers) {
   let inside = false;
   const x = point.lat;
   const y = point.lng;
+  // Uses ray casting algorithm which projects a ray from the point and if the ray crosses
+  // the marker lines an odd amount of times, the point is inside the polygon
   // i iterates from 0 to the end
   // j starts from the last marker and then follows one step behind i
   // e.g. i => 0, 1, 2, 3 and j => 3, 0, 1, 2
@@ -151,7 +153,6 @@ export function isPointInsidePolygon(point, polygonMarkers) {
     i < polygonMarkers.length;
     j = i++
   ) {
-    console.log(i, j)
     const xi = polygonMarkers[i].lat;
     const yi = polygonMarkers[i].lng;
     const xj = polygonMarkers[j].lat;
@@ -161,6 +162,7 @@ export function isPointInsidePolygon(point, polygonMarkers) {
       ((yi > y && yj <= y) || (yi <= y && yj > y)) &&
       x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
     if (intersect) {
+      // inside is true if it has been flipped an odd amount of times
       inside = !inside;
     }
   }

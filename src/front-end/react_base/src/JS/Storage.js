@@ -306,6 +306,64 @@ export const receivePictureRequest = createAction(
 );
 
 /**
+ * Action related to the picture request area, which is the area of which a picture would be requested at the current moment.
+ * The area is stored in the following format:
+ * {
+ *    upLeft: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   upRight: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   downLeft: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   downRight: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   center: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ * }
+ */
+export const setPictureRequestView = createAction(
+  "SET_PICTURE_REQUEST_VIEW",
+  function prepare(view) {
+    if (
+      view !== undefined &&
+      view.upLeft !== undefined &&
+      view.upRight !== undefined &&
+      view.downLeft !== undefined &&
+      view.downRight !== undefined &&
+      view.center !== undefined &&
+      !isNaN(view.upLeft.lat) &&
+      !isNaN(view.upRight.lat) &&
+      !isNaN(view.downLeft.lat) &&
+      !isNaN(view.downRight.lat) &&
+      !isNaN(view.upLeft.lng) &&
+      !isNaN(view.upRight.lng) &&
+      !isNaN(view.downLeft.lng) &&
+      !isNaN(view.downRight.lng) &&
+      !isNaN(view.center.lat) &&
+      !isNaN(view.center.lng)
+    ) {
+      return {
+        payload: view,
+      };
+    } else {
+      throw new Error(
+        "Invalid picture request view"
+      );
+    }
+  }
+);
+
+/**
  * Actions related to current active pictures.
  */
 export const addActivePicture = createAction(
@@ -484,6 +542,16 @@ export const setShowWarning = createAction(
 );
 
 /**
+ * Action related whether the user's crosshair (middle of the screen) is inside the defined area
+ */
+export const setIsInsideArea = createAction(
+  "SET_IS_INSIDE_AREA",
+  function prepare(isInside) {
+    return { payload: isInside };
+  }
+);
+
+/**
  * ====================================================================================================
  *                                             Reducers
  * ====================================================================================================
@@ -588,6 +656,13 @@ export const _pictureRequestQueue = createReducer([], (builder) => {
     });
 });
 
+export const _pictureRequestView = createReducer(null, (builder) => {
+  builder.addCase(setPictureRequestView, (state, action) => {
+    const area = action.payload;
+    return area;
+  });
+});
+
 export const _activePictures = createReducer(
   initialActivePictures,
   (builder) => {
@@ -663,6 +738,13 @@ export const _showWarning = createReducer(false, (builder) => {
   });
 });
 
+export const _isInsideArea = createReducer(false, (builder) => {
+  builder.addCase(setIsInsideArea, (state, action) => {
+    const isInside = action.payload;
+    return isInside;
+  });
+});
+
 /**
  * ====================================================================================================
  *                                      State mapping functions
@@ -720,6 +802,12 @@ export function pictureRequestQueue(state) {
   };
 }
 
+export function pictureRequestView(state) {
+  return {
+    pictureRequestView: state.pictureRequestView,
+  };
+}
+
 export function activePictures(state) {
   return {
     activePictures: state.activePictures,
@@ -761,6 +849,13 @@ export function showWarning(state) {
     showWarning: state.showWarning,
   };
 }
+
+export function isInsideArea(state) {
+  return {
+    isInsideArea: state.isInsideArea,
+  };
+}
+
 const states = {
   areaWaypoints,
   clientID,
@@ -769,6 +864,7 @@ const states = {
   zoomLevel,
   mapPosition,
   pictureRequestQueue,
+  pictureRequestView,
   activePictures,
   mapBounds,
   mode,
@@ -777,6 +873,7 @@ const states = {
   mapState,
   showWarning,
   crossingLines,
+  isInsideArea,
 };
 
 /**
@@ -828,6 +925,10 @@ export const pictureRequestQueueActions = {
   clearPictureRequestQueue,
 };
 
+export const pictureRequestViewActions = {
+  setPictureRequestView,
+};
+
 export const activePicturesActions = {
   addActivePicture,
   removeActivePicture,
@@ -851,6 +952,8 @@ export const crossingLineActions = {
   setCrossingLines,
 };
 
+export const isInsideAreaActions = { setIsInsideArea };
+
 const actions = {
   areaWaypointActions,
   clientIDActions,
@@ -867,6 +970,7 @@ const actions = {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  isInsideAreaActions,
 };
 
 /**
@@ -895,6 +999,7 @@ export const store = configureStore({
     zoomLevel: _zoomLevel,
     mapPosition: _mapPosition,
     pictureRequestQueue: _pictureRequestQueue,
+    pictureRequestView: _pictureRequestView,
     activePictures: _activePictures,
     mapBounds: _mapBounds,
     mode: _mode,
@@ -903,6 +1008,7 @@ export const store = configureStore({
     mapState: _mapState,
     showWarning: _showWarning,
     crossingLines: _crossingLines,
+    isInsideArea: _isInsideArea,
   },
 });
 
