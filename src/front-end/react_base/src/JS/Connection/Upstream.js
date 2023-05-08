@@ -3,7 +3,7 @@
  */
 
 import ServerConnection from "./ServerConnection.js";
-import { store, receivePictureRequest } from "../Storage.js";
+import { store, receivePictureRequest, setDrones } from "../Storage.js";
 
 /**
  * Handle new image notification.
@@ -24,6 +24,24 @@ export function newImage(prioritized, imageID) {
   ServerConnection.sendUpstream(data);
 }
 
-const upstreamExports = { newImage };
+/**
+ * Handle updated drones notification.
+ *
+ * @param {Any} updatedDrones If the image was prioritized or not.
+ */
+export function newDrones(updatedDrones) {
+  if (updatedDrones) {
+    store.dispatch(setDrones(updatedDrones));
+  }
+
+  let data = {
+    fcn: "ack",
+    fcn_name: "new_drones",
+  };
+
+  ServerConnection.sendUpstream(data);
+}
+
+const upstreamExports = { newImage, newDrones };
 
 export default upstreamExports;

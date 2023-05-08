@@ -142,10 +142,23 @@ export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
 
 export const setCrossingLines = createAction(
   "SET_CROSSING_LINES",
-  function prepare(list) {
-    if (list) {
+  function prepare(crossing_lines_list) {
+    if (crossing_lines_list) {
       return {
-        payload: list,
+        payload: crossing_lines_list,
+      };
+    } else {
+      throw new Error("This is not a list.");
+    }
+  }
+);
+
+export const setDrones = createAction(
+  "SET_DRONES",
+  function prepare(drone_list) {
+    if (drone_list) {
+      return {
+        payload: drone_list,
       };
     } else {
       throw new Error("This is not a list.");
@@ -515,6 +528,15 @@ export const _crossingLines = createReducer([], (builder) => {
     });
 });
 
+export const _drones = createReducer([], (builder) => {
+  builder
+    .addCase(setDrones, (state, action) => {
+      const newDroneList = action.payload;
+      return newDroneList;
+    })
+});
+
+
 export const _clientID = createReducer(null, (builder) => {
   builder.addCase(setClientID, (state, action) => {
     const newID = action.payload;
@@ -684,6 +706,12 @@ export function crossingLines(state) {
   };
 }
 
+export function drones(state) {
+  return {
+    drones: state.drones,
+  };
+}
+
 export function clientID(state) {
   return {
     clientID: state.clientID,
@@ -777,6 +805,7 @@ const states = {
   mapState,
   showWarning,
   crossingLines,
+  drones,
 };
 
 /**
@@ -851,6 +880,8 @@ export const crossingLineActions = {
   setCrossingLines,
 };
 
+export const droneActions = { setDrones };
+
 const actions = {
   areaWaypointActions,
   clientIDActions,
@@ -867,6 +898,7 @@ const actions = {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  droneActions,
 };
 
 /**
@@ -903,6 +935,7 @@ export const store = configureStore({
     mapState: _mapState,
     showWarning: _showWarning,
     crossingLines: _crossingLines,
+    drones: _drones,
   },
 });
 

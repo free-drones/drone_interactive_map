@@ -26,6 +26,7 @@ import {
   mapBounds,
   activePictures,
   crossingLines,
+  drones,
 } from "./Storage.js";
 import {
   mapPositionActions,
@@ -34,6 +35,7 @@ import {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  droneActions,
 } from "./Storage.js";
 import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
@@ -74,13 +76,14 @@ class IMMMap extends React.Component {
     this.setState({
       getDronesTimer: setInterval(() => {
         getDrones((response) => {
-          this.setState({ oldDrones: this.state.drones });
+          //OLD CODE: this.setState({ oldDrones: this.state.drones });
+          this.setState({ oldDrones: this.props.store.drones });
           console.log(
             "received get_drones_info response: ",
             response,
             response.arg
           );
-          this.setState({ drones: response.arg.drones });
+          //OLD CODE: this.setState({ drones: response.arg.drones });
         });
       }, updateDronesTimer),
     });
@@ -284,11 +287,13 @@ class IMMMap extends React.Component {
    * Places all drone icons on the map
    */
   droneFactory() {
-    if (!this.state.oldDrones) {
+    //OLD CODE: if (!this.state.oldDrones) {
+    if (!this.props.store.drones) {
       return [];
     }
 
-    const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
+    //OLD CODE: const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
+    const drones = Object.entries(this.props.store.drones).map(([key, drone], i) => (
       <Marker
         position={[drone.location.lat, drone.location.long]}
         key={`drone${i}`}
@@ -451,7 +456,7 @@ class IMMMap extends React.Component {
         {this.pictureRequestIndicatorFactory()}
 
         {/* Draws drone icons. */}
-        {this.props.store.config.showDroneIcons && this.state.drones
+        {this.props.store.config.showDroneIcons && this.props.store.drones //OLD CODE: this.state.drones
           ? this.droneFactory()
           : ""}
 
@@ -497,6 +502,7 @@ export default connect(
     mapBounds,
     activePictures,
     crossingLines,
+    drones,
   },
   {
     ...areaWaypointActions,
@@ -505,5 +511,6 @@ export default connect(
     ...mapStateActions,
     ...showWarningActions,
     ...crossingLineActions,
+    ...droneActions,
   }
 )(IMMMap);
