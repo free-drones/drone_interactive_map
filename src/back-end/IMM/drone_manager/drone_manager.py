@@ -48,6 +48,9 @@ class DroneManager(Thread):
         if connect_to_RDS:
             self.connect()
 
+        self.status_thread = threading.Thread(target=self.status_printer, daemon=True)
+        self.status_thread.start()
+
         # get drones from CRM, wait until non-zero number of drones
         while True:
             self.drones = self.get_crm_drones()
@@ -62,8 +65,6 @@ class DroneManager(Thread):
         
         _logger.info("received routes from pathfinding")
 
-        self.status_thread = threading.Thread(target=self.status_printer, daemon=True)
-        self.status_thread.start()
 
         while self.running:
             self.resource_management()
@@ -115,7 +116,9 @@ class DroneManager(Thread):
             update = self.event_queue.get()
             self.update_recieved_event.clear()
             if update['update'] == 'lost_drone':
-                self.drones.remove(self.get_matching_drone(update['drone']))
+                drone = self.get_matching_drone(update['drone'])
+                if drone:
+                    self.drones.remove(drone)
                 # idk maybe gotta do some resource management here
             elif update['update'] == 'gained_drone':
                 if self.link.connect_to_drone():
@@ -173,7 +176,6 @@ class DroneManager(Thread):
         alive = True
         while alive:
             try:
-                _logger.info('trying to get status update')
                 msg = self.link.msg_queue.get()
                 _logger.info(f'got status update: {msg}')
                 if msg is None:
@@ -189,31 +191,42 @@ class DroneManager(Thread):
                         #self.update_recieved_event.set()
                         #_logger.info(f'update recieved: {self.update_recieved_event.is_set()}')
                         with self.drone_data_lock:
-                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
                         _logger.info('mission done')
                     elif data['drone_status'] == 'idle':
                         with self.drone_data_lock:
-                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
                         _logger.info('idling')
                     elif data['drone_status'] == 'charging':
                         with self.drone_data_lock:
-                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
                         _logger.info('charging battery')
                     elif data['drone_status'] == 'flying':
                         with self.drone_data_lock:
-                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
                         _logger.info('flying mission')
                     elif data['drone_status'] == 'returning':
                         with self.drone_data_lock:
-                            self.get_matching_drone(data['drone']).status = data['drone_status']
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
                         _logger.info('returning to home')
 
                 elif msg['topic'] == 'drone_position':
                     with self.drone_data_lock:
                         drone = self.get_matching_drone(data['drone'])
-                        drone.lat = data['lat']
-                        drone.lon = data['lon']
-                        drone.alt = data['alt']
+                        if drone:
+                            drone.lat = data['lat']
+                            drone.lon = data['lon']
+                            drone.alt = data['alt']
 
                 elif msg['topic'] == 'lost_drone':
                     _logger.info(f'topic is lost_drone, trying to get data')
