@@ -39,6 +39,9 @@ class GUIPubThread(Thread):
             if request["fcn"] == "new_pic":
                 self.send_to_gui(request)
 
+            if request["fcn"] == "new_drones":
+                self.send_to_gui(request)
+
             if len(self.request_queue) == 0:
                 self.requests_available.clear()
 

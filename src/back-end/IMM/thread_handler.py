@@ -8,6 +8,7 @@ from IMM.threads.thread_rds_pub import RDSPubThread
 from IMM.threads.thread_rds_sub import RDSSubThread
 from IMM.threads.thread_gui_pub import GUIPubThread
 from IMM.threads.thread_info_fetcher import InfoFetcherThread
+from IMM.threads.thread_drone_pub import DronePubThread
 from IMM.drone_manager.drone_manager import DroneManager
 
 class ThreadHandler():
@@ -25,6 +26,7 @@ class ThreadHandler():
         self.rds_sub_thread = RDSSubThread(self)
         self.info_fetcher_thread = InfoFetcherThread()
         self.drone_manager_thread = DroneManager()
+        self.drone_pub_thread = DronePubThread(self)
 
     def start_threads(self):
         """Starts the threads"""
@@ -33,6 +35,7 @@ class ThreadHandler():
         self.gui_pub_thread.start()
         self.info_fetcher_thread.start()
         self.drone_manager_thread.start()
+        self.drone_pub_thread.start()
 
     def stop_threads(self):
         """Stops the threads. Used for debugging."""
@@ -40,6 +43,7 @@ class ThreadHandler():
         time.sleep(2.1)  # Make sure it doesnt send calls
         self.rds_pub_thread.stop()
         self.gui_pub_thread.stop()
+        self.drone_pub_thread.stop()
         self.drone_manager_thread.stop()
 
     def get_rds_pub_thread(self):
@@ -53,3 +57,6 @@ class ThreadHandler():
 
     def get_drone_manager_thread(self):
         return self.drone_manager_thread
+    
+    def get_drone_pub_thread(self):
+        return self.drone_pub_thread
