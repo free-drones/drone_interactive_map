@@ -26,6 +26,8 @@ import {
   mapBounds,
   activePictures,
   crossingLines,
+  isInsideArea,
+  isInsideAreaActions,
 } from "./Storage.js";
 import {
   mapPositionActions,
@@ -34,8 +36,14 @@ import {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  pictureRequestView,
+  pictureRequestViewActions,
 } from "./Storage.js";
-import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
+import {
+  boundsToView,
+  createRedLines,
+  isPointInsidePolygon,
+} from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
 import { markedIcon, userPosIcon, pictureIndicatorIcon } from "./SvgIcons.js";
 
@@ -124,6 +132,59 @@ class IMMMap extends React.Component {
     const zoom = map.getZoom();
     this.props.store.setZoomLevel(zoom);
     this.props.store.setMapPosition(boundsToView(bounds));
+
+    this.props.store.setIsInsideArea(
+      isPointInsidePolygon(
+        this.props.store.mapPosition.center,
+        this.props.store.areaWaypoints
+      )
+    );
+    this.updatePictureRequestView();
+  }
+
+  updatePictureRequestView() {
+    // mapPos contains the map coordinates corresponding to the screens corners.
+    const mapPos = this.props.store.mapPosition;
+    if (!mapPos) {
+      return;
+    }
+    const portionOfScreenHeight = 0.1;
+    // Calculates the lat difference that equals portionOfScreenHeight of the height of the browser window
+    const halfRectangleHeight =
+      (mapPos.upRight.lat - mapPos.downRight.lat) * portionOfScreenHeight;
+    // Calculates lng the same way, but if the window sizes are known this gets overwritten by the
+    // lng needed for the rectangle to have a 4:3 ratio
+    let halfRectangleWidth =
+      (mapPos.upRight.lng - mapPos.upLeft.lng) * portionOfScreenHeight;
+
+    // Scales the width of the rectangle to give it a 4:3 ratio
+    if (window) {
+      const scaleToFourThree = 4 / 3 / (window.innerWidth / window.innerHeight);
+      halfRectangleWidth = halfRectangleWidth * scaleToFourThree;
+    }
+
+    this.props.store.setPictureRequestView({
+      upLeft: {
+        lat: mapPos.center.lat + halfRectangleHeight,
+        lng: mapPos.center.lng - halfRectangleWidth,
+      },
+      upRight: {
+        lat: mapPos.center.lat + halfRectangleHeight,
+        lng: mapPos.center.lng + halfRectangleWidth,
+      },
+      downLeft: {
+        lat: mapPos.center.lat - halfRectangleHeight,
+        lng: mapPos.center.lng - halfRectangleWidth,
+      },
+      downRight: {
+        lat: mapPos.center.lat - halfRectangleHeight,
+        lng: mapPos.center.lng + halfRectangleWidth,
+      },
+      center: {
+        lat: mapPos.center.lat,
+        lng: mapPos.center.lng,
+      },
+    });
   }
 
   /**
@@ -316,6 +377,17 @@ class IMMMap extends React.Component {
     return drones;
   }
 
+  definedAreaPolygon() {
+    return (
+      <Polygon
+        fill={false}
+        positions={[
+          this.props.store.areaWaypoints.map((coord) => [coord.lat, coord.lng]),
+        ]}
+      />
+    );
+  }
+
   /**
    * Renders the map and markers.
    */
@@ -381,6 +453,7 @@ class IMMMap extends React.Component {
         className="map"
         center={this.props.center}
         zoom={this.props.zoom}
+        zoomSnap={0.1}
         zoomControl={false}
         maxBounds={this.props.maxBounds}
         maxBoundsViscosity={0.5}
@@ -397,19 +470,7 @@ class IMMMap extends React.Component {
         />
 
         {/*Draws the polygon of the defined area.*/}
-        {this.props.allowDefine ? (
-          <Polygon
-            fill={false}
-            positions={[
-              this.props.store.areaWaypoints.map((coord) => [
-                coord.lat,
-                coord.lng,
-              ]),
-            ]}
-          />
-        ) : (
-          ""
-        )}
+        {this.props.allowDefine ? this.definedAreaPolygon() : ""}
 
         {/* Paint crossing lines red.*/}
         {this.props.allowDefine &&
@@ -497,6 +558,8 @@ export default connect(
     mapBounds,
     activePictures,
     crossingLines,
+    pictureRequestView,
+    isInsideArea,
   },
   {
     ...areaWaypointActions,
@@ -505,5 +568,7 @@ export default connect(
     ...mapStateActions,
     ...showWarningActions,
     ...crossingLineActions,
+    ...pictureRequestViewActions,
+    ...isInsideAreaActions,
   }
 )(IMMMap);
