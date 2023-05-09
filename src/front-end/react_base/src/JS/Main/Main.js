@@ -17,6 +17,7 @@ import {
   mapPositionActions,
   pictureRequestQueue,
   pictureRequestQueueActions,
+  pictureRequestView,
   areaWaypoints,
   areaWaypointActions,
   mapBounds,
@@ -55,12 +56,12 @@ class Main extends React.Component {
   cameraClickHandler(isUrgent) {
     requestPriorityPicture(
       this.props.store.clientID,
-      this.props.store.mapPosition,
+      this.props.store.pictureRequestView,
       isUrgent,
       callbackWrapper((response) => {
         this.props.store.addPictureRequest(
           response.arg.force_queue_id,
-          this.props.store.mapPosition,
+          this.props.store.pictureRequestView,
           isUrgent
         );
       })
@@ -205,6 +206,7 @@ export default connect(
     clientID,
     mapPosition,
     pictureRequestQueue,
+    pictureRequestView,
     areaWaypoints,
     mapBounds,
     zoomLevel,
