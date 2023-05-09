@@ -608,19 +608,17 @@ export const _crossingLines = createReducer([], (builder) => {
 });
 
 export const _drones = createReducer([], (builder) => {
-  builder
-    .addCase(setDrones, (state, action) => {
-      const newDroneList = action.payload;
-      return newDroneList;
-    })
+  builder.addCase(setDrones, (state, action) => {
+    const newDroneList = action.payload;
+    return newDroneList;
+  });
 });
 
 export const _oldDrones = createReducer([], (builder) => {
-  builder
-    .addCase(setOldDrones, (state, action) => {
-      const droneList = action.payload;
-      return droneList;
-    })
+  builder.addCase(setOldDrones, (state, action) => {
+    const droneList = action.payload;
+    return droneList;
+  });
 });
 
 export const _clientID = createReducer(null, (builder) => {
@@ -1006,7 +1004,7 @@ export const crossingLineActions = {
   setCrossingLines,
 };
 
-export const droneActions = { 
+export const droneActions = {
   setDrones,
   setOldDrones,
 };

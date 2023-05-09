@@ -61,27 +61,25 @@ io.on("connect", (socket) => {
   };
 
   // Testing updating drone data
-  spamDronesInterval = setInterval(() => {
-  simulatedDrones.drone1.location.lat -= 0.0006;
-  simulatedDrones.drone2.location.lat -= 0.0003;
-  simulatedDrones.drone3.location.lat += 0.0003;
-  simulatedDrones.drone4.location.lat += 0.0003;
+  setInterval(() => {
+    simulatedDrones.drone1.location.lat -= 0.0006;
+    simulatedDrones.drone2.location.lat -= 0.0003;
+    simulatedDrones.drone3.location.lat += 0.0003;
+    simulatedDrones.drone4.location.lat += 0.0003;
 
-  simulatedDrones.drone1.location.long -= 0.0006;
-  simulatedDrones.drone2.location.long += 0.0003;
-  simulatedDrones.drone3.location.long -= 0.0003;
-  simulatedDrones.drone4.location.long += 0.0003;
+    simulatedDrones.drone1.location.long -= 0.0006;
+    simulatedDrones.drone2.location.long += 0.0003;
+    simulatedDrones.drone3.location.long -= 0.0003;
+    simulatedDrones.drone4.location.long += 0.0003;
 
-  let reply = {
-    fcn: "new_drones",
-    arg: {
-      drones: simulatedDrones,
-    },
-  };
-  socket.emit("notify", reply);
-    
+    let reply = {
+      fcn: "new_drones",
+      arg: {
+        drones: simulatedDrones,
+      },
+    };
+    socket.emit("notify", reply);
   }, 1000);
-
 
   // Connect
   socket.on("init_connection", (request) => {

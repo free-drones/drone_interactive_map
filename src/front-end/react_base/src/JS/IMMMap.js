@@ -42,7 +42,6 @@ import {
   pictureRequestView,
   pictureRequestViewActions,
 } from "./Storage.js";
-import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
 import {
   boundsToView,
   createRedLines,
@@ -313,22 +312,26 @@ class IMMMap extends React.Component {
    * Places all drone icons on the map
    */
   droneFactory() {
-    if (!this.props.store.oldDrones || this.props.store.oldDrones.length === 0 || 
-      this.props.store.oldDrones.length !== this.props.store.drones.length) {
+    if (
+      !this.props.store.oldDrones ||
+      this.props.store.oldDrones.length === 0 ||
+      this.props.store.oldDrones.length !== this.props.store.drones.length
+    ) {
       return [];
     }
 
-    const drones = Object.entries(this.props.store.drones).map(([key, drone], i) => (
-      <Marker
-        position={[drone.location.lat, drone.location.long]}
-        key={`drone${i}`}
-        icon={Leaflet.divIcon({
-          className: "drones",
-          iconAnchor: Leaflet.point(
-            this.props.store.config.droneIconPixelSize / 2,
-            this.props.store.config.droneIconPixelSize / 2
-          ),
-          html: `<svg fill=${this.droneColor(drone)}
+    const drones = Object.entries(this.props.store.drones).map(
+      ([key, drone], i) => (
+        <Marker
+          position={[drone.location.lat, drone.location.long]}
+          key={`drone${i}`}
+          icon={Leaflet.divIcon({
+            className: "drones",
+            iconAnchor: Leaflet.point(
+              this.props.store.config.droneIconPixelSize / 2,
+              this.props.store.config.droneIconPixelSize / 2
+            ),
+            html: `<svg fill=${this.droneColor(drone)}
                     height="${this.props.store.config.droneIconPixelSize}px" 
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
@@ -340,9 +343,10 @@ class IMMMap extends React.Component {
 	                  viewBox="0 0 1792 1792" xml:space="preserve">
                     <path d="M187.8,1659L896,132.9L1604.2,1659L896,1285.5L187.8,1659z"/>
                     </svg> `,
-        })}
-      />
-    ));
+          })}
+        />
+      )
+    );
     return drones;
   }
 
