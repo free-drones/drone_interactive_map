@@ -27,6 +27,7 @@ import {
   activePictures,
   crossingLines,
   drones,
+  oldDrones,
 } from "./Storage.js";
 import {
   mapPositionActions,
@@ -38,7 +39,6 @@ import {
   droneActions,
 } from "./Storage.js";
 import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
-import { getDrones } from "./Connection/Downstream.js";
 import { markedIcon, userPosIcon, pictureIndicatorIcon } from "./SvgIcons.js";
 
 import Leaflet from "leaflet";
@@ -58,52 +58,7 @@ class IMMMap extends React.Component {
     super(props);
     this.state = {
       userPosition: null,
-      //OLD CODE: drones: null,
-      oldDrones: null,
-      getDronesTimer: null,
     };
-  }
-
-  /**
-   * Drone position update, componentDidMount runs once on startup.
-   */
-  componentDidMount() {
-    const updateDronesTimer = 3000;
-    if (this.state.getDronesTimer) {
-      clearInterval(this.state.getDronesTimer);
-    }
-
-    this.setState({
-      getDronesTimer: setInterval(() => {
-        if (this.state.oldDrones !== this.props.store.drones) {
-          this.setState({ oldDrones: this.props.store.drones });
-        }
-
-        /*
-        OLD CODE: 
-
-        getDrones((response) => {
-          this.setState({ oldDrones: this.state.drones });
-          console.log(
-            "received get_drones_info response: ",
-            response,
-            response.arg
-          );
-          this.setState({ drones: response.arg.drones });
-          
-        });
-        */
-
-      }, updateDronesTimer),
-    });
-  }
-
-  /**
-   * Clears timer when component is unmounted
-   */
-  componentWillUnmount() {
-    // To avoid duplicate instances of getDronesTimer
-    clearInterval(this.state.getDronesTimer);
   }
 
   /**
@@ -296,11 +251,11 @@ class IMMMap extends React.Component {
    * Places all drone icons on the map
    */
   droneFactory() {
-    if (!this.state.oldDrones) {
+    if (!this.props.store.oldDrones || this.props.store.oldDrones.length === 0 || 
+      this.props.store.oldDrones.length !== this.props.store.drones.length) {
       return [];
     }
 
-    //OLD CODE: const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
     const drones = Object.entries(this.props.store.drones).map(([key, drone], i) => (
       <Marker
         position={[drone.location.lat, drone.location.long]}
@@ -316,7 +271,7 @@ class IMMMap extends React.Component {
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
                     transform="rotate(${this.droneAngle(
-                      this.state.oldDrones[key].location,
+                      this.props.store.oldDrones[key].location,
                       drone.location
                     )})"
                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -511,6 +466,7 @@ export default connect(
     activePictures,
     crossingLines,
     drones,
+    oldDrones,
   },
   {
     ...areaWaypointActions,

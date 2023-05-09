@@ -21,7 +21,6 @@ const priorityAndArea = {
 io.on("connect", (socket) => {
   console.log("\n   === Got connection ===   ");
 
-
   // "fake" drone data for testing GUI
   const simulatedDrones = {
     drone1: {
@@ -61,6 +60,7 @@ io.on("connect", (socket) => {
     },
   };
 
+  // Testing updating drone data
   spamDronesInterval = setInterval(() => {
   simulatedDrones.drone1.location.lat -= 0.0006;
   simulatedDrones.drone2.location.lat -= 0.0003;
@@ -191,30 +191,6 @@ io.on("connect", (socket) => {
     };
 
     socket.emit("set_mode_response", reply);
-  });
-
-  // GetDronesInfo
-  socket.on("get_drones_info", (request) => {
-    console.log("get_drones_info call");
-
-    simulatedDrones.drone1.location.lat -= 0.0006;
-    simulatedDrones.drone2.location.lat -= 0.0003;
-    simulatedDrones.drone3.location.lat += 0.0003;
-    simulatedDrones.drone4.location.lat += 0.0003;
-
-    simulatedDrones.drone1.location.long -= 0.0006;
-    simulatedDrones.drone2.location.long += 0.0003;
-    simulatedDrones.drone3.location.long -= 0.0003;
-    simulatedDrones.drone4.location.long += 0.0003;
-
-    let reply = {
-      fcn: "ack",
-      fcn_name: "get_drones_info",
-      arg: {
-        drones: simulatedDrones,
-      },
-    };
-    socket.emit("get_drones_info_response", reply);
   });
 
   // GetQueueETA

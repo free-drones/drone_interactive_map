@@ -166,6 +166,19 @@ export const setDrones = createAction(
   }
 );
 
+export const setOldDrones = createAction(
+  "SET_OLD_DRONES",
+  function prepare(drone_list) {
+    if (drone_list) {
+      return {
+        payload: drone_list,
+      };
+    } else {
+      throw new Error("This is not a list.");
+    }
+  }
+);
+
 /**
  * Client ID, restricted to a number.
  */
@@ -536,6 +549,13 @@ export const _drones = createReducer([], (builder) => {
     })
 });
 
+export const _oldDrones = createReducer([], (builder) => {
+  builder
+    .addCase(setOldDrones, (state, action) => {
+      const droneList = action.payload;
+      return droneList;
+    })
+});
 
 export const _clientID = createReducer(null, (builder) => {
   builder.addCase(setClientID, (state, action) => {
@@ -712,6 +732,12 @@ export function drones(state) {
   };
 }
 
+export function oldDrones(state) {
+  return {
+    oldDrones: state.oldDrones,
+  };
+}
+
 export function clientID(state) {
   return {
     clientID: state.clientID,
@@ -806,6 +832,7 @@ const states = {
   showWarning,
   crossingLines,
   drones,
+  oldDrones,
 };
 
 /**
@@ -880,7 +907,10 @@ export const crossingLineActions = {
   setCrossingLines,
 };
 
-export const droneActions = { setDrones };
+export const droneActions = { 
+  setDrones,
+  setOldDrones,
+};
 
 const actions = {
   areaWaypointActions,
@@ -936,6 +966,7 @@ export const store = configureStore({
     showWarning: _showWarning,
     crossingLines: _crossingLines,
     drones: _drones,
+    oldDrones: _oldDrones,
   },
 });
 
