@@ -79,7 +79,7 @@ function upstreamRequestEventHandler(message) {
       Upstream.newImage(message.prioritized, message.imageID);
       break;
     case "new_drones":
-      Upstream.newDrones(message.data);
+      Upstream.newDrones(message.arg.drones);
       break;
     default:
       throw new Error("Unknown function type '" + message.fcn + "'.");

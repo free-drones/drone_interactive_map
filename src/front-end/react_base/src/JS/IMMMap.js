@@ -58,7 +58,7 @@ class IMMMap extends React.Component {
     super(props);
     this.state = {
       userPosition: null,
-      drones: null,
+      //OLD CODE: drones: null,
       oldDrones: null,
       getDronesTimer: null,
     };
@@ -75,16 +75,25 @@ class IMMMap extends React.Component {
 
     this.setState({
       getDronesTimer: setInterval(() => {
-        getDrones((response) => {
-          //OLD CODE: this.setState({ oldDrones: this.state.drones });
+        if (this.state.oldDrones !== this.props.store.drones) {
           this.setState({ oldDrones: this.props.store.drones });
+        }
+
+        /*
+        OLD CODE: 
+
+        getDrones((response) => {
+          this.setState({ oldDrones: this.state.drones });
           console.log(
             "received get_drones_info response: ",
             response,
             response.arg
           );
-          //OLD CODE: this.setState({ drones: response.arg.drones });
+          this.setState({ drones: response.arg.drones });
+          
         });
+        */
+
       }, updateDronesTimer),
     });
   }
@@ -287,8 +296,7 @@ class IMMMap extends React.Component {
    * Places all drone icons on the map
    */
   droneFactory() {
-    //OLD CODE: if (!this.state.oldDrones) {
-    if (!this.props.store.drones) {
+    if (!this.state.oldDrones) {
       return [];
     }
 
