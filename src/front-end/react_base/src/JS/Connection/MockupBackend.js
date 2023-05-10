@@ -33,7 +33,7 @@ io.on("connect", (socket) => {
       },
     };
 
-    socket.emit("response", reply);
+    socket.emit("init_connection_response", reply);
   });
 
   // CheckAlive
@@ -45,7 +45,7 @@ io.on("connect", (socket) => {
       fcn_name: "check_alive",
     };
 
-    socket.emit("response", reply);
+    socket.emit("check_alive_response", reply);
   });
 
   // Disconnect
@@ -58,7 +58,7 @@ io.on("connect", (socket) => {
     };
     //TODO: Check if user had high priority and set new high priority
 
-    socket.emit("response", reply);
+    socket.emit("quit_response", reply);
   });
 
   // SetArea
@@ -70,7 +70,7 @@ io.on("connect", (socket) => {
       fcn_name: "set_area",
     };
 
-    socket.emit("response", reply);
+    socket.emit("set_area_response", reply);
     priorityAndArea.high_priority_client = request.arg.client_id;
     priorityAndArea.bounds = request.arg.bounds;
     priorityAndArea.coordinates = request.arg.coordinates;
@@ -89,34 +89,34 @@ io.on("connect", (socket) => {
       },
     };
 
-    socket.emit("response", reply);
+    socket.emit("request_view_response", reply);
   });
 
-  // RequestPriorityView
-  socket.on("request_priority_view", (request) => {
-    console.log("request_priority_view call");
+  // RequestPriorityPicture
+  socket.on("request_priority_picture", (request) => {
+    console.log("request_priority_picture call");
 
     let reply = {
       fcn: "ack",
-      fcn_name: "request_priority_view",
+      fcn_name: "request_priority_picture",
       arg: {
-        force_que_id: 1,
+        force_queue_id: 1,
       },
     };
 
-    socket.emit("response", reply);
+    socket.emit("request_priority_picture_response", reply);
   });
 
   // ClearImageQueue
-  socket.on("clear_que", (request) => {
-    console.log("clear_que call");
+  socket.on("clear_queue", (request) => {
+    console.log("clear_queue call");
 
     let reply = {
       fcn: "ack",
-      fcn_name: "clear_que",
+      fcn_name: "clear_queue",
     };
 
-    socket.emit("response", reply);
+    socket.emit("clear_queue_response", reply);
   });
 
   // SetMode
@@ -128,39 +128,83 @@ io.on("connect", (socket) => {
       fcn_name: "set_mode",
     };
 
-    socket.emit("response", reply);
+    socket.emit("set_mode_response", reply);
   });
 
-  // GetInfo
-  socket.on("get_info", (request) => {
-    console.log("get_info call");
+  // "fake" drone data for testing GUI
+  const simulatedDrones = {
+    drone1: {
+      drone_id: 1,
+      location: {
+        lat: 58.39463,
+        long: 15.575143,
+      },
+      mode: "AUTO",
+    },
+
+    drone2: {
+      drone_id: 2,
+      location: {
+        lat: 58.39463,
+        long: 15.577143,
+      },
+      mode: "MAN",
+    },
+
+    drone3: {
+      location: {
+        drone_id: 3,
+        lat: 58.39463,
+        long: 15.579143,
+      },
+      mode: "PHOTO",
+    },
+
+    drone4: {
+      drone_id: 4,
+      location: {
+        lat: 58.39463,
+        long: 15.581143,
+      },
+      mode: "AUTO",
+    },
+  };
+
+  // GetDronesInfo
+  socket.on("get_drones_info", (request) => {
+    console.log("get_drones_info call");
+
+    simulatedDrones.drone1.location.lat -= 0.0006;
+    simulatedDrones.drone2.location.lat -= 0.0003;
+    simulatedDrones.drone3.location.lat += 0.0003;
+    simulatedDrones.drone4.location.lat += 0.0003;
+
+    simulatedDrones.drone1.location.long -= 0.0006;
+    simulatedDrones.drone2.location.long += 0.0003;
+    simulatedDrones.drone3.location.long -= 0.0003;
+    simulatedDrones.drone4.location.long += 0.0003;
 
     let reply = {
       fcn: "ack",
-      fcn_name: "get_info",
-      arg: [
-        {
-          "drone-id": "test",
-          time2bingo: 9999999,
-        },
-      ],
+      fcn_name: "get_drones_info",
+      arg: {
+        drones: simulatedDrones,
+      },
     };
-
-    socket.emit("response", reply);
+    socket.emit("get_drones_info_response", reply);
   });
 
   // GetQueueETA
-  socket.on("que_ETA", (request) => {
-    console.log("que_ETA call");
+  socket.on("queue_ETA", (request) => {
+    console.log("queue_ETA call");
 
     let reply = {
       fcn: "ack",
-      fcn_name: "que_ETA",
+      fcn_name: "queue_ETA",
       arg: {
         ETA: 9999999,
       },
     };
-
-    socket.emit("response", reply);
+    socket.emit("queue_ETA_response", reply);
   });
 });

@@ -54,13 +54,9 @@ const startView = {
     ]
     }
  */
-var initialRequestQueue = {
-  size: 0,
-  items: [],
-};
+
 /* Elements are structured like following example:
 {
-    "type" : #Choice "RGB/IR",
     "prioritized" : #Choice: "True/False",
     "image_id" : "integer(1, -)", # Id of image
     "url": tbd: "URL",
@@ -141,6 +137,21 @@ export const removeAreaWaypoint = createAction(
 );
 
 export const clearAreaWaypoints = createAction("CLEAR_AREA_WAYPOINTS");
+
+export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
+
+export const setCrossingLines = createAction(
+  "SET_CROSSING_LINES",
+  function prepare(list) {
+    if (list) {
+      return {
+        payload: list,
+      };
+    } else {
+      throw new Error("This is not a list.");
+    }
+  }
+);
 
 /**
  * Client ID, restricted to a number.
@@ -244,24 +255,31 @@ export const setMapPosition = createAction(
 /**
  * Actions related to priority picture request queue.
  */
-export const clearRequestQueue = createAction("CLEAR_REQUEST_QUEUE");
+export const clearPictureRequestQueue = createAction(
+  "CLEAR_PICTURE_REQUEST_QUEUE"
+);
 
-export const addRequest = createAction("ADD_REQUEST", function prepare(id) {
-  if (!isNaN(id)) {
-    return {
-      payload: {
-        id: id,
-        requestTime: Date.now(),
-        receiveTime: null,
-        received: false,
-      },
-    };
-  } else {
-    throw new Error("Invalid request ID!");
+export const addPictureRequest = createAction(
+  "ADD_PICTURE_REQUEST",
+  function prepare(id, view, isUrgent) {
+    if (!isNaN(id)) {
+      return {
+        payload: {
+          id: id,
+          requestTime: Date.now(),
+          receiveTime: null,
+          received: false,
+          view: view,
+          isUrgent: isUrgent,
+        },
+      };
+    } else {
+      throw new Error("Invalid request ID!");
+    }
   }
-});
+);
 
-export const removeRequest = createAction(
+export const removePictureRequest = createAction(
   "REMOVE_REQUEST",
   function prepare(index) {
     if (0 <= index && !isNaN(index)) {
@@ -274,7 +292,7 @@ export const removeRequest = createAction(
   }
 );
 
-export const receiveRequest = createAction(
+export const receivePictureRequest = createAction(
   "RECEIVE_REQUEST",
   function prepare(id) {
     if (!isNaN(id)) {
@@ -283,6 +301,62 @@ export const receiveRequest = createAction(
       };
     } else {
       throw new Error("Invalid image ID.");
+    }
+  }
+);
+
+/**
+ * Action related to the picture request area, which is the area of which a picture would be requested at the current moment.
+ * The area is stored in the following format:
+ * {
+ *    upLeft: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   upRight: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   downLeft: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   downRight: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ *   center: {
+ *     lat: lat,
+ *     lng: lng,
+ *   },
+ * }
+ */
+export const setPictureRequestView = createAction(
+  "SET_PICTURE_REQUEST_VIEW",
+  function prepare(view) {
+    if (
+      view !== undefined &&
+      view.upLeft !== undefined &&
+      view.upRight !== undefined &&
+      view.downLeft !== undefined &&
+      view.downRight !== undefined &&
+      view.center !== undefined &&
+      !isNaN(view.upLeft.lat) &&
+      !isNaN(view.upRight.lat) &&
+      !isNaN(view.downLeft.lat) &&
+      !isNaN(view.downRight.lat) &&
+      !isNaN(view.upLeft.lng) &&
+      !isNaN(view.upRight.lng) &&
+      !isNaN(view.downLeft.lng) &&
+      !isNaN(view.downRight.lng) &&
+      !isNaN(view.center.lat) &&
+      !isNaN(view.center.lng)
+    ) {
+      return {
+        payload: view,
+      };
+    } else {
+      throw new Error("Invalid picture request view");
     }
   }
 );
@@ -407,17 +481,20 @@ export const setMapState = createAction(
 );
 
 /**
- * Actions related to Sensor mode (RGB, IR or Map).
+ * Actions related to LayerType mode (RGB, IR or Map).
  */
-export const setSensor = createAction("SET_SENSOR", function prepare(sensor) {
-  if (sensor === "RGB" || sensor === "IR" || sensor === "Map") {
-    return {
-      payload: sensor,
-    };
-  } else {
-    throw new Error("Sensor must be either RGB, IR or Map.");
+export const setLayerType = createAction(
+  "SET_LAYER_TYPE",
+  function prepare(layerType) {
+    if (layerType === "RGB" || layerType === "IR" || layerType === "Map") {
+      return {
+        payload: layerType,
+      };
+    } else {
+      throw new Error("LayerType must be either RGB, IR or Map.");
+    }
   }
-});
+);
 
 /**
  * Actions related to messages.
@@ -463,6 +540,16 @@ export const setShowWarning = createAction(
 );
 
 /**
+ * Action related whether the user's crosshair (middle of the screen) is inside the defined area
+ */
+export const setIsInsideArea = createAction(
+  "SET_IS_INSIDE_AREA",
+  function prepare(isInside) {
+    return { payload: isInside };
+  }
+);
+
+/**
  * ====================================================================================================
  *                                             Reducers
  * ====================================================================================================
@@ -480,6 +567,17 @@ export const _areaWaypoints = createReducer([], (builder) => {
     })
     .addCase(clearAreaWaypoints, (state, action) => {
       return [];
+    });
+});
+
+export const _crossingLines = createReducer([], (builder) => {
+  builder
+    .addCase(clearCrossingLines, (state, action) => {
+      return [];
+    })
+    .addCase(setCrossingLines, (state, action) => {
+      const newList = action.payload;
+      return newList;
     });
 });
 
@@ -519,51 +617,48 @@ export const _mapPosition = createReducer(startView, (builder) => {
   });
 });
 
-export const _requestQueue = createReducer(initialRequestQueue, (builder) => {
+export const _pictureRequestQueue = createReducer([], (builder) => {
   builder
-    .addCase(addRequest, (state, action) => {
-      var newState = {
-        size: state.size + 1,
-        items: [...state.items, action.payload],
-      };
+    .addCase(addPictureRequest, (state, action) => {
+      const newState = [...state, action.payload];
       return newState;
     })
-    .addCase(removeRequest, (state, action) => {
+    .addCase(removePictureRequest, (state, action) => {
       const index = action.payload;
-      return {
-        size: state.size - 1,
-        items: [
-          //Removes item "index" from id list.
-          ...state.items.slice(0, index),
-          ...state.items.slice(index + 1),
-        ],
-      };
+      return [
+        //Removes item "index" from id list.
+        ...state.slice(0, index),
+        ...state.slice(index + 1),
+      ];
     })
-    .addCase(receiveRequest, (state, action) => {
-      const index = state.items.map((e) => e.id).indexOf(action.payload);
+    .addCase(receivePictureRequest, (state, action) => {
+      const index = state.map((e) => e.id).indexOf(action.payload);
 
       if (index !== -1) {
-        return {
-          size: state.size,
-          items: [
-            ...state.items.slice(0, index),
-            {
-              ...state.items[index],
-              received: true,
-              receivedTime: Date.now(),
-            },
-            ...state.items.slice(index + 1),
-          ],
-        };
+        return [
+          ...state.slice(0, index),
+          {
+            ...state[index],
+            received: true,
+            receivedTime: Date.now(),
+          },
+          ...state.slice(index + 1),
+        ];
       }
 
       // If ID is not found, make no change
       return state;
     })
-    .addCase(clearRequestQueue, (state) => {
-      var newState = { size: 0, items: [] };
-      return newState;
+    .addCase(clearPictureRequestQueue, (state) => {
+      return [];
     });
+});
+
+export const _pictureRequestView = createReducer(null, (builder) => {
+  builder.addCase(setPictureRequestView, (state, action) => {
+    const area = action.payload;
+    return area;
+  });
 });
 
 export const _activePictures = createReducer(
@@ -598,15 +693,15 @@ export const _mapBounds = createReducer(null, (builder) => {
     });
 });
 
-export const _mode = createReducer("MAN", (builder) => {
+export const _mode = createReducer("AUTO", (builder) => {
   builder.addCase(setMode, (state, action) => {
     const newMode = action.payload;
     return newMode;
   });
 });
 
-export const _sensor = createReducer("RGB", (builder) => {
-  builder.addCase(setSensor, (state, action) => {
+export const _layerType = createReducer("RGB", (builder) => {
+  builder.addCase(setLayerType, (state, action) => {
     const newMode = action.payload;
     return newMode;
   });
@@ -641,6 +736,13 @@ export const _showWarning = createReducer(false, (builder) => {
   });
 });
 
+export const _isInsideArea = createReducer(false, (builder) => {
+  builder.addCase(setIsInsideArea, (state, action) => {
+    const isInside = action.payload;
+    return isInside;
+  });
+});
+
 /**
  * ====================================================================================================
  *                                      State mapping functions
@@ -653,6 +755,12 @@ export const _showWarning = createReducer(false, (builder) => {
 export function areaWaypoints(state) {
   return {
     areaWaypoints: state.areaWaypoints,
+  };
+}
+
+export function crossingLines(state) {
+  return {
+    crossingLines: state.crossingLines,
   };
 }
 
@@ -686,9 +794,15 @@ export function mapPosition(state) {
   };
 }
 
-export function requestQueue(state) {
+export function pictureRequestQueue(state) {
   return {
-    requestQueue: state.requestQueue,
+    pictureRequestQueue: state.pictureRequestQueue,
+  };
+}
+
+export function pictureRequestView(state) {
+  return {
+    pictureRequestView: state.pictureRequestView,
   };
 }
 
@@ -710,9 +824,9 @@ export function mode(state) {
   };
 }
 
-export function sensor(state) {
+export function layerType(state) {
   return {
-    sensor: state.sensor,
+    layerType: state.layerType,
   };
 }
 
@@ -734,6 +848,12 @@ export function showWarning(state) {
   };
 }
 
+export function isInsideArea(state) {
+  return {
+    isInsideArea: state.isInsideArea,
+  };
+}
+
 const states = {
   areaWaypoints,
   clientID,
@@ -741,14 +861,17 @@ const states = {
   userPriority,
   zoomLevel,
   mapPosition,
-  requestQueue,
+  pictureRequestQueue,
+  pictureRequestView,
   activePictures,
   mapBounds,
   mode,
-  sensor,
+  layerType,
   messages,
   mapState,
   showWarning,
+  crossingLines,
+  isInsideArea,
 };
 
 /**
@@ -793,11 +916,15 @@ export const zoomLevelActions = { setZoomLevel };
 
 export const mapPositionActions = { setMapPosition };
 
-export const requestQueueActions = {
-  addRequest,
-  removeRequest,
-  receiveRequest: receiveRequest,
-  clearRequestQueue,
+export const pictureRequestQueueActions = {
+  addPictureRequest,
+  removePictureRequest,
+  receivePictureRequest,
+  clearPictureRequestQueue,
+};
+
+export const pictureRequestViewActions = {
+  setPictureRequestView,
 };
 
 export const activePicturesActions = {
@@ -810,13 +937,20 @@ export const mapBoundsActions = { setMapBounds, clearMapBounds };
 
 export const modeActions = { setMode };
 
-export const sensorActions = { setSensor };
+export const layerTypeActions = { setLayerType };
 
 export const messagesActions = { addMessage, removeMessage, clearMessages };
 
 export const mapStateActions = { setMapState };
 
 export const showWarningActions = { setShowWarning };
+
+export const crossingLineActions = {
+  clearCrossingLines,
+  setCrossingLines,
+};
+
+export const isInsideAreaActions = { setIsInsideArea };
 
 const actions = {
   areaWaypointActions,
@@ -825,14 +959,16 @@ const actions = {
   userPriorityActions,
   zoomLevelActions,
   mapPositionActions,
-  requestQueueActions,
+  pictureRequestQueueActions,
   activePicturesActions,
   mapBoundsActions,
   modeActions,
-  sensorActions,
+  layerTypeActions,
   messagesActions,
   mapStateActions,
   showWarningActions,
+  crossingLineActions,
+  isInsideAreaActions,
 };
 
 /**
@@ -860,14 +996,17 @@ export const store = configureStore({
     config: _config,
     zoomLevel: _zoomLevel,
     mapPosition: _mapPosition,
-    requestQueue: _requestQueue,
+    pictureRequestQueue: _pictureRequestQueue,
+    pictureRequestView: _pictureRequestView,
     activePictures: _activePictures,
     mapBounds: _mapBounds,
     mode: _mode,
-    sensor: _sensor,
+    layerType: _layerType,
     messages: _messages,
     mapState: _mapState,
     showWarning: _showWarning,
+    crossingLines: _crossingLines,
+    isInsideArea: _isInsideArea,
   },
 });
 

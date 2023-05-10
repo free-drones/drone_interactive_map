@@ -38,7 +38,7 @@ ServerConnection.initialize(SERVER_IP, PORT, testNamespace, { forceNew: true });
 
 test("receives reply to downstream", (done) => {
   downstreamSocket.once("message", () => {
-    downstreamSocket.emit("response", { message: "reply from mockup" });
+    downstreamSocket.emit("message_response", { message: "reply from mockup" });
   });
 
   ServerConnection.sendDownstream("message", { test: "test" }, (reply) => {

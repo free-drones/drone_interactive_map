@@ -34,6 +34,8 @@ import {
   showWarning,
   showWarningActions,
   userPriority,
+  crossingLines,
+  crossingLineActions,
 } from "../Storage.js";
 import { AttentionBorder } from "./AttentionBorder.js";
 import { Check, Delete, MyLocation } from "@mui/icons-material";
@@ -49,10 +51,6 @@ import ColorWrapper from "../ColorWrapper.js";
  * Elevation of alert snackbar.
  */
 const ALERT_ELEVATION = 6;
-
-function Alerter(props) {
-  return <Alert elevation={ALERT_ELEVATION} variant="filled" {...props} />;
-}
 
 const styles = {
   fab: {
@@ -102,7 +100,7 @@ function StartUp(props) {
 
   let [snackbar, setSnackbar] = useState({
     open: false,
-    severity: "",
+    severity: "info",
     message: "",
   });
 
@@ -138,6 +136,7 @@ function StartUp(props) {
    * Clears waypoints.
    */
   function clearWaypoints() {
+    props.store.clearCrossingLines();
     props.store.setShowWarning(false);
     props.store.clearAreaWaypoints();
   }
@@ -147,9 +146,16 @@ function StartUp(props) {
    */
   function calculateBounds() {
     let bounds = Leaflet.latLngBounds(props.store.areaWaypoints);
+    // Adds a padding so that the bounds are not strictly limited to the defined area
+    // which makes it easier to request pictures close to the edges of the area
+    const paddingX = 3 * (bounds.getEast() - bounds.getWest());
+    const paddingY = 3 * (bounds.getSouth() - bounds.getNorth());
 
-    let topLeft = [bounds.getNorth(), bounds.getWest()];
-    let bottomRight = [bounds.getSouth(), bounds.getEast()];
+    let topLeft = [bounds.getNorth() - paddingY, bounds.getWest() - paddingX];
+    let bottomRight = [
+      bounds.getSouth() + paddingY,
+      bounds.getEast() + paddingX,
+    ];
 
     return [topLeft, bottomRight];
   }
@@ -196,7 +202,10 @@ function StartUp(props) {
             props.store.setShowWarning(false);
           }}
           sx={[styles.fab, styles.fabRight]}
-          disabled={props.store.areaWaypoints.length < 3}
+          disabled={
+            props.store.areaWaypoints.length < 3 ||
+            props.store.crossingLines.length > 0
+          }
         >
           <Check />
         </Fab>
@@ -223,14 +232,15 @@ function StartUp(props) {
         autoHideDuration={5000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alerter
+        <Alert
+          elevation={ALERT_ELEVATION}
+          variant="filled"
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
         >
           {snackbar.message}
-        </Alerter>
+        </Alert>
       </Snackbar>
-
       <Dialog
         open={dialogOpen}
         onClose={() => {
@@ -300,6 +310,7 @@ export default connect(
     messages,
     showWarning,
     userPriority,
+    crossingLines,
   },
   {
     ...areaWaypointActions,
@@ -309,5 +320,6 @@ export default connect(
     ...clientIDActions,
     ...configActions,
     ...showWarningActions,
+    ...crossingLineActions,
   }
 )(StartUp);

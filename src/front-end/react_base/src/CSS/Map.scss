@@ -6,6 +6,12 @@
 
 .map {
   z-index: 0;
+  -webkit-user-select: none;
+  /* Safari */
+  -ms-user-select: none;
+  /* IE 10 and IE 11 */
+  user-select: none;
+  /* Standard syntax */
 }
 
 .marker {
@@ -46,4 +52,12 @@
   position: fixed;
   right: 80px;
   bottom: 20px;
+}
+
+.urgent-picture {
+  fill: #f44336dd;
+}
+
+.normal-picture {
+  fill: #949494dd;
 }

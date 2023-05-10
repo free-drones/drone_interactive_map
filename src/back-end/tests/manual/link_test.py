@@ -2,10 +2,11 @@ from IMM.drone_manager.link import Link
 import time
 import threading
 import queue
+from utility.helper_functions import create_logger
 '''
 This is a test script for the link module. It is not intended to be run as a part of the main program.
 To run this test, first the crm needs to have simulated drones running. Then start qgroundcontrol and connect to the simulated drones. 
-This will be done by setting the folowing information in "connections" in qgroundcontrol 
+This will be done by setting the following information in "connections" in qgroundcontrol 
 tcp/ip with ip 10.44.170.10 and the port will be the mavproxy process port that is not taken by the dss, 
 you can find this information on c2m2 (in a webbrowser type 10.44.170.10 when connected to openvpn). 
 When this is done and you are connected to the drones, set them to guided mode in qgroundcontrol.
@@ -16,9 +17,10 @@ MONITOR_TEST = False
 link_object = Link()
 alive = True
 event_queue = queue.Queue()
-update_recieved_event = threading.Event()
+update_received_event = threading.Event()
 
-class Drone():
+_logger = create_logger("link_test")
+class Drone:
     def __init__(self, drone_name) -> None:
         self.id = drone_name
         
@@ -38,11 +40,10 @@ def test_link_two_drone():
         for drone in drone_object_list:
             link_object.fly_random_mission(drone)
         while(alive):
-            print("sleeping")
+            _logger.info("sleeping")
             time.sleep(1)
     except Exception as e:
-        print(e)
-        print("uhh i died")
+        _logger.info(e)
         link_object.kill()
         alive = False
 
@@ -60,11 +61,10 @@ def test_link_all_drones():
         for drone in drone_object_list:
             link_object.fly_random_mission(drone)
         while(alive):
-            print("sleeping")
+            _logger.info("sleeping")
             time.sleep(1)
     except Exception as e:
-        print(e)
-        print("uhh i died")
+        _logger.info(e)
         link_object.kill()
         alive = False
 
@@ -82,11 +82,10 @@ def test_link_new_mission():
         for drone in drone_object_list:
             link_object.fly_random_mission(drone, 8)
         while(alive):
-            print("sleeping")
+            _logger.info("sleeping")
             time.sleep(1)
     except Exception as e:
-        print(e)
-        print("uhh i died")
+        _logger.info(e)
         link_object.kill()
         alive = False
 
@@ -94,32 +93,31 @@ def status_printer():
     alive = True
     while alive:
         try:
-            #print('trying to get status update')
             msg = link_object.msg_queue.get()
             #print(f'got status update: {msg}')
             if msg is not None:
                 if msg['topic'] =='drone_status':
                     #print(f'topic is drone_status, trying to get data')
                     data = msg['data']
-                    #print(f'Recieved drone status update with the data being: {data}')
+                    #print(f'Received drone status update with the data being: {data}')
                     if data['drone_status'] == 'waiting':
                         event_queue.put({'drone':data['drone'], 'update':'status_update', 'drone_status':data['drone_status']})
-                        update_recieved_event.set()
-                        print(f'update recieved: {update_recieved_event.is_set()}')
+                        update_received_event.set()
+                        print(f'update received: {update_received_event.is_set()}')
                         #print('mission done')
                 elif msg['topic'] == 'lost_drone':
                     print(f'topic is lost_drone, trying to get data')
                     data = msg['data']
-                    print(f'Recieved drone status update with the data being: {data}')
+                    print(f'Received drone status update with the data being: {data}')
                     event_queue.put({'drone':data['drone'], 'update':'lost_drone'})
-                    update_recieved_event.set()
+                    update_received_event.set()
                 elif msg['topic'] == 'gained_drone':
                     print(f'topic is new_drone, trying to get data')
                     data = msg['data']
-                    print(f'Recieved drone status update with the data being: {data}')
+                    print(f'Received drone status update with the data being: {data}')
                     event_queue.put({'drone':data['drone'], 'update':'gained_drone'})
-                    update_recieved_event.set()
-            while update_recieved_event.is_set():
+                    update_received_event.set()
+            while update_received_event.is_set():
                 time.sleep(1)
         except KeyboardInterrupt:
             alive = False
@@ -141,10 +139,10 @@ def update_logic_test():
                 print('mission started')
             try:
                 while True:
-                    if update_recieved_event.is_set():
+                    if update_received_event.is_set():
                         update = event_queue.get()
-                        update_recieved_event.clear()
-                        print(f'update recieved: {update}')
+                        update_received_event.clear()
+                        print(f'update received: {update}')
                         if update['update'] == 'status_update':
                             if update['drone_status'] == 'waiting':
                                 print(f'mission done for drone: {update["drone"]}')
@@ -166,7 +164,7 @@ def update_logic_test():
                                         print(f'mission started for new drone: {drone}')
                                 print(f'new drone list: {drone_object_list}')
                     else:
-                        print('Bussiness as usual')
+                        print('Business as usual')
                         time.sleep(1)
             except KeyboardInterrupt:
                 print('KeyboardInterrupt')
@@ -191,7 +189,7 @@ if __name__ == '__main__':
             status_test_thread.start()
         update_logic_test()
     except KeyboardInterrupt:
-        print('KeyboardInterrupt')
+        _logger.info('KeyboardInterrupt')
         link_object.kill()
         alive = False
     

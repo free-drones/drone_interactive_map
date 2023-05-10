@@ -1,7 +1,5 @@
 import unittest
 from IMM.drone_manager.mission import Mission
-from IMM.drone_manager.route import Route
-from IMM.drone_manager.node import Node
 from IMM.drone_manager.drone import Drone
 from IMM.drone_manager.drone_manager import DroneManager
 from IMM.drone_manager.helper_functions import generate_dummy_route
@@ -23,7 +21,7 @@ class TestHelper(unittest.TestCase):
 
     def test_mission_conversion(self):
         """
-        Creates a mission with a route and checks that the convertion to a Rise Drone System-style mission dictionary is correct
+        Creates a mission with a route and checks that the conversion to a RISE Drone System-style mission dictionary is correct
         """
         route = generate_dummy_route()
         mission = Mission(route)
@@ -114,7 +112,12 @@ class TestHelper(unittest.TestCase):
         self.assertEqual(self.r2.drone.current_mission.route, self.r2)
 
 
-class _LinkDummy():
+class _LinkDummy:
+    """
+    This class is a dummy version of the Link class, used for testing the Drone Manager's 
+    resource management and mission assignment logic.
+    """
+
     def __init__(self):
         self.drone_statuses = {
             "drone1": {
@@ -131,22 +134,41 @@ class _LinkDummy():
             },
         }
 
+
     def get_drone_status(self, drone):
+        """
+        Returns the current status of the given drone
+        """
         return self.drone_statuses[drone.id]["status"]
     
+
     def fly(self, mission, drone):
+        """
+        Placeholder function for assigning a mission to a drone
+        """
         return True
-    
-    def get_drone_position(self, drone):        
-        return {"lat": 58, "lon": 16, "alt": "amsl", "heading": "course"}
+
 
     def get_drone_battery(self, drone):
+        """
+        Returns the current battery level of the given drone. Note that this functionality 
+        is not yet implemented in the real RDS but still used here to test the internal
+        Drone Manager logic.
+        """
         return self.drone_statuses[drone.id]["battery"]
 
+
     def return_to_home(self, drone):
+        """
+        Function to simulate asking a drone to go 'home' and charge
+        """
         self.drone_statuses[drone.id]["status"] = "charging"
     
+
     def dummy_charge(self):
+        """
+        Simulates the batteries of the drones. The drones in the "flying" mode loses battery while the drone in "charging" mode gets charged. 
+        """
         self.drone_statuses["drone1"]["battery"] -= 8
         self.drone_statuses["drone2"]["battery"] -= 30
         self.drone_statuses["drone3"]["battery"] += 20

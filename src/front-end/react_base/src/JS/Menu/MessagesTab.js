@@ -163,8 +163,8 @@ function MessagesTab(props) {
         {/* First filter for relevant messages, then add all to list */}
         {props.store.messages
           .filter((message) => filter[message.type] === true)
-          .map((message) => (
-            <ListItem>
+          .map((message, i) => (
+            <ListItem key={`message${i}`}>
               <ListItemIcon sx={styles.thinIcon}>
                 {getIconByType(message.type)}
               </ListItemIcon>

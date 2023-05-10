@@ -48,7 +48,7 @@ def init_db_and_add_all_images():
         for img_path in img_file_paths:
             img_name = img_path.split(os.sep)[-1]
             img_coordinates = coordinates[img_name]
-            image = RDSImage(img_coordinates, img_path, "AUTO", force_que_id=0)
+            image = RDSImage(img_coordinates, img_path, "AUTO", force_queue_id=0)
             session.add(image)
 
 # -----------INIT------------------

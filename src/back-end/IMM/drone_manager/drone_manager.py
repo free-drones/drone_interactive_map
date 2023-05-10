@@ -3,7 +3,6 @@ from utility.helper_functions import create_logger
 from IMM.drone_manager.drone import Drone
 from IMM.drone_manager.route import Route
 from IMM.drone_manager.link import Link
-from IMM.drone_manager.link_dummy import Link as LinkDummy
 from IMM.drone_manager.mission import Mission
 from IMM.drone_manager.dm_config import WAIT_TIME, MIN_CHARGE_LEVEL, FULL_CHARGE_LEVEL
 import time
@@ -16,18 +15,23 @@ _logger = create_logger(LOGGER_NAME)
 _drone_logger = create_logger(LOGGER_NAME + "_drones", custom_file_name="drone_log.log")
 
 class DroneManager(Thread):
+    """
+    Manages drones with RISE Drone System.
+
+    Keeps count and manages all active drones and routes in the current session.
+    Reassigns drones and creates mission for all drones as needed in AUTO mode. 
+    """
+
     def __init__(self):
         """
         Initiates the thread.
-
-        keyword arguments:
-            -
         """
 
         super().__init__()
         self.running = True
         self.drones = []
         self.routes = []
+        self.mode = "AUTO"
 
         self.link = None
 
@@ -38,7 +42,11 @@ class DroneManager(Thread):
         
 
     def connect(self):
-        '''Connects to the RDS.'''
+        """
+        Creates a connection to RDS and attempts to connect to as many drones as possible.
+        Note that drones must be connected to before trying to actually retrieve them, which happens
+        later.
+        """
         self.link = Link()
         self.link.connect_to_all_drones()
 
@@ -53,9 +61,9 @@ class DroneManager(Thread):
 
         # get drones from CRM, wait until non-zero number of drones
         while True:
-            self.drones = self.get_crm_drones()
+            self.drones = self.get_drones()
             if self.drones:
-                _logger.info("received drones from CRM")
+                _logger.info("received drones from RDS")
                 break
             time.sleep(WAIT_TIME)
 
@@ -76,37 +84,51 @@ class DroneManager(Thread):
 
 
     def set_routes(self, route_list):
-        ''''Sets the routes for the drones to follow. Expects a list of Route objects or a list of lists of dicts.'''
+        """
+        Set the routes that shall be used to execute AUTO mode. The Drone Manager will assign drones
+        to fly these routes continuously. Currently assumes we always have 
+        enough drones to fly these routes.
+
+        This function is called by the IMM when the area is set and route planning has been completed.
+        """
         if not isinstance(route_list, list) or not route_list:
             return False
         if isinstance(route_list[0], list):
             self.routes = [Route(route, as_dicts=True) for route in route_list]
-            print(self.routes)
+            _logger.info(f"Drone manager received routes: {self.routes}")
             return True
         elif isinstance(route_list[0], Route):
             self.routes = route_list
+            _logger.info(f"Drone manager received routes: {self.routes}")
             return True
         return False
 
-
-    def get_crm_drones(self):
-        '''Returns a list of drones connected to the drone application'''
+    def get_drones(self):
+        """
+        Returns a list of Drone objects for all connected drones in RISE Drone System
+        """
         drones = [Drone(id=dname) for dname in self.link.get_list_of_drones()]
         return drones
 
 
     def stop(self):
-        '''Stops the thread'''
+        """
+        Stops the thread. Used by the thread_handler to stop the thread
+        """
         self.running = False
 
 
     def get_drone_count(self):
-        '''Returns the number of drones connected to the RDS'''
+        """
+        Return the number of currently connected drones
+        """
         return len(self.drones)
     
 
     def create_mission(self, drone):
-        '''Creates a mission for the drone to fly'''
+        """
+        Return a mission that flies according to the given drone's current route
+        """
         return Mission(drone.route)
 
 
@@ -250,4 +272,10 @@ class DroneManager(Thread):
                     
     
     def set_mode(self, mode):
+        """ 
+        Sets the current mode.
+        
+        keyword arguments:
+          mode - "AUTO" or "MAN"
+        """
         self.mode = mode

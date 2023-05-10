@@ -11,7 +11,7 @@ from IMM.threads.thread_info_fetcher import InfoFetcherThread
 from IMM.threads.thread_drone_pub import DronePubThread
 from IMM.drone_manager.drone_manager import DroneManager
 
-class ThreadHandler():
+class ThreadHandler:
     """Regularly fetches information from the RDS and processes client requests"""
     def __init__(self, socketio):
         """Initiates the thread.

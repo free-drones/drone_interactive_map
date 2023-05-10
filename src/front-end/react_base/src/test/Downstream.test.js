@@ -167,7 +167,7 @@ test("send connect", (done) => {
           client_id: 1,
         },
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("init_connection_response", response);
     } catch (error) {
       done(error);
     }
@@ -189,7 +189,7 @@ test("send disconnect", (done) => {
         fcn: "ack",
         fcn_name: "quit",
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("quit_response", response);
     } catch (error) {
       done(error);
     }
@@ -218,7 +218,7 @@ test("send set_area", (done) => {
         fcn: "ack",
         fcn_name: "set_area",
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("set_area_response", response);
     } catch (error) {
       done(error);
     }
@@ -235,7 +235,7 @@ test("send request_view", (done) => {
       // Validate request
       expect(request).toEqual({
         fcn: "request_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
+        arg: { client_id: 1, coordinates: validViewReceived },
       });
 
       // Emulate server response
@@ -246,47 +246,47 @@ test("send request_view", (done) => {
           image_data: [],
         },
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("request_view_response", response);
     } catch (error) {
       done(error);
     }
   });
 
-  Downstream.requestView(1, validViewSend, Downstream.TYPE.rgb, () => {
+  Downstream.requestView(1, validViewSend, () => {
     done();
   });
 });
 
-test("send request_priority_view", (done) => {
-  downstreamSocket.once("request_priority_view", (request) => {
+test("send request_priority_picture", (done) => {
+  downstreamSocket.once("request_priority_picture", (request) => {
     try {
       // Validate request
       expect(request).toEqual({
-        fcn: "request_priority_view",
-        arg: { client_id: 1, type: "RGB", coordinates: validViewReceived },
+        fcn: "request_priority_picture",
+        arg: { client_id: 1, coordinates: validViewReceived, isUrgent: false },
       });
 
       // Emulate server response
       let response = {
         fcn: "ack",
-        fcn_name: "request_priority_view",
+        fcn_name: "request_priority_picture",
         arg: {
-          force_que_id: 1,
+          force_queue_id: 1,
         },
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("request_priority_picture_response", response);
     } catch (error) {
       done(error);
     }
   });
 
-  Downstream.requestPriorityView(1, validViewSend, Downstream.TYPE.rgb, () => {
+  Downstream.requestPriorityPicture(1, validViewSend, false, () => {
     done();
   });
 });
 
-test("send clear_que", (done) => {
-  downstreamSocket.once("clear_que", (request) => {
+test("send clear_queue", (done) => {
+  downstreamSocket.once("clear_queue", (request) => {
     try {
       // Validate request
       expect(request).toEqual({});
@@ -294,9 +294,9 @@ test("send clear_que", (done) => {
       // Emulate server response
       let response = {
         fcn: "ack",
-        fcn_name: "clear_que",
+        fcn_name: "clear_queue",
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("clear_queue_response", response);
     } catch (error) {
       done(error);
     }
@@ -318,7 +318,7 @@ test("send set_mode (manual)", (done) => {
         fcn: "ack",
         fcn_name: "set_mode",
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("set_mode_response", response);
     } catch (error) {
       done(error);
     }
@@ -343,7 +343,7 @@ test("send set_mode (automatic)", (done) => {
         fcn: "ack",
         fcn_name: "set_mode",
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("set_mode_response", response);
     } catch (error) {
       done(error);
     }
@@ -360,8 +360,8 @@ test("send set_mode (automatic, fail)", () => {
   }).toThrow();
 });
 
-test("send get_info", (done) => {
-  downstreamSocket.once("get_info", (request) => {
+test("send queue_ETA", (done) => {
+  downstreamSocket.once("queue_ETA", (request) => {
     try {
       // Validate request
       expect(request).toEqual({});
@@ -369,40 +369,12 @@ test("send get_info", (done) => {
       // Emulate server response
       let response = {
         fcn: "ack",
-        fcn_name: "get_info",
-        arg: [
-          {
-            "drone-id": "one",
-            time2bingo: 15,
-          },
-        ],
-      };
-      downstreamSocket.emit("response", response);
-    } catch (error) {
-      done(error);
-    }
-  });
-
-  Downstream.getInfo(() => {
-    done();
-  });
-});
-
-test("send que_ETA", (done) => {
-  downstreamSocket.once("que_ETA", (request) => {
-    try {
-      // Validate request
-      expect(request).toEqual({});
-
-      // Emulate server response
-      let response = {
-        fcn: "ack",
-        fcn_name: "que_ETA",
+        fcn_name: "queue_ETA",
         arg: {
           ETA: "53",
         },
       };
-      downstreamSocket.emit("response", response);
+      downstreamSocket.emit("queue_ETA_response", response);
     } catch (error) {
       done(error);
     }

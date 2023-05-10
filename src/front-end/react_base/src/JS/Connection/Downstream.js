@@ -6,25 +6,12 @@ import ServerConnection from "./ServerConnection.js";
 import Storage from "../Storage.js";
 
 /**
- * Image type constant.
- */
-export const TYPE = {
-  rgb: "RGB",
-  ir: "IR",
-};
-
-/**
  * Image mode constant.
  */
 export const MODE = {
   automatic: "AUTO",
   manual: "MAN",
 };
-
-/**
- * Image type. Either "RGB" or "IR"
- * @typedef {String} Mode
- */
 
 /**
  * Request mode. Either "auto" or "man"
@@ -111,15 +98,13 @@ export function setArea(clientID, waypointsList, bounds, callback = null) {
  * Make a request view call downstream.
  *
  * @param {View} view Current view
- * @param {Type} type Wanted image type
  * @param {APICallback} callback Optional callback function
  */
-export function requestView(clientID, view, type, callback = null) {
+export function requestView(clientID, view, callback = null) {
   let message = {
     fcn: "request_view",
     arg: {
       client_id: clientID,
-      type: type,
       coordinates: translateView(view),
     },
   };
@@ -128,23 +113,32 @@ export function requestView(clientID, view, type, callback = null) {
 }
 
 /**
- * Make a prioritized image request downstream.
+ * Make a priority picture request downstream.
  *
  * @param {View} view Current view
- * @param {Type} type Wanted image type
  * @param {APICallback} callback Optional callback function
+ * @param {Boolean} isUrgent Whether the priority picture request is urgent or not
  */
-export function requestPriorityView(clientID, view, type, callback = null) {
+export function requestPriorityPicture(
+  clientID,
+  view,
+  isUrgent,
+  callback = null
+) {
   let message = {
-    fcn: "request_priority_view",
+    fcn: "request_priority_picture",
     arg: {
       client_id: clientID,
-      type: type,
       coordinates: translateView(view),
+      isUrgent: isUrgent,
     },
   };
 
-  ServerConnection.sendDownstream("request_priority_view", message, callback);
+  ServerConnection.sendDownstream(
+    "request_priority_picture",
+    message,
+    callback
+  );
 }
 
 /**
@@ -153,7 +147,7 @@ export function requestPriorityView(clientID, view, type, callback = null) {
  * @param {APICallback} callback Optional callback function
  */
 export function clearImageQueue(callback = null) {
-  ServerConnection.sendDownstream("clear_que", {}, callback);
+  ServerConnection.sendDownstream("clear_queue", {}, callback);
 }
 
 /**
@@ -189,12 +183,12 @@ export function setMode(mode, view = null, callback = null) {
 }
 
 /**
- * Get information about drones.
+ * Get drone position.
  *
  * @param {APICallback} callback Optional callback function
  */
-export function getInfo(callback = null) {
-  ServerConnection.sendDownstream("get_info", {}, callback);
+export function getDrones(callback = null) {
+  ServerConnection.sendDownstream("get_drones_info", {}, callback);
 }
 
 /**
@@ -203,7 +197,7 @@ export function getInfo(callback = null) {
  * @param {APICallback} callback Optional callback function
  */
 export function getQueueETA(callback = null) {
-  ServerConnection.sendDownstream("que_ETA", {}, callback);
+  ServerConnection.sendDownstream("queue_ETA", {}, callback);
 }
 
 /**
@@ -305,17 +299,15 @@ export function callbackWrapper(callback = null) {
 }
 
 const downstreamExports = {
-  TYPE,
   MODE,
   connect,
   checkAlive,
   disconnect,
   setArea,
   requestView,
-  requestPriorityView,
+  requestPriorityPicture,
   clearImageQueue,
   setMode,
-  getInfo,
   getQueueETA,
   callbackWrapper,
 };

@@ -4,12 +4,22 @@ import mapbox_earcut as earcut
 from utility import coordinate_conversion
 
 
-class Triangle():
+
+def angle_diff(angle_a, angle_b):
+    """ Calculate the angle difference between two angles accounting for the angle period """
+    return np.mod(angle_b - angle_a + np.pi, 2*np.pi) - np.pi
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class Triangle:
+    """
+    Triangles defined by a set of three nodes of utm coordinates to simplify calculations on an arbitrarily shaped polygon.
+    """
     def __init__(self, nodes):
         self.a = nodes[0]
         self.b = nodes[1]
         self.c = nodes[2]
-        self.area = self.area(self.a, self.b, self.c)
         self.bounding_box = self.create_bounding_box()
 
     def isConvex(self):
@@ -38,7 +48,7 @@ class Triangle():
         dic["y_max"] = max(y_coords)
         return dic
 
-    def check_bounding_box(self, point):
+    def is_within_bounding_box(self, point):
         """ Return True if the given point is within the bounding box """
         outside_x = point.x < self.bounding_box["x_min"] or point.x > self.bounding_box["x_max"]
         outside_y = point.y < self.bounding_box["y_min"] or point.y > self.bounding_box["y_max"]
@@ -46,7 +56,7 @@ class Triangle():
 
     def contains(self, point):
         """ Return True if the given point is within the triangle """
-        if not self.check_bounding_box(point):
+        if not self.is_within_bounding_box(point):
             return False
         # Calculate the area of each sub-triangle created by the point and each pairwise combination of point a, b and c.
         # The point is inside the triangle if the sum of these areas is the same as the area of the triangle itself.
@@ -56,14 +66,18 @@ class Triangle():
         PAB_area = Triangle.area(point, self.a, self.b)
         
         # ABC is the original triangle and PBC, PAC, PAB are the sub-triangles created with the parameter 'point'.
-        return ABC_area == PBC_area + PAC_area + PAB_area
+        return int(ABC_area) == int(PBC_area + PAC_area + PAB_area)
 
     def nodes(self):
         """ Return the nodes of the triangle as a list """
         return [self.a, self.b, self.c]
 
 
-class Polygon():
+class Polygon:
+    """
+    Creates a polygon from an ordered list of nodes defining an area of interest. Can call helper functions to create nodes and segments to process the area. 
+    
+    """
     def __init__(self, node_list):
         self.nodes = [Node((node_dict["lat"], node_dict["long"])) for node_dict in node_list]
         self.bounding_box = {}
@@ -74,15 +88,15 @@ class Polygon():
     def create_area_segments(self, node_spacing, start_coordinates, num_seg):
         """ This is the main function to perform area segmentation and calls the necessary helper functions in correct order
             Create area segments of the polygon instance:
-                1. Triangulate the polygon
-                2. Define the polygons bounding box
+                1. Define the polygons bounding box
+                2. Triangulate the polygon
                 3. Create a node grid inside the polygon
                 4. Segmentate the polygon into 'num_seg' segments
         """
         start_location = Node(start_coordinates)
 
-        self.triangles = self.earcut_triangulate()
         self.bounding_box = self.create_bounding_box()
+        self.triangles = self.earcut_triangulate()
         self.node_grid = self.create_node_grid(node_spacing, start_location)
         self.update_area_segments(start_location, num_seg)
  
@@ -97,10 +111,12 @@ class Polygon():
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
         nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
         rings = np.array([len(nodes)]) # Used to describe the geometry of the polygon. Can be used to define holes inside the polygon. (We don't)
-        result = earcut.triangulate_int32(nodes, rings) # List of node indices defining the triangles
+        result = earcut.triangulate_float32(nodes, rings) # List of node indices defining the triangles
         triangles = []
+
         for i in range(0, len(result), 3): # Iterate over all such found triangles to create the triangle objects.
-            triangle = Triangle([self.nodes[result[i]], self.nodes[result[i+1]], self.nodes[result[i+2]]])
+            
+            triangle = Triangle([self.nodes[result[i]], self.nodes[result[i + 1]], self.nodes[result[i + 2]]])
             triangles.append(triangle)
 
         return triangles
@@ -122,7 +138,6 @@ class Polygon():
         """
         node_grid = []
         self.bounding_box = self.create_bounding_box()
-        max_diff_ang = self.max_diff_angle(start_location)
         
         x_min, x_max = self.bounding_box["x_min"], self.bounding_box["x_max"]
         y_min, y_max = self.bounding_box["y_min"], self.bounding_box["y_max"]
@@ -140,11 +155,8 @@ class Polygon():
                         node.zone_num = closest_poly_node.zone_num
                         node.zone_letter = closest_poly_node.zone_letter
                         
-                        node.angle_to_start = start_location.angle_to(node)
                         node_grid.append(node)
                         break
-
-        node_grid.sort(key=lambda n: (n.angle_to_start - max_diff_ang), reverse=False)
         return node_grid    
     
     def create_segments(self, num_seg):
@@ -178,13 +190,10 @@ class Polygon():
         return start_location.angle_to(chosen_nodes[0])
     
     def set_node_angles(self, start_location):
-        def node_angle(angle_a, angle_b): # TODO: Move to util class or whatever
-            return np.mod(angle_b - angle_a + np.pi, 2*np.pi) - np.pi
+        """ Sort node grid based on individual nodes' angle to 'start_location' """
         max_diff_ang = self.max_diff_angle(start_location)
-        for node in self.node_grid:
-            node.angle_to_start = start_location.angle_to(node)
- 
-        self.node_grid.sort(key=lambda n: node_angle(n.angle_to_start, max_diff_ang), reverse=False)
+
+        self.node_grid.sort(key=lambda n: angle_diff(start_location.angle_to(n), max_diff_ang))
 
     @staticmethod
     def is_clockwise(nodes):
@@ -194,18 +203,20 @@ class Polygon():
 
         for i in range(num_nodes):
             x1, y1 = nodes[i]
-            x2, y2 = nodes[(i+1) % num_nodes]
+            x2, y2 = nodes[(i + 1) % num_nodes]
             signed_area += (x2 - x1) * (y2 + y1)
 
         return signed_area <= 0
-        
-    def __repr__(self):
-        pass
 
-class Node():
+class Node:
+    """
+    Handles coordinate pairs interpreted as nodes and performs conversions and calculations relative to the node instance. 
+    Takes lat lon coordinates, and optionally utm coordinates, as input. If created without utm coordinates they are then derived from lat lon. 
+    See utility/coodrinate_conversion.py for details pertaining to UTM coordinates and conversion.
+    """
     def __init__(self, coordinates, utm_coordinates=None):
         
-        if utm_coordinates:
+        if utm_coordinates: # If the node is initiated with 'utm_coordinates' and not lat, lon
             self.zone_num = None
             self.zone_letter = None
         else:
@@ -218,8 +229,6 @@ class Node():
             self.zone_letter = zone_letter
         
         self.x, self.y = utm_coordinates
-
-        self.angle_to_start = None
 
     def angle_to(self, other_node):
         """ Return the angle in radians of the node instance to the 'other_node' """
@@ -263,12 +272,16 @@ class Node():
         """ String representation of a node object. """
         return f"Node: UTM data: ({self.x}, {self.y}), Zone: {self.zone_num}{self.zone_letter}:"
     
-class Segment():
+class Segment:
+    """
+    Representation of a sub area within the polygon containing all nodes within this sub area. Can plan route between the segments nodes.
+    """
     def __init__(self, owned_nodes):
         self.owned_nodes = owned_nodes
         self.route = []
 
     def route_dicts(self):
+        """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
         return [node.to_latlon() for node in self.route]
 
     def plan_route(self, start_location):
@@ -282,7 +295,7 @@ class Segment():
             min_insert_cost = float('inf')
             for i in range(len(new_route) - 1):
                 node_A = new_route[i]
-                node_B = new_route[i+1]
+                node_B = new_route[i + 1]
                 for unexplored_node in unexplored_nodes:
                     if unexplored_node in new_route:
                         continue
@@ -294,6 +307,5 @@ class Segment():
                         insert_node = unexplored_node
             new_route.insert(insert_index + 1, insert_node)
             unexplored_nodes.remove(insert_node)
-        print("Len of new route: ", len(new_route))
         self.route = new_route              
-    
+
