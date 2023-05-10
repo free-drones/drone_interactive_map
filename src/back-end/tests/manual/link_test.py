@@ -13,7 +13,6 @@ When this is done and you are connected to the drones, set them to guided mode i
 After that ssh in to the RISE server (for us it is at 10.44.170.10 with openvpn running) and run app_drone_link, then run this script.
 '''
 STATUS_TEST = True
-MONITOR_TEST = False
 link_object = Link()
 alive = True
 event_queue = queue.Queue()
