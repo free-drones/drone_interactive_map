@@ -183,21 +183,12 @@ export function setMode(mode, view = null, callback = null) {
 }
 
 /**
- * Get information about drones.
- *
- * @param {APICallback} callback Optional callback function
- */
-export function getInfo(callback = null) {
-  ServerConnection.sendDownstream("get_info", {}, callback);
-}
-
-/**
  * Get drone position.
  *
  * @param {APICallback} callback Optional callback function
  */
 export function getDrones(callback = null) {
-  ServerConnection.sendDownstream("get_drones", {}, callback);
+  ServerConnection.sendDownstream("get_drones_info", {}, callback);
 }
 
 /**
@@ -317,7 +308,6 @@ const downstreamExports = {
   requestPriorityPicture,
   clearImageQueue,
   setMode,
-  getInfo,
   getQueueETA,
   callbackWrapper,
 };

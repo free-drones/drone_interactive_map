@@ -267,7 +267,7 @@ calls are located in `/IMM/threads/thread_rds_pub.py`, `/IMM/threads/thread_rds_
 
 * `/IMM/threads/thread_rds_sub.py`: Will listen/subscribe to messages from RDS, such as `new_pic`. To implement handling of more API calls implement this in the `run` function.
 * `/IMM/threads/thread_rds_pub.py`: Will send/publish requests to RDS, such as `add_POI`. To implement handling of more API calls implement this in the `run` function.
-* `/IMM/threads/thread_info_fetcher.py`: Will regularly send/publish requests to RDS, such as `get_info`.
+* `/IMM/threads/thread_info_fetcher.py`: Will regularly send/publish requests to RDS.
 To implement handling of more API calls implement this in the `run` function.
 
 It is also possible to add more threads. To add more threads to the system do the following:

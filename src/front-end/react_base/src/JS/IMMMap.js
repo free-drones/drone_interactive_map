@@ -26,6 +26,8 @@ import {
   mapBounds,
   activePictures,
   crossingLines,
+  isInsideArea,
+  isInsideAreaActions,
 } from "./Storage.js";
 import {
   mapPositionActions,
@@ -34,8 +36,14 @@ import {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  pictureRequestView,
+  pictureRequestViewActions,
 } from "./Storage.js";
-import { boundsToView, createRedLines } from "./Helpers/maphelper.js";
+import {
+  boundsToView,
+  createRedLines,
+  isPointInsidePolygon,
+} from "./Helpers/maphelper.js";
 import { getDrones } from "./Connection/Downstream.js";
 import { markedIcon, userPosIcon, pictureIndicatorIcon } from "./SvgIcons.js";
 
@@ -66,11 +74,20 @@ class IMMMap extends React.Component {
    * Drone position update, componentDidMount runs once on startup.
    */
   componentDidMount() {
-    const updateDronesTimer = 1000;
+    const updateDronesTimer = 3000;
+    if (this.state.getDronesTimer) {
+      clearInterval(this.state.getDronesTimer);
+    }
+
     this.setState({
       getDronesTimer: setInterval(() => {
         getDrones((response) => {
           this.setState({ oldDrones: this.state.drones });
+          console.log(
+            "received get_drones_info response: ",
+            response,
+            response.arg
+          );
           this.setState({ drones: response.arg.drones });
         });
       }, updateDronesTimer),
@@ -107,7 +124,7 @@ class IMMMap extends React.Component {
    */
   updateBounds(map) {
     // Prevent the bounds from updating too frequently which can cause a crash
-    if (Date.now() - lastBoundUpdate < 100) {
+    if (!map || !map._mapPane || Date.now() - lastBoundUpdate < 100) {
       return;
     }
     lastBoundUpdate = Date.now();
@@ -115,6 +132,59 @@ class IMMMap extends React.Component {
     const zoom = map.getZoom();
     this.props.store.setZoomLevel(zoom);
     this.props.store.setMapPosition(boundsToView(bounds));
+
+    this.props.store.setIsInsideArea(
+      isPointInsidePolygon(
+        this.props.store.mapPosition.center,
+        this.props.store.areaWaypoints
+      )
+    );
+    this.updatePictureRequestView();
+  }
+
+  updatePictureRequestView() {
+    // mapPos contains the map coordinates corresponding to the screens corners.
+    const mapPos = this.props.store.mapPosition;
+    if (!mapPos) {
+      return;
+    }
+    const portionOfScreenHeight = 0.1;
+    // Calculates the lat difference that equals portionOfScreenHeight of the height of the browser window
+    const halfRectangleHeight =
+      (mapPos.upRight.lat - mapPos.downRight.lat) * portionOfScreenHeight;
+    // Calculates lng the same way, but if the window sizes are known this gets overwritten by the
+    // lng needed for the rectangle to have a 4:3 ratio
+    let halfRectangleWidth =
+      (mapPos.upRight.lng - mapPos.upLeft.lng) * portionOfScreenHeight;
+
+    // Scales the width of the rectangle to give it a 4:3 ratio
+    if (window) {
+      const scaleToFourThree = 4 / 3 / (window.innerWidth / window.innerHeight);
+      halfRectangleWidth = halfRectangleWidth * scaleToFourThree;
+    }
+
+    this.props.store.setPictureRequestView({
+      upLeft: {
+        lat: mapPos.center.lat + halfRectangleHeight,
+        lng: mapPos.center.lng - halfRectangleWidth,
+      },
+      upRight: {
+        lat: mapPos.center.lat + halfRectangleHeight,
+        lng: mapPos.center.lng + halfRectangleWidth,
+      },
+      downLeft: {
+        lat: mapPos.center.lat - halfRectangleHeight,
+        lng: mapPos.center.lng - halfRectangleWidth,
+      },
+      downRight: {
+        lat: mapPos.center.lat - halfRectangleHeight,
+        lng: mapPos.center.lng + halfRectangleWidth,
+      },
+      center: {
+        lat: mapPos.center.lat,
+        lng: mapPos.center.lng,
+      },
+    });
   }
 
   /**
@@ -230,13 +300,13 @@ class IMMMap extends React.Component {
    * @param {*} drone
    */
   droneColor(drone) {
-    let status = drone.status;
-    switch (status) {
-      case "Auto":
+    const mode = drone.mode;
+    switch (mode) {
+      case "AUTO":
         return "#000000"; // BLACK
-      case "Manual":
+      case "MAN":
         return "#FF0000"; // RED
-      case "Photo":
+      case "PHOTO":
         return "#0000FF"; // BLUE
       default:
         return "#A200FF"; // PURPLE
@@ -250,18 +320,21 @@ class IMMMap extends React.Component {
    * @param {*} newPoint
    */
   droneAngle(oldPoint, newPoint) {
+    if (!oldPoint || !newPoint) {
+      return 0;
+    }
     // Estimate latitude scale factor for each drone given its current position
     let latitudeScaleFactor = 1 / Math.cos((newPoint.lat * Math.PI) / 180);
 
     // Calculate angle in degrees
     const p1 = {
       x: oldPoint.lat * latitudeScaleFactor,
-      y: oldPoint.lng,
+      y: oldPoint.long,
     };
 
     const p2 = {
       x: newPoint.lat * latitudeScaleFactor,
-      y: newPoint.lng,
+      y: newPoint.long,
     };
 
     const angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
@@ -278,10 +351,10 @@ class IMMMap extends React.Component {
 
     const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
       <Marker
-        position={[drone.location.lat, drone.location.lng]}
+        position={[drone.location.lat, drone.location.long]}
         key={`drone${i}`}
         icon={Leaflet.divIcon({
-          className: "tmp",
+          className: "drones",
           iconAnchor: Leaflet.point(
             this.props.store.config.droneIconPixelSize / 2,
             this.props.store.config.droneIconPixelSize / 2
@@ -302,6 +375,17 @@ class IMMMap extends React.Component {
       />
     ));
     return drones;
+  }
+
+  definedAreaPolygon() {
+    return (
+      <Polygon
+        fill={false}
+        positions={[
+          this.props.store.areaWaypoints.map((coord) => [coord.lat, coord.lng]),
+        ]}
+      />
+    );
   }
 
   /**
@@ -369,6 +453,7 @@ class IMMMap extends React.Component {
         className="map"
         center={this.props.center}
         zoom={this.props.zoom}
+        zoomSnap={0.1}
         zoomControl={false}
         maxBounds={this.props.maxBounds}
         maxBoundsViscosity={0.5}
@@ -385,19 +470,7 @@ class IMMMap extends React.Component {
         />
 
         {/*Draws the polygon of the defined area.*/}
-        {this.props.allowDefine ? (
-          <Polygon
-            fill={false}
-            positions={[
-              this.props.store.areaWaypoints.map((coord) => [
-                coord.lat,
-                coord.lng,
-              ]),
-            ]}
-          />
-        ) : (
-          ""
-        )}
+        {this.props.allowDefine ? this.definedAreaPolygon() : ""}
 
         {/* Paint crossing lines red.*/}
         {this.props.allowDefine &&
@@ -485,6 +558,8 @@ export default connect(
     mapBounds,
     activePictures,
     crossingLines,
+    pictureRequestView,
+    isInsideArea,
   },
   {
     ...areaWaypointActions,
@@ -493,5 +568,7 @@ export default connect(
     ...mapStateActions,
     ...showWarningActions,
     ...crossingLineActions,
+    ...pictureRequestViewActions,
+    ...isInsideAreaActions,
   }
 )(IMMMap);

@@ -360,34 +360,6 @@ test("send set_mode (automatic, fail)", () => {
   }).toThrow();
 });
 
-test("send get_info", (done) => {
-  downstreamSocket.once("get_info", (request) => {
-    try {
-      // Validate request
-      expect(request).toEqual({});
-
-      // Emulate server response
-      let response = {
-        fcn: "ack",
-        fcn_name: "get_info",
-        arg: [
-          {
-            "drone-id": "one",
-            time2bingo: 15,
-          },
-        ],
-      };
-      downstreamSocket.emit("get_info_response", response);
-    } catch (error) {
-      done(error);
-    }
-  });
-
-  Downstream.getInfo(() => {
-    done();
-  });
-});
-
 test("send queue_ETA", (done) => {
   downstreamSocket.once("queue_ETA", (request) => {
     try {

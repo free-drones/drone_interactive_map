@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { AddAPhoto, NoPhotography } from "@mui/icons-material/";
 import React from "react";
-import { userPriority, connect } from "../Storage.js";
+import { userPriority, isInsideArea, connect } from "../Storage.js";
 import Crosshair from "./Crosshair.js";
 
 const styles = {
@@ -30,16 +30,11 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
+    // backgroundColor: "#50505066",
     pointerEvents: "none",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-  },
-  pictureFocus: {
-    width: "10vw",
-    height: "10vw",
-    borderRadius: 1000,
-    boxShadow: "inset 0 0 1vw #50505090, 0 0 0 9999px #50505066",
   },
   extendedFabLike: {
     backgroundColor: "white",
@@ -50,8 +45,17 @@ const styles = {
     padding: 2,
   },
 };
+
+function getPictureFocusStyle(isInsideArea) {
+  return {
+    boxShadow: `0 0 0 9999px ${isInsideArea ? "#50505066" : "#99000066"}`,
+    height: "20vh", // Matches the size of the requested image
+    width: `${20 * (4 / 3)}vh`, // Matches the size of the requested image
+  };
+}
+
 /**
- * A floating camera button component which extends into selecting urgency and also has an overlay and a crosshair in the urgency selection.
+ * A floating camera button component which extends into selecting urgency and also has an overlay.
  */
 function CameraButton(props) {
   const [shouldChooseUrgency, setShouldChooseUrgency] = React.useState(false);
@@ -59,7 +63,7 @@ function CameraButton(props) {
     <Box>
       {shouldChooseUrgency ? (
         <Box sx={styles.pictureDarkenOverlay}>
-          <Box sx={styles.pictureFocus}>
+          <Box sx={getPictureFocusStyle(props.store.isInsideArea)}>
             <Crosshair />
           </Box>
         </Box>
@@ -74,7 +78,7 @@ function CameraButton(props) {
         orientation="horizontal"
       >
         <Box sx={styles.extendedFabLike}>
-          <ButtonGroup variant="outlined">
+          <ButtonGroup variant="outlined" disabled={!props.store.isInsideArea}>
             <ButtonBase
               sx={styles.extendedButton}
               onClick={() => setShouldChooseUrgency(false)}
@@ -121,4 +125,4 @@ function CameraButton(props) {
     </Box>
   );
 }
-export default connect({ userPriority })(CameraButton);
+export default connect({ userPriority, isInsideArea })(CameraButton);
