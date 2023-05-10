@@ -42,8 +42,8 @@ io.on("connect", (socket) => {
     },
 
     drone3: {
+      drone_id: 3,
       location: {
-        drone_id: 3,
         lat: 58.39463,
         long: 15.579143,
       },

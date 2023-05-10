@@ -314,8 +314,10 @@ class IMMMap extends React.Component {
   droneFactory() {
     if (
       !this.props.store.oldDrones ||
-      this.props.store.oldDrones.length === 0 ||
-      this.props.store.oldDrones.length !== this.props.store.drones.length
+      !this.props.store.drones ||
+      Object.keys(this.props.store.oldDrones).length === 0 ||
+      Object.keys(this.props.store.oldDrones).length !==
+        Object.keys(this.props.store.drones).length
     ) {
       return [];
     }
@@ -336,8 +338,8 @@ class IMMMap extends React.Component {
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
                     transform="rotate(${this.droneAngle(
-                      this.props.store.oldDrones[key].location,
-                      drone.location
+                      this.props.store.oldDrones[key]?.location,
+                      drone?.location
                     )})"
                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
 	                  viewBox="0 0 1792 1792" xml:space="preserve">
