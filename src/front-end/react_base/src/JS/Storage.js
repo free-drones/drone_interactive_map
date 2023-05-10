@@ -504,12 +504,13 @@ export const MESSAGE_TYPES = ["error", "message", "exception"];
 export const addMessage = createAction(
   "ADD_MESSAGE",
   function prepare(type, heading, message) {
-    if (MESSAGE_TYPES.find((value) => type === value) === -1)
+    if (!MESSAGE_TYPES.includes(type)) {
       throw new Error(
         "Message type must be one of the following types: " +
-          MESSAGE_TYPES.join(", ") +
-          "."
-      );
+        MESSAGE_TYPES.join(", ") +
+        "."
+        );
+      }
 
     if (!Axis.isNull(heading) && !Axis.isString(heading))
       throw new Error("Heading must be null or string.");

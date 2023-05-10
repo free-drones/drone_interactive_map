@@ -23,6 +23,9 @@ import Storage, {
   setShowWarning,
   setCrossingLines,
   clearCrossingLines,
+  addMessage,
+  removeMessage,
+  clearMessages,
 } from "../JS/Storage.js";
 
 import defaultConfigValues from "../frontendConfig.json";
@@ -232,12 +235,20 @@ test("removes a picture request", () => {
   expect(Storage.store.getState().pictureRequestQueue).toEqual([]);
 });
 
-test("receives a picture request", () => {
+test("receives picture requests", () => {
   Storage.store.dispatch(addPictureRequest(1, exampleView));
   Storage.store.dispatch(addPictureRequest(4, exampleView));
   Storage.store.dispatch(addPictureRequest(7, exampleView));
 
   Storage.store.dispatch(receivePictureRequest(4));
+  // Nothing should happen with a non-existent ID
+  Storage.store.dispatch(receivePictureRequest(-1));
+
+  try {
+    Storage.store.dispatch(receivePictureRequest("CAT"));
+  } catch (e) {
+    expect(e.message).toBe("Invalid image ID.");
+  }
 
   const index = Storage.store
     .getState()
@@ -520,4 +531,70 @@ test("clears waypoint list", () => {
   Storage.store.dispatch(clearCrossingLines());
 
   expect(Storage.store.getState().crossingLines).toEqual([]);
+});
+
+/**
+ * -------------------- MESSAGES TESTS --------------------
+ */
+test("add and clear message", () => {
+  Storage.store.dispatch(
+    addMessage("exception", "FakeException in cat.js on line -1", "hello!")
+  );
+
+  expect(Storage.store.getState().messages).toEqual([
+    {
+      type: "exception",
+      heading: "FakeException in cat.js on line -1",
+      message: "hello!",
+    },
+  ]);
+  Storage.store.dispatch(
+    addMessage(
+      "exception",
+      "FakeException in kitten.js on line -1",
+      "farewell!"
+    )
+  );
+
+  expect(Storage.store.getState().messages.length).toEqual(2);
+
+  Storage.store.dispatch(clearMessages());
+
+  expect(Storage.store.getState().messages).toEqual([]);
+});
+
+test("remove message", () => {
+  Storage.store.dispatch(
+    addMessage("exception", "FakeException in cat.js on line -1", "hello!")
+  );
+
+  expect(Storage.store.getState().messages.length).toEqual(1);
+
+  Storage.store.dispatch(removeMessage(0));
+
+  expect(Storage.store.getState().messages.length).toEqual(0);
+});
+
+test("add invalid messages", () => {
+  try {
+    Storage.store.dispatch(
+      addMessage("cat", "FakeException in cat.js on line -1", "hello!")
+    );
+  } catch (e) {
+    expect(e.message).toBe(
+      "Message type must be one of the following types: error, message, exception."
+    );
+  }
+
+  try {
+    Storage.store.dispatch(addMessage("message", undefined, "hello!"));
+  } catch (e) {
+    expect(e.message).toBe("Heading must be null or string.");
+  }
+
+  try {
+    Storage.store.dispatch(addMessage("message", "kitten", undefined));
+  } catch (e) {
+    expect(e.message).toBe("Message must be null or string.");
+  }
 });
