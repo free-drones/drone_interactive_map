@@ -35,22 +35,11 @@ export function newImage(prioritized, imageID) {
  * @param {Any} updatedDrones Updated list of all information for every drone.
  */
 export function newDrones(updatedDrones) {
-  // Update old drones
-  if (store.getState().drones && store.getState().drones !== updatedDrones) {
+  // Update old and new drones
+  if (updatedDrones && store.getState().drones !== updatedDrones) {
     store.dispatch(setOldDrones(store.getState().drones));
-  }
-
-  // Update all drones
-  if (updatedDrones) {
     store.dispatch(setDrones(updatedDrones));
   }
-
-  let data = {
-    fcn: "ack",
-    fcn_name: "new_drones",
-  };
-
-  ServerConnection.sendUpstream(data);
 }
 
 const upstreamExports = { newImage, newDrones };

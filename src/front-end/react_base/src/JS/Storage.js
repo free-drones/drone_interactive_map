@@ -148,33 +148,68 @@ export const setCrossingLines = createAction(
         payload: crossing_lines_list,
       };
     } else {
-      throw new Error("This is not a list.");
+      throw new Error("Crossing lines list is not a list");
     }
   }
 );
 
+/**
+ * Actions related to  setting drones, both for new and old drone data.
+ *
+ * The format a drone object should be like is this:
+ *
+ *
+ * {
+ *  drone1: {
+ *    drone_id: 1,
+ *    location: {
+ *      lat: lat,
+ *      long: long,
+ *     },
+ *     mode: "AUTO",
+ *  },
+ *  drone2: {
+ *    drone_id: 2,
+ *    location: {
+ *      lat: lat,
+ *      long: long,
+ *    },
+ *    mode: "MAN",
+ *  },
+ *  drone3: {
+ *    drone_id: 3,
+ *    location: {
+ *      lat: lat,
+ *      long: long,
+ *    },
+ *    mode: "PHOTO",
+ *  },
+ * }
+ *
+ */
+
 export const setDrones = createAction(
   "SET_DRONES",
-  function prepare(drone_list) {
-    if (drone_list) {
+  function prepare(drone_object) {
+    if (drone_object) {
       return {
-        payload: drone_list,
+        payload: drone_object,
       };
     } else {
-      throw new Error("This is not a list.");
+      throw new Error("Drones are not an object.");
     }
   }
 );
 
 export const setOldDrones = createAction(
   "SET_OLD_DRONES",
-  function prepare(drone_list) {
-    if (drone_list) {
+  function prepare(drone_object) {
+    if (drone_object) {
       return {
-        payload: drone_list,
+        payload: drone_object,
       };
     } else {
-      throw new Error("This is not a list.");
+      throw new Error("Old drones are not an object.");
     }
   }
 );
@@ -607,17 +642,17 @@ export const _crossingLines = createReducer([], (builder) => {
     });
 });
 
-export const _drones = createReducer([], (builder) => {
+export const _drones = createReducer({}, (builder) => {
   builder.addCase(setDrones, (state, action) => {
-    const newDroneList = action.payload;
-    return newDroneList;
+    const newDroneObject = action.payload;
+    return newDroneObject;
   });
 });
 
-export const _oldDrones = createReducer([], (builder) => {
+export const _oldDrones = createReducer({}, (builder) => {
   builder.addCase(setOldDrones, (state, action) => {
-    const droneList = action.payload;
-    return droneList;
+    const droneObject = action.payload;
+    return droneObject;
   });
 });
 
