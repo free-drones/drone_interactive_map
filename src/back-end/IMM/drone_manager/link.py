@@ -34,7 +34,7 @@ class Socket_SUB:
                 _logger.debug("Keyboard interrupt, closing socket")
                 self.socket.close()
             except zmq.Again as e:
-                _logger.error("Error receiving message (timeout): {e}")
+                _logger.error(f"Error receiving message (timeout): {e}")
             except zmq.ZMQError as e:
                 _logger.error(f"Error receiving message: {e}")
             except json.JSONDecodeError as e:
