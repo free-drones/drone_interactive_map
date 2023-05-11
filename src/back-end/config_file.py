@@ -29,7 +29,7 @@ RDS_req_socket_url = "tcp://localhost:5572"
 # Time interval for fetching info from RDS.
 UPDATE_INTERVAL = 2
 # Time interval for publishing drone info to frontend
-DRONE_INFO_INTERVAL = 5
+DRONE_INFO_INTERVAL = 0.5
 
 """If set to False, no image processing is performed, except rotation and rescaling."""
 ENABLE_IMAGE_PROCESSING = True

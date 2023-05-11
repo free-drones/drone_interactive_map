@@ -195,7 +195,7 @@ def on_set_area(data):
         # Area segmentation and route planning, and give routes to drone manager
         area_coordinates = data["arg"]["coordinates"] 
         START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
-        NODE_SPACING = 13.0 # TODO: Change to use drone input to set node spacing
+        NODE_SPACING = 25.0 # TODO: Change to use drone input to set node spacing
 
         drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
         if drone_count:
