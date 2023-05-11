@@ -220,9 +220,12 @@ function StartUp(props) {
             }}
             variant={clearWaypointsConfirm ? "extended" : "round"}
             sx={[styles.fab, styles.fabLeft, styles.extendingFab]}
+            disabled={
+              props.store.areaWaypoints.length < 1
+            }
           >
             <Delete />
-            {clearWaypointsConfirm ? "Are you sure?" : ""}
+            {clearWaypointsConfirm ? "Clear all nodes?" : ""}
           </Fab>
         </ColorWrapper>
       </ClickAwayListener>
