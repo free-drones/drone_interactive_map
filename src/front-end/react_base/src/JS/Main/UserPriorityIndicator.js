@@ -26,7 +26,7 @@ function UserPriorityIndicator(props) {
   return (
     <Box sx={styles.priorityIndicator}>
       <Typography sx={styles.shadowedText} variant="h3">
-        Low priority
+        Low Priority User
       </Typography>
     </Box>
   );

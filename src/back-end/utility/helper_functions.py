@@ -199,7 +199,7 @@ def polygon_contains_point(in_point, in_polygon):
     else:
         return False
 
-def create_logger(logger_name, file_level=config.FILE_LOG_LEVEL, console_level=config.CONSOLE_LOG_LEVEL):
+def create_logger(logger_name, file_level=config.FILE_LOG_LEVEL, console_level=config.CONSOLE_LOG_LEVEL, custom_file_name=None):
     format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logger = logging.getLogger(logger_name)
 
@@ -207,8 +207,11 @@ def create_logger(logger_name, file_level=config.FILE_LOG_LEVEL, console_level=c
     console.setLevel(console_level)
     console.setFormatter(logging.Formatter(format))
     logger.addHandler(console)
-
-    file = logging.FileHandler(config.LOG_FILE)
+    
+    if custom_file_name:
+        file = logging.FileHandler(custom_file_name)
+    else:
+        file = logging.FileHandler(config.LOG_FILE)
     file.setLevel(file_level)
     file.setFormatter(logging.Formatter(format))
     logger.addHandler(file)

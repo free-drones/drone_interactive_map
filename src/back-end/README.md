@@ -163,7 +163,7 @@ This is the folder where the main program is located. The following can be found
 * All images which have been saved and retrieved from RDS (`/images`).
 * All threads for the server (`/threads/..`).
 * Error handling of requests (`error_handler.py`).
-* Image processing of recieved images (`image_processing.py`)
+* Image processing of received images (`image_processing.py`)
 * The server, startup of server and communication with front-end. (`IMM_app.py`)
 * Thread handler for easy handling of threads (`thread_handler.py`)
 
@@ -519,7 +519,7 @@ Here follows an overview of the future development goals for this product.
 
  Efforts have been made to implement Eventlet ([Eventlet](https://eventlet.net/)) as a productions server instead of the builtin Werkzeug development server. To use eventlet it must only be installed and the server (Flask-SocketIO) will automatically use it.
 
- To support Eventlet as a productions server a new method might be needed to transfer messages that originate from back-end to front-end. Currently only one type of message originates from back-end (message: notifes front-end when a new picture is recieved from RDS). The message is transmitted in the file `/IMM/threads/thread_gui_pub.py` and sent using the function `send_to_gui()`. The message and new pictures from RDS originates from `/IMM/threads/thread_rds_sub.py`, the message is created in the function `notify_gui()`.
+ To support Eventlet as a productions server a new method might be needed to transfer messages that originate from back-end to front-end. Currently only one type of message originates from back-end (message: notifes front-end when a new picture is received from RDS). The message is transmitted in the file `/IMM/threads/thread_gui_pub.py` and sent using the function `send_to_gui()`. The message and new pictures from RDS originates from `/IMM/threads/thread_rds_sub.py`, the message is created in the function `notify_gui()`.
 
  ###### Why is a new method for tranfer messages needed?
  Emit is not working as inteded when used in a separate thread when using Eventlet and Flask-SocketIO. Calling emit in that situation will block Flask-SocketIO completely.

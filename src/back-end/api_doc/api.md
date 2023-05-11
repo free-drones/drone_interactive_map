@@ -473,31 +473,6 @@ which cover specified area (this is to allow front-end to cache images).
         }
     ```
 
-**Get info**
-----
-  Get info about drones.
-
-* **Event Name**
-  `"get_info"`
-
-* **Data to be sent (JSON format)**
-  `N/A`
-
-
-* **Success Response:**
-  * **Channel:** `"response"`
-  *  **Content:**
-    ```json
-        {
-         "fcn" : "ack",
-         "fcn_name" : "get_info",
-         "arg" : [
-                   {"drone-id" : "one",
-                   "time2bingo" : 15}
-                 ]
-        }
-    ```
-
 ----
 **Get queue_ETA**
 ----
@@ -530,6 +505,7 @@ which cover specified area (this is to allow front-end to cache images).
   Notifies front-end when new images are sent by the RDS, including prioritized images.
 
 * **Channel front-end listen to:**  `"notify"`
+* **Function name:**  `"new_pic"`
 
 * **Data to be sent (JSON format)**
 
@@ -571,7 +547,7 @@ which cover specified area (this is to allow front-end to cache images).
                                }
                        }
    }
- }
+  }
   ```
   - `type` will specify if the image is `"RGB"` or `"IR"`.
   - `prioritized` will specify if the image was requested as a priority image.
@@ -585,3 +561,57 @@ which cover specified area (this is to allow front-end to cache images).
 
   * **Data to be sent (JSON format)**
   `{"fcn": "ack", "fcn_name" : "new_pic"}`
+
+
+----
+**Notify about drone information**
+----
+  Notifies front-end of updated drone information, including location and mode.
+
+* **Channel front-end listen to:**  `"notify"`
+* **Function name:**  `"new_drones"`
+
+* **Data to be sent (JSON format)**
+
+  ```json
+  {
+    "fcn": "new_drones",
+    "arg": {
+      "drones": {
+        "drone1": {
+          "drone_id": "drone1",
+          "location": {
+            "lat": 59.123,
+            "long": 18.123
+          },
+          "mode": "AUTO"
+        },
+        "drone2": {
+          "drone_id": "drone2",
+          "location": {
+            "lat": 59.133,
+            "long": 18.133
+          },
+          "mode": "MAN"
+        },
+        "drone3": {
+          "drone_id": "drone3",
+          "location": {
+            "lat": 59.143,
+            "long": 18.143
+          },
+          "mode": "PHOTO"
+        }
+      }
+    }
+  }
+  ```
+  Each drone in `drones` is specified by a key of the drone's id, e.g. `"drone1"`. For each drone the following information is provided:
+  - `drone_id` specifies the id of the drone. The id is a string such as `"drone2"` and is equal to the key for the drone.
+  - `location` specifies the current location of the drone in coordinates `lat`and `long`.
+  - `mode` specifies the current flying mode of the drone and is one of `AUTO`, `MAN` or `PHOTO`
+
+<br>
+
+* **Success Response:**
+  The frontend does not respond to these calls.

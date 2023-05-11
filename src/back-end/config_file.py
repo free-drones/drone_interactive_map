@@ -13,7 +13,7 @@ It's specifies at which address the Tile Server is being hosted.
 TILE_SERVER_AVAILABLE = False
 TILE_SERVER_BASE_URL = "http://localhost/osm"
 
-"""BACKEND_BASE_URL specifies at which adress the Server is being hosted."""
+"""BACKEND_BASE_URL specifies at which address the Server is being hosted."""
 BACKEND_BASE_URL = "http://pum2020.linkoping-ri.se:65008"
 
 """Server settings"""
@@ -28,6 +28,8 @@ RDS_req_socket_url = "tcp://localhost:5572"
 
 # Time interval for fetching info from RDS.
 UPDATE_INTERVAL = 2
+# Time interval for publishing drone info to frontend
+DRONE_INFO_INTERVAL = 0.5
 
 """If set to False, no image processing is performed, except rotation and rescaling."""
 ENABLE_IMAGE_PROCESSING = True
@@ -42,4 +44,5 @@ CONSOLE_LOG_LEVEL = logging.WARNING
 FILE_LOG_LEVEL = logging.DEBUG
 
 """Drone application socket url"""
-DRONE_APP_URL = 'tcp://10.44.170.10:17720'
+DRONE_APP_REQ_URL = 'tcp://10.44.170.10:17720'
+DRONE_APP_SUB_URL = 'tcp://10.44.170.10:17721'

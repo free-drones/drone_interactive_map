@@ -195,7 +195,8 @@ def on_set_area(data):
         # Area segmentation and route planning, and give routes to drone manager
         area_coordinates = data["arg"]["coordinates"] 
         START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
-        NODE_SPACING = 13.0 # TODO: Change to use drone input to set node spacing
+        # Distance between the nodes in meters
+        NODE_SPACING = 32.0 # TODO: Change to use drone input to set node spacing
 
         drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
         if drone_count:
@@ -302,12 +303,13 @@ def on_request_view(data):
         _logger.debug(f"request_view resp: {response}")
         emit("request_view_response", response)
 
+
 @socketio.on("request_priority_picture")
 def on_request_priority_picture(data):
     """This function will NOT respond with images that overlap with the area.
     Instead it will send a POI (prioritized) request to the RDS which will respond
     later to back-end. It will respond with an acknowledgement.
-    When the priotized image is then recieved it will be sent seperately to front-end.
+    When the priotized image is then received it will be sent seperately to front-end.
 
     Keyword arguments:
     data -- Will specify the current view which specifies where the picture shall be taken. 
@@ -439,60 +441,6 @@ def on_set_mode(data):
 
         _logger.debug(f"set_mode resp: {response}")
         emit("set_mode_response", response)
-
-
-@socketio.on("get_drones_info")
-def on_get_drones_info(unused_data):
-    """
-    This function will respond with information about the drones. Drone data is sent
-    in the 'drones' argument, which is a dictionary with drones as such:
-
-    {
-        'drone1' : {
-            'drone_id' : 'drone1',
-            'location' : {
-                'lat' : 59.123,
-                'long' : 18.123
-            },
-            'mode' : 'AUTO'
-        },
-        'drone2' : ...
-    }
-
-    
-
-    Keyword arguments:
-    unused_data -- N/A
-    """
-    _logger.debug(f"Received get_drones_info API call with data: {unused_data}")
-    dm_thread = thread_handler.get_drone_manager_thread()
-    if dm_thread and dm_thread.drones:
-        response = {}
-        response["fcn"] = "ack"
-        response["fcn_name"] = "get_drones_info"
-        response["arg"] = {}
-        response["arg"]["drones"] = {}
-        for drone in dm_thread.drones:
-            drone_pos = dm_thread.link.get_drone_position(drone)
-            if drone_pos:
-                new_drone_data = {}
-                new_drone_data["drone_id"] = drone.id
-                new_drone_data["location"] = {}
-                new_drone_data["location"]["lat"] = drone_pos["lat"]
-                new_drone_data["location"]["long"] = drone_pos["lon"]
-                new_drone_data["mode"] = drone.mode
-                response["arg"]["drones"][drone.id] = new_drone_data
-                # Response is assembled
-            else:
-                _logger.warning(f"Could not retrieve drone position for drone {drone.id}")
-                
-        _logger.debug(f"get_drones_info resp: {response}")
-        emit("get_drones_info_response", response)
-
-
-    else:
-        emit_error_response("get_drones_info", "Unable to find drones", _logger)
-        return
 
 
 @socketio.on("queue_ETA")
