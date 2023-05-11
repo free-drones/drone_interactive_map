@@ -93,15 +93,24 @@ class DroneManager(Thread):
         """
         if not isinstance(route_list, list) or not route_list:
             return False
+    
         if isinstance(route_list[0], list):
             self.routes = [Route(route, as_dicts=True) for route in route_list]
-            _logger.info(f"Drone manager received routes: {self.routes}")
-            return True
         elif isinstance(route_list[0], Route):
             self.routes = route_list
-            _logger.info(f"Drone manager received routes: {self.routes}")
-            return True
-        return False
+        else:
+            return False # Invalid route
+        
+        for route in self.routes:
+            with self.drone_data_lock:
+                route.drone.status = "waiting"
+
+        _logger.info(f"Drone manager received routes: {self.routes}")
+        return True
+        
+        
+
+    
 
     def get_drones(self):
         """

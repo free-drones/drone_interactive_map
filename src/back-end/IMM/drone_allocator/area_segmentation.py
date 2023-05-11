@@ -107,6 +107,17 @@ class Polygon:
         for seg in self.segments:
             seg.plan_route(start_location)
 
+    # When drone is assigned to start flying:
+    # - find closest seg,
+    #   - with drone_location.closest_node(node_grid) for each segment (best)
+    #
+    # closest_seg.plan_route(drone_location, closest_seg_node)
+    #
+
+    
+
+    #def plan_routes(self, drone_locations)
+
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
         nodes = np.array([node() for node in self.nodes]).reshape(-1, 2) # Convert node list to a np array
@@ -215,8 +226,8 @@ class Node:
     See utility/coodrinate_conversion.py for details pertaining to UTM coordinates and conversion.
     """
     def __init__(self, coordinates, utm_coordinates=None):
-        
-        if utm_coordinates: # If the node is initiated with 'utm_coordinates' and not lat, lon
+
+        if utm_coordinates and not coordinates: # If the node is initiated with 'utm_coordinates' and not lat, lon
             self.zone_num = None
             self.zone_letter = None
         else:
@@ -284,9 +295,10 @@ class Segment:
         """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
         return [node.to_latlon() for node in self.route]
 
-    def plan_route(self, start_location):
+    def plan_route(self, start_location, start_neighbour=None):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
-        start_neighbour = start_location.closest_node(self.owned_nodes)
+        if not start_neighbour:
+            start_neighbour = start_location.closest_node(self.owned_nodes)
 
         # Insert 'start_location' as a node in the route
         new_route = [start_location, start_neighbour]
