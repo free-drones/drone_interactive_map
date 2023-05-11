@@ -13,7 +13,7 @@ It's specifies at which address the Tile Server is being hosted.
 TILE_SERVER_AVAILABLE = False
 TILE_SERVER_BASE_URL = "http://localhost/osm"
 
-"""BACKEND_BASE_URL specifies at which adress the Server is being hosted."""
+"""BACKEND_BASE_URL specifies at which address the Server is being hosted."""
 BACKEND_BASE_URL = "http://pum2020.linkoping-ri.se:65008"
 
 """Server settings"""

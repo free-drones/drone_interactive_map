@@ -189,7 +189,7 @@ class Link:
         
 
     def reset(self) -> bool:
-        '''Resets the drone_application, returns True if succesful, False if not'''
+        '''Resets the drone_application, returns True if successful, False if not'''
         msg = {'fcn':'reset'}
         _logger.debug(f"Sending reset message: {msg}")
         reply = self.socket_req.send_and_receive(msg)

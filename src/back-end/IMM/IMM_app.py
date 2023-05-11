@@ -195,7 +195,8 @@ def on_set_area(data):
         # Area segmentation and route planning, and give routes to drone manager
         area_coordinates = data["arg"]["coordinates"] 
         START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
-        NODE_SPACING = 25.0 # TODO: Change to use drone input to set node spacing
+        # Distance between the nodes in meters
+        NODE_SPACING = 32.0 # TODO: Change to use drone input to set node spacing
 
         drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
         if drone_count:
@@ -308,7 +309,7 @@ def on_request_priority_picture(data):
     """This function will NOT respond with images that overlap with the area.
     Instead it will send a POI (prioritized) request to the RDS which will respond
     later to back-end. It will respond with an acknowledgement.
-    When the priotized image is then recieved it will be sent seperately to front-end.
+    When the priotized image is then received it will be sent seperately to front-end.
 
     Keyword arguments:
     data -- Will specify the current view which specifies where the picture shall be taken. 

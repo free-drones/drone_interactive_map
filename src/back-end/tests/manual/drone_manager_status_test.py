@@ -25,7 +25,7 @@ How to use:
   Unit is meters.
 
 - Make sure the altitude in waypoints is properly set for the area you are flying in.
-  Linköping has around 40 m above sea level, Skara around 120 m. The 
+  Linköping has around 50-100 m above sea level, Skara around 120 m. The 
   altitude in QGC shows altitude above ground, while the altitude in 
   mission waypoints is altitude above sea level. See dm_config file.
 

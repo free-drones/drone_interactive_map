@@ -54,23 +54,23 @@ class TestFlask(unittest.TestCase):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
 
 
     def test_check_alive(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("check_alive", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"check_alive"}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"check_alive"}, received[0]["args"][0])
 
     def test_quit(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("quit", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"quit"}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"quit"}, received[0]["args"][0])
 
     def test_set_area(self):
         data = {"arg":{"client_id":1, "coordinates": [{"lat":58.39933088094993,"long":15.57485264561767}, 
@@ -80,19 +80,19 @@ class TestFlask(unittest.TestCase):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
 
         client.emit("set_area", data)
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"set_area"}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"set_area"}, received[0]["args"][0])
 
     def test_request_view(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
 #        [(5,0),(5,5),(10,5),(10,0)]
         data = {
                 "arg" : {   "type":"RGB",
@@ -200,25 +200,25 @@ class TestFlask(unittest.TestCase):
             session.commit()
 
         client.emit("request_view", data)
-        recieved = client.get_received()
-        self.assertEqual(len(recieved[0]["args"][0]["arg"]["image_data"]), 2)
-        self.assertEqual(recieved[0]["args"][0]["arg"]["image_data"][0]["image_id"], 111)
-        self.assertEqual(recieved[0]["args"][0]["arg"]["image_data"][1]["image_id"], 222)
+        received = client.get_received()
+        self.assertEqual(len(received[0]["args"][0]["arg"]["image_data"]), 2)
+        self.assertEqual(received[0]["args"][0]["arg"]["image_data"][0]["image_id"], 111)
+        self.assertEqual(received[0]["args"][0]["arg"]["image_data"][1]["image_id"], 222)
 
         data["arg"]["type"] = "IR"
         client.emit("request_view", data)
-        recieved = client.get_received()
-        self.assertEqual(len(recieved[0]["args"][0]["arg"]["image_data"]), 2)
-        self.assertEqual(recieved[0]["args"][0]["arg"]["image_data"][0]["image_id"], 444)
-        self.assertEqual(recieved[0]["args"][0]["arg"]["image_data"][1]["image_id"], 555)
+        received = client.get_received()
+        self.assertEqual(len(received[0]["args"][0]["arg"]["image_data"]), 2)
+        self.assertEqual(received[0]["args"][0]["arg"]["image_data"][0]["image_id"], 444)
+        self.assertEqual(received[0]["args"][0]["arg"]["image_data"][1]["image_id"], 555)
 
 
     def test_request_priority_picture(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
 
         data = {"arg":
                     {
@@ -229,8 +229,8 @@ class TestFlask(unittest.TestCase):
                }
 
         client.emit("request_priority_picture", data)
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, received[0]["args"][0])
 
         data = {"arg":
                     {
@@ -241,15 +241,15 @@ class TestFlask(unittest.TestCase):
                }
 
         client.emit("request_priority_picture", data)
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":2}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":2}}, received[0]["args"][0])
 
     def test_clear_queue(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
 
         with dbx.session_scope() as session:
             priority_image = dbx.PrioImage(
@@ -270,8 +270,8 @@ class TestFlask(unittest.TestCase):
             self.assertEqual(session.query(dbx.PrioImage).first().status, "PENDING")
 
         client.emit("clear_queue", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"clear_queue"}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"clear_queue"}, received[0]["args"][0])
 
         with dbx.session_scope() as session:
             self.assertEqual(session.query(dbx.PrioImage).first().status, "CANCELLED")
@@ -280,21 +280,21 @@ class TestFlask(unittest.TestCase):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
 
         data = {"arg":{"mode": "MAN", "zoom":example_coordinates}}
         client.emit("set_mode", data)
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"set_mode"}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"set_mode"}, received[0]["args"][0])
 
 
     def test_queue_ETA(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
 
         with dbx.session_scope() as session:
             image = PrioImage(
@@ -311,24 +311,24 @@ class TestFlask(unittest.TestCase):
             session.add(image)
 
         client.emit("queue_ETA", {})
-        recieved = client.get_received()
-        self.assertEqual(2121, recieved[0]["args"][0]["arg"]["ETA"])
+        received = client.get_received()
+        self.assertEqual(2121, received[0]["args"][0]["arg"]["ETA"])
 
 
     def test_send_to_gui(self):
         client = socketio.test_client(app)
         self.assertTrue(client.is_connected())
         client.emit("init_connection", {})
-        recieved = client.get_received()
-        client_id = recieved[0]["args"][0]["arg"]["client_id"]
+        received = client.get_received()
+        client_id = received[0]["args"][0]["arg"]["client_id"]
 
         thread_handler.get_gui_pub_thread().send_to_gui("hello world")
-        recieved = client.get_received()
-        self.assertEqual(recieved[0]["args"][0], "hello world")
+        received = client.get_received()
+        self.assertEqual(received[0]["args"][0], "hello world")
 
         thread_handler.get_gui_pub_thread().send_to_gui("hello world1", client_id)
-        recieved = client.get_received()
-        self.assertEqual("hello world1", recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual("hello world1", received[0]["args"][0])
 
 
 if __name__ == "__main__":
