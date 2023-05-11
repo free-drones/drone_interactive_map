@@ -28,3 +28,6 @@ jobs:
         run: |
           python -m coverage run -m unittest discover --pattern=*tests.py
           python -m coverage report -mi
+      - name: Run pep8 checks
+        working-directory: ./src/back-end
+        run: flake8 --exclude __pycache__,venv,.venv,env
