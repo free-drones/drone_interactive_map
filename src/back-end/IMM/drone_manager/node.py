@@ -1,11 +1,11 @@
-from IMM.drone_manager.dm_config import ALTITUDE, GROUND_LEVEL
+from IMM.drone_manager.dm_config import ALTITUDE
 
 class Node:
     """ 
     Class representing a node in a route which drones fly along 
     """
 
-    def __init__(self, lat=0, lon=0, altitude=(ALTITUDE + GROUND_LEVEL), weight=1, as_string=None):
+    def __init__(self, lat=0, lon=0, altitude=ALTITUDE, weight=1, as_string=None):
         """
         Create a Node either with lat, lon OR as a string on the form "lat, lon"
         """
