@@ -30,7 +30,6 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
-    // backgroundColor: "#50505066",
     pointerEvents: "none",
     display: "flex",
     justifyContent: "center",
@@ -46,9 +45,10 @@ const styles = {
   },
 };
 
-function getPictureFocusStyle(isInsideArea) {
+function getPictureViewIndicatorStyle(isInsideArea) {
   return {
-    boxShadow: `0 0 0 9999px ${isInsideArea ? "#50505066" : "#99000066"}`,
+    boxShadow: `inset 0 0 10px #50505090, 0 0 0 9999px ${isInsideArea ? "#50505066" : "#99000066"}`,
+    outline: "3px dashed gray",
     height: "20vh", // Matches the size of the requested image
     width: `${20 * (4 / 3)}vh`, // Matches the size of the requested image
   };
@@ -63,7 +63,7 @@ function CameraButton(props) {
     <Box>
       {shouldChooseUrgency ? (
         <Box sx={styles.pictureDarkenOverlay}>
-          <Box sx={getPictureFocusStyle(props.store.isInsideArea)}>
+          <Box sx={getPictureViewIndicatorStyle(props.store.isInsideArea)}>
             <Crosshair />
           </Box>
         </Box>
