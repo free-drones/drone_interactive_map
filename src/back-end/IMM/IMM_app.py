@@ -195,6 +195,7 @@ def on_set_area(data):
         # Area segmentation and route planning, and give routes to drone manager
         area_coordinates = data["arg"]["coordinates"] 
         START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
+        
         # Distance between the nodes in meters
         NODE_SPACING = 32.0 # TODO: Change to use drone input to set node spacing
 

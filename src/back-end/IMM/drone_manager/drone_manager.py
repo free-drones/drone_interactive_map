@@ -101,16 +101,16 @@ class DroneManager(Thread):
         else:
             return False # Invalid route
         
-        for route in self.routes:
+        # Reset drone routes and status
+        for drone in self.drones:
             with self.drone_data_lock:
-                route.drone.status = "waiting"
+                drone.route = None
+                if drone.status == "flying":
+                    drone.status = "waiting"
 
         _logger.info(f"Drone manager received routes: {self.routes}")
         return True
         
-        
-
-    
 
     def get_drones(self):
         """
@@ -187,7 +187,7 @@ class DroneManager(Thread):
         for route in self.routes:
             success = True
             with self.drone_data_lock:
-                if route.drone.status in ["landed", "waiting", "idle"]:
+                if route.drone and route.drone.status in ["landed", "waiting", "idle"]:
                     mission = self.create_mission(route.drone)
                     route.drone.current_mission = mission
                     success = self.link.fly(mission, route.drone)
