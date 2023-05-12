@@ -99,24 +99,13 @@ class Polygon:
         self.triangles = self.earcut_triangulate()
         self.node_grid = self.create_node_grid(node_spacing, start_location)
         self.update_area_segments(start_location, num_seg)
- 
+
     def update_area_segments(self, start_location, num_seg):
         """ Create new segments with the given node spacing, start location, and number of segments """
         self.set_node_angles(start_location)
         self.segments = self.create_segments(num_seg)
         for seg in self.segments:
             seg.plan_route(start_location)
-
-    # When drone is assigned to start flying:
-    # - find closest seg,
-    #   - with drone_location.closest_node(node_grid) for each segment (best)
-    #
-    # closest_seg.plan_route(drone_location, closest_seg_node)
-    #
-
-    
-
-    #def plan_routes(self, drone_locations)
 
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
