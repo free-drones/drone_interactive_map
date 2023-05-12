@@ -2,21 +2,23 @@
  * Class file for Mode indicator.
  */
 import React, { Component } from "react";
-import Badge from "@mui/material/Badge";
+import {Badge, Box} from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { connect, mode, modeActions } from "../Storage.js";
 
 class ModeIcon extends Component {
   render() {
     return (
-      <Badge
-        badgeContent={this.props.store.mode[0]}
-        color="primary"
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        showZero
-      >
+      <Box
+      sx={{display: "flex"}}>
         <SettingsIcon />
-      </Badge>
+        <Badge
+          badgeContent={this.props.store.mode}
+          color="primary"
+          showZero
+          sx={{left: 16}}
+        ></Badge>
+      </Box>
     );
   }
 }
