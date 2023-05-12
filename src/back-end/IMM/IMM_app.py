@@ -194,12 +194,26 @@ def on_set_area(data):
 
         # Area segmentation and route planning, and give routes to drone manager
         area_coordinates = data["arg"]["coordinates"] 
-        START_LOCATION = (area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
-        
+
         # Distance between the nodes in meters
         NODE_SPACING = 32.0 # TODO: Change to use drone input to set node spacing
 
-        drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
+        with thread_handler.get_drone_manager_thread().drone_data_lock:
+            drones = []#thread_handler.get_drone_manager_thread().get_drones()
+
+        if not drones:
+            _logger.warning("No drones available!")  # TODO: handle this case better
+            #return
+
+        #drone_locations = [area_segmentation.Node((drone.lat, drone.lon)) for drone in drones]
+        avg_drone_node = None #area_segmentation.Node.from_average_location(drone_locations)
+        area_nodes = [area_segmentation.Node((node_dict["lat"], node_dict["long"])) for node_dict in area_coordinates]
+        avg_poly_location = area_segmentation.Node.from_average_location(area_nodes)
+
+        START_LOCATION = avg_drone_node if drones else avg_poly_location
+        #(area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
+
+        drone_count = len(drones)
         if drone_count:
             polygon = area_segmentation.Polygon(area_coordinates) 
             polygon.create_area_segments(NODE_SPACING, START_LOCATION, drone_count)
@@ -208,7 +222,6 @@ def on_set_area(data):
             thread_handler.get_drone_manager_thread().set_routes(route_list)
         else:
             _logger.warning("No drones available when attempting route planning!")  # TODO: handle this case better
-
 
 @socketio.on("request_view")
 def on_request_view(data):

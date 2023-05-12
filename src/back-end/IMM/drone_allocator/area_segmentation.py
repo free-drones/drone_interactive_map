@@ -85,7 +85,7 @@ class Polygon:
         self.node_grid = []
         self.segments = []
     
-    def create_area_segments(self, node_spacing, start_coordinates, num_seg):
+    def create_area_segments(self, node_spacing, start_location, num_seg):
         """ This is the main function to perform area segmentation and calls the necessary helper functions in correct order
             Create area segments of the polygon instance:
                 1. Define the polygons bounding box
@@ -93,11 +93,9 @@ class Polygon:
                 3. Create a node grid inside the polygon
                 4. Segmentate the polygon into 'num_seg' segments
         """
-        start_location = Node(start_coordinates)
-
         self.bounding_box = self.create_bounding_box()
         self.triangles = self.earcut_triangulate()
-        self.node_grid = self.create_node_grid(node_spacing, start_location)
+        self.node_grid = self.create_node_grid(node_spacing)
         self.update_area_segments(start_location, num_seg)
 
     def update_area_segments(self, start_location, num_seg):
@@ -132,7 +130,7 @@ class Polygon:
         dic["y_max"] = max(y_coords)
         return dic 
 
-    def create_node_grid(self, node_spacing, start_location):
+    def create_node_grid(self, node_spacing):
         """ Evenly distribute a node grid inside the polygon and return a sorted list of the nodes according to the nodes angle relative 'start_location' 
             'node_spacing' decides the distance between each node in the created grid
         """
@@ -151,9 +149,7 @@ class Polygon:
                         # Find the zone num/letter of the closest node in the polygon node list.
                         # This is because the nodes are created with UTM coordinates, and the lat/lon coordinates
                         # are unknown, which means that the zone information cannot be derived.
-                        closest_poly_node = node.closest_node(self.nodes)
-                        node.zone_num = closest_poly_node.zone_num
-                        node.zone_letter = closest_poly_node.zone_letter
+                        node.derive_latlon(self.nodes)
                         
                         node_grid.append(node)
                         break
@@ -213,22 +209,32 @@ class Node:
     Handles coordinate pairs interpreted as nodes and performs conversions and calculations relative to the node instance. 
     Takes lat lon coordinates, and optionally utm coordinates, as input. If created without utm coordinates they are then derived from lat lon. 
     See utility/coodrinate_conversion.py for details pertaining to UTM coordinates and conversion.
-    """
-    def __init__(self, coordinates, utm_coordinates=None):
 
-        if utm_coordinates and not coordinates: # If the node is initiated with 'utm_coordinates' and not lat, lon
-            self.zone_num = None
-            self.zone_letter = None
-        else:
+    UTM coordinates are always known, since they are either derived from lat/lon or assigned directly.
+    UTM zone information is derived directly if the node is initialized with latitude and longitude and must
+    otherwise be derived from another node.
+    """
+    def __init__(self, coordinates=None, utm_coordinates=None):
+        assert coordinates or utm_coordinates, "Node must be initialized with either latlon or utm coordinates!"
+
+        zone_info = None
+        if coordinates:
+            self.lat, self.lon = coordinates
+
             # Calculate utm data from lat, lon
-            lat, lon = coordinates
-            utm_x, utm_y, zone_num, zone_letter = coordinate_conversion.utm_from_latlon(lat, lon)
-            utm_coordinates = utm_x, utm_y
-        
-            self.zone_num = zone_num
-            self.zone_letter = zone_letter
+            utm_x, utm_y, zone_num, zone_letter = coordinate_conversion.utm_from_latlon(*coordinates)
+            self.zone_number, self.zone_letter = zone_num, zone_letter
+
+            if not utm_coordinates:
+                utm_coordinates = utm_x, utm_y
+        else:
+            self.lat = None
+            self.lon = None
+            self.zone_number = None
+            self.zone_letter = None
         
         self.x, self.y = utm_coordinates
+        
 
     def angle_to(self, other_node):
         """ Return the angle in radians of the node instance to the 'other_node' """
@@ -247,7 +253,7 @@ class Node:
         return np.sqrt((other_node.x-self.x)**2 + (other_node.y-self.y)**2)
     
     def closest_node(self, node_ls):
-        """ Returns the node closest to 'node' among 'owned_nodes' """
+        """ Return the node closest to 'node' among 'owned_nodes' """
         min_dist = float('inf')
         closest_node = node_ls[0]
         for comp_node in node_ls:
@@ -259,18 +265,68 @@ class Node:
                 closest_node = comp_node
         return closest_node
 
-    def to_latlon(self):
-        """ Convert the UTM coordinates to lat/lon coordinates """
-        assert self.zone_num, "Zone num is not defined!"
+    @staticmethod
+    def from_average_location(nodes):
+        """ 
+        Return a Node object that contains the average position 
+        """
+        assert nodes, "'nodes' must not be empty!"
+
+        avg_node = Node(None, utm_coordinates=(0, 0))
+        for node in nodes:
+            avg_node.x += node.x
+            avg_node.y += node.y
+        avg_node.x /= len(nodes)
+        avg_node.y /= len(nodes)
+        
+        avg_node.derive_latlon(nodes)
+        return avg_node
+        
+    def derive_utm_zone(self, nodes):
+        """ 
+        Derive the UTM zone information (number, letter) from the closest node in 'nodes'
+        Set the zone number and zone letter accordingly. 
+        At least one node in 'nodes' must contain UTM zone information.
+        """
+        # Nodes that contain utm zone information, i.e where zone_number and zone_letter are not None
+        nodes_with_utm_zone = [node for node in nodes if node.zone_number and node.zone_letter]
+        if not nodes_with_utm_zone:
+            raise ValueError("No nodes with zone information are present in 'nodes'")
+
+        closest_node = self.closest_node(nodes_with_utm_zone)
+        self.zone_number = closest_node.zone_number
+        self.zone_letter = closest_node.zone_letter
+
+    def set_latlon(self):
+        """ 
+        Convert the UTM coordinates to lat/lon coordinates and set self.lat and self.lon accordingly.
+        Assumes that zone information is known. 
+        """
+        assert self.zone_number, "Zone number is not defined!"
         assert self.zone_letter, "Zone letter is not defined!"
 
-        latlon = coordinate_conversion.utm_to_latlon(self.x, self.y, self.zone_num, self.zone_letter)
-        latlon_dict = {"lat": latlon[0], "lon": latlon[1]}
+        latlon = coordinate_conversion.utm_to_latlon(self.x, self.y, self.zone_number, self.zone_letter)
+        self.lat = latlon[0]
+        self.lon = latlon[1]
+
+    def latlon_dict(self):
+        """ Return latitude and longitude as a dictionary """
+        assert self.lat and self.lon, "Latitude and longitude are undefined!"
+
+        latlon_dict = {"lat": self.lat, "lon": self.lon}
         return latlon_dict
+
+    def derive_latlon(self, nodes):
+        """
+        Derive the latitude and longitude from the closest node in 'nodes'
+        At least one node in 'nodes' must contain UTM zone information.
+        """
+        self.derive_utm_zone(nodes)
+        self.set_latlon()
     
     def __repr__(self):
         """ String representation of a node object. """
-        return f"Node: UTM data: ({self.x}, {self.y}), Zone: {self.zone_num}{self.zone_letter}:"
+        return f"Node: UTM data: ({self.x}, {self.y}), Zone: {self.zone_number}{self.zone_letter}:"
     
 class Segment:
     """
@@ -282,7 +338,7 @@ class Segment:
 
     def route_dicts(self):
         """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
-        return [node.to_latlon() for node in self.route]
+        return [node.latlon_dict() for node in self.route]
 
     def plan_route(self, start_location, start_neighbour=None):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
