@@ -99,7 +99,7 @@ class Polygon:
         self.triangles = self.earcut_triangulate()
         self.node_grid = self.create_node_grid(node_spacing, start_location)
         self.update_area_segments(start_location, num_seg)
- 
+
     def update_area_segments(self, start_location, num_seg):
         """ Create new segments with the given node spacing, start location, and number of segments """
         self.set_node_angles(start_location)
@@ -215,8 +215,8 @@ class Node:
     See utility/coodrinate_conversion.py for details pertaining to UTM coordinates and conversion.
     """
     def __init__(self, coordinates, utm_coordinates=None):
-        
-        if utm_coordinates: # If the node is initiated with 'utm_coordinates' and not lat, lon
+
+        if utm_coordinates and not coordinates: # If the node is initiated with 'utm_coordinates' and not lat, lon
             self.zone_num = None
             self.zone_letter = None
         else:
@@ -284,9 +284,10 @@ class Segment:
         """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
         return [node.to_latlon() for node in self.route]
 
-    def plan_route(self, start_location):
+    def plan_route(self, start_location, start_neighbour=None):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
-        start_neighbour = start_location.closest_node(self.owned_nodes)
+        if not start_neighbour:
+            start_neighbour = start_location.closest_node(self.owned_nodes)
 
         # Insert 'start_location' as a node in the route
         new_route = [start_location, start_neighbour]
