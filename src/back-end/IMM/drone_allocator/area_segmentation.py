@@ -104,21 +104,30 @@ class Polygon:
         """ Create new segments with the given start location and number of segments """
         self.set_node_angles(start_location)
         self.segments = self.create_segments(num_seg)
-        
+
     def plan_routes(self, start_location, drones, drone_data_lock):
-        """  """
+        """ 
+        Create routes for each drone in 'drones'.
+        Currently assumes that each drone is used for AUTO mode.
+
+        The implementation makes sure that there is exactly one segment per drone, by updating
+        the area segments with the correct number if this is not the case.
+
+        Each segment is greedily assigned to its closest drone in each iteration.
+        (This assignment could be improved by implementing a more sophisticated 
+        algorithm, such as the hungarian method)
+        """
         if len(self.segments) != len(drones):
             self.update_area_segments(start_location, len(drones))
-        
+
         drone_route_dict = dict()
 
-        available_drones = [drone for drone in drones if not drone.route]
         for seg in self.segments:    
             # Greedy assignment
             closest_drone = None
             closest_dist = float('inf')
             closest_neighbor = None
-            for drone in available_drones:
+            for drone in drones:
                 with drone_data_lock:
                     drone_location = Node((drone.lat, drone.lon))
                 closest_node = drone_location.closest_node(seg.owned_nodes)
@@ -129,8 +138,7 @@ class Polygon:
                     closest_neighbor = closest_node
 
             with drone_data_lock:
-                available_drones.remove(closest_drone)
-                seg.plan_route(start_location=Node((closest_drone.lat, closest_drone.lon), start_neighbor=closest_neighbor))
+                seg.plan_route(start_location=Node((closest_drone.lat, closest_drone.lon)), start_neighbor=closest_neighbor)
 
             drone_route_dict[closest_drone] = seg.route
 
@@ -298,9 +306,10 @@ class Node:
     @staticmethod
     def from_average_location(nodes):
         """ 
-        Return a Node object that contains the average position 
+        Return a new Node object that contains the average position of the given nodes 
         """
-        assert nodes, "'nodes' must not be empty!"
+        if not nodes:
+            return
 
         avg_node = Node(utm_coordinates=(0, 0))
         for node in nodes:
@@ -315,33 +324,39 @@ class Node:
     def derive_utm_zone(self, nodes):
         """ 
         Derive the UTM zone information (number, letter) from the closest node in 'nodes'
-        Set the zone number and zone letter accordingly. 
-        At least one node in 'nodes' must contain UTM zone information.
+        Set the zone number and zone letter accordingly, and return whether or not the conversion was successful.
+        At least one node in 'nodes' must contain UTM zone information for the conversion to be successful.
+
         """
-        # Nodes that contain utm zone information, i.e where zone_number and zone_letter are not None
+        # Nodes that contain utm zone information, i.e where zone_number and zone_letter exist
         nodes_with_utm_zone = [node for node in nodes if node.zone_number and node.zone_letter]
         if not nodes_with_utm_zone:
-            raise ValueError("No nodes with zone information are present in 'nodes'")
+            return False
+            #raise ValueError("No nodes with zone information are present in 'nodes'")
 
         closest_node = self.closest_node(nodes_with_utm_zone)
         self.zone_number = closest_node.zone_number
         self.zone_letter = closest_node.zone_letter
+        return True
+
 
     def set_latlon(self):
         """ 
         Convert the UTM coordinates to lat/lon coordinates and set self.lat and self.lon accordingly.
-        Assumes that zone information is known. 
+        Return whether or not the conversion was successful.
         """
-        assert self.zone_number, "Zone number is not defined!"
-        assert self.zone_letter, "Zone letter is not defined!"
+        if not self.zone_number or not self.zone_letter:
+            return False
 
         latlon = coordinate_conversion.utm_to_latlon(self.x, self.y, self.zone_number, self.zone_letter)
         self.lat = latlon[0]
         self.lon = latlon[1]
+        return True
 
     def latlon_dict(self):
         """ Return latitude and longitude as a dictionary """
-        assert self.lat and self.lon, "Latitude and longitude are undefined!"
+        if not self.lat or not self.lon:
+            return # Latitude and longitude are undefined!
 
         latlon_dict = {"lat": self.lat, "lon": self.lon}
         return latlon_dict
@@ -350,13 +365,15 @@ class Node:
         """
         Derive the latitude and longitude from the closest node in 'nodes'
         At least one node in 'nodes' must contain UTM zone information.
+        Return whether or not the conversion was successful.
         """
-        self.derive_utm_zone(nodes)
-        self.set_latlon()
+        if self.derive_utm_zone(nodes):
+            success = self.set_latlon()
+            return success
     
     def __repr__(self):
         """ String representation of a node object. """
-        return f"Node: UTM data: ({self.x}, {self.y}), Zone: {self.zone_number}{self.zone_letter}:"
+        return f"Node: UTM data: ({self.x}, {self.y}) in zone {self.zone_number}{self.zone_letter}. Latlon: ({self.lat}, {self.lon})"
     
 class Segment:
     """
@@ -370,13 +387,13 @@ class Segment:
     #    """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
     #    return [node.latlon_dict() for node in self.route]
 
-    def plan_route(self, start_location, start_neighbour=None):
+    def plan_route(self, start_location, start_neighbor=None):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
-        if not start_neighbour:
-            start_neighbour = start_location.closest_node(self.owned_nodes)
+        if not start_neighbor:
+            start_neighbor = start_location.closest_node(self.owned_nodes)
 
         # Insert 'start_location' as a node in the route
-        new_route = [start_location, start_neighbour]
+        new_route = [start_location, start_neighbor]
         unexplored_nodes = self.owned_nodes[:]
         while (len(new_route) - 1) < len(self.owned_nodes):
             min_insert_cost = float('inf')

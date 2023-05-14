@@ -21,6 +21,8 @@ from IMM.error_handler import check_client_id, check_coordinates_list, check_coo
     check_type, check_mode, emit_error_response
 from IMM.drone_allocator import area_segmentation
 
+from IMM.drone_manager import drone # For testing purposes. TODO remove
+
 """Initiate the flask application and the socketIO wrapper"""
 app = Flask(__name__)
 app.config["IMAGE_STORE_PATH"] = 'IMM/images' # Relative path
@@ -206,23 +208,27 @@ def on_set_area(data):
             if not drone_count:
                 _logger.warning("No drones available when attempting route planning!")  # TODO: handle this case better
                 return
+            
+        drones = thread_handler.get_drone_manager_thread().drones
 
-            drones = thread_handler.get_drone_manager_thread().get_drones()
+        with data_lock:
+            drone_locations = [area_segmentation.Node((drone.lat, drone.lon)) for drone in drones]
 
-        drone_locations = [area_segmentation.Node((drone.lat, drone.lon)) for drone in drones]
-        
-        avg_drone_node = None
+        START_LOCATION = None
         if drone_locations:
+            # Find area segmentation start_location from average drone location
             avg_drone_node = area_segmentation.Node.from_average_location(drone_locations)
+            
             START_LOCATION = avg_drone_node
             _logger.info("Using average drone location as start_location")
-        else:
+        # Failed to retrieve average drone location
+        if not START_LOCATION:
+            # Find area segmentation start_location from average poly node location
             area_nodes = [area_segmentation.Node((node_dict["lat"], node_dict["long"])) for node_dict in area_coordinates]
-            avg_poly_location = area_segmentation.Node.from_average_location(area_nodes)
-            START_LOCATION = avg_poly_location
-            _logger.info("Using average polygon location as start_location")
-        
-        #(area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
+            avg_poly_node_location = area_segmentation.Node.from_average_location(area_nodes)
+            
+            START_LOCATION = avg_poly_node_location
+            _logger.info("Using average polygon node location as start_location")
 
         polygon = area_segmentation.Polygon(area_coordinates) 
         polygon.create_area_segments(NODE_SPACING, START_LOCATION, drone_count)

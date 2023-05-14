@@ -93,14 +93,7 @@ class DroneManager(Thread):
         """
         if not isinstance(drone_route_dict, dict) or not drone_route_dict:
             return False
-    
-        #if isinstance(route_list[0], list):
-        #    self.routes = [Route(route, as_dicts=True) for route in route_list]
-        #elif isinstance(route_list[0], Route):
-        #    self.routes = route_list
-        #else:
-        #    return False # Invalid route
-        
+
         # Reset drone routes and status
         for drone in self.drones:
             with self.drone_data_lock:
