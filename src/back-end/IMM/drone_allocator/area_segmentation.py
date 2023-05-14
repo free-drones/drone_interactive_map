@@ -104,9 +104,7 @@ class Polygon:
         """ Create new segments with the given start location and number of segments """
         self.set_node_angles(start_location)
         self.segments = self.create_segments(num_seg)
-        for seg in self.segments:
-            seg.plan_route(start_location)
-
+        
     def plan_routes(self, start_location, drones, drone_data_lock):
         """  """
         if len(self.segments) != len(drones):
