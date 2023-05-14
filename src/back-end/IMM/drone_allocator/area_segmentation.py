@@ -1,7 +1,9 @@
 import numpy as np
 from bisect import insort
 import mapbox_earcut as earcut
+
 from utility import coordinate_conversion
+from IMM.drone_manager.route import Route
 
 
 
@@ -9,8 +11,8 @@ def angle_diff(angle_a, angle_b):
     """ Calculate the angle difference between two angles accounting for the angle period """
     return np.mod(angle_b - angle_a + np.pi, 2*np.pi) - np.pi
 
-#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 
 class Triangle:
     """
@@ -99,11 +101,42 @@ class Polygon:
         self.update_area_segments(start_location, num_seg)
 
     def update_area_segments(self, start_location, num_seg):
-        """ Create new segments with the given node spacing, start location, and number of segments """
+        """ Create new segments with the given start location and number of segments """
         self.set_node_angles(start_location)
         self.segments = self.create_segments(num_seg)
         for seg in self.segments:
             seg.plan_route(start_location)
+
+    def plan_routes(self, start_location, drones, drone_data_lock):
+        """  """
+        if len(self.segments) != len(drones):
+            self.update_area_segments(start_location, len(drones))
+        
+        drone_route_dict = dict()
+
+        available_drones = [drone for drone in drones if not drone.route]
+        for seg in self.segments:    
+            # Greedy assignment
+            closest_drone = None
+            closest_dist = float('inf')
+            closest_neighbor = None
+            for drone in available_drones:
+                with drone_data_lock:
+                    drone_location = Node((drone.lat, drone.lon))
+                closest_node = drone_location.closest_node(seg.owned_nodes)
+                dist = closest_node.distance_to(drone_location)
+                if dist < closest_dist:
+                    closest_drone = drone
+                    closest_dist = dist
+                    closest_neighbor = closest_node
+
+            with drone_data_lock:
+                available_drones.remove(closest_drone)
+                seg.plan_route(start_location=Node((closest_drone.lat, closest_drone.lon), start_neighbor=closest_neighbor))
+
+            drone_route_dict[closest_drone] = seg.route
+
+        return drone_route_dict
 
     def earcut_triangulate(self):
         """ Triangulate the polygon using the Ear Clipping algorithm and return the triangles as a list """
@@ -143,7 +176,7 @@ class Polygon:
         for x in np.arange(x_min, x_max, node_spacing):
             for y in np.arange(y_min, y_max, node_spacing):
                 for triangle in self.triangles:
-                    node = Node(None, utm_coordinates=(x, y))
+                    node = Node(utm_coordinates=(x, y))
 
                     if triangle.contains(node):
                         # Find the zone num/letter of the closest node in the polygon node list.
@@ -217,7 +250,6 @@ class Node:
     def __init__(self, coordinates=None, utm_coordinates=None):
         assert coordinates or utm_coordinates, "Node must be initialized with either latlon or utm coordinates!"
 
-        zone_info = None
         if coordinates:
             self.lat, self.lon = coordinates
 
@@ -272,7 +304,7 @@ class Node:
         """
         assert nodes, "'nodes' must not be empty!"
 
-        avg_node = Node(None, utm_coordinates=(0, 0))
+        avg_node = Node(utm_coordinates=(0, 0))
         for node in nodes:
             avg_node.x += node.x
             avg_node.y += node.y
@@ -334,11 +366,11 @@ class Segment:
     """
     def __init__(self, owned_nodes):
         self.owned_nodes = owned_nodes
-        self.route = []
+        self.route = None
 
-    def route_dicts(self):
-        """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
-        return [node.latlon_dict() for node in self.route]
+    #def route_dicts(self):
+    #    """ Convert the route list owned by the segment from utm coordinates to dictionaries containing latitude and longitude """
+    #    return [node.latlon_dict() for node in self.route]
 
     def plan_route(self, start_location, start_neighbour=None):
         """ Plan a route using nearest insert algorithm with a segments owned nodes """
@@ -364,5 +396,7 @@ class Segment:
                         insert_node = unexplored_node
             new_route.insert(insert_index + 1, insert_node)
             unexplored_nodes.remove(insert_node)
-        self.route = new_route              
+        #new_route.remove(start_location)
+        route = Route([node.latlon_dict() for node in new_route], as_dicts=True)
+        self.route = route
 

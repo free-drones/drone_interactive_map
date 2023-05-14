@@ -198,30 +198,38 @@ def on_set_area(data):
         # Distance between the nodes in meters
         NODE_SPACING = 32.0 # TODO: Change to use drone input to set node spacing
 
-        with thread_handler.get_drone_manager_thread().drone_data_lock:
-            drones = []#thread_handler.get_drone_manager_thread().get_drones()
+        data_lock = thread_handler.get_drone_manager_thread().drone_data_lock
+        
+        with data_lock:
+            drone_count = thread_handler.get_drone_manager_thread().get_drone_count()
 
-        if not drones:
-            _logger.warning("No drones available!")  # TODO: handle this case better
-            #return
+            if not drone_count:
+                _logger.warning("No drones available when attempting route planning!")  # TODO: handle this case better
+                return
 
-        #drone_locations = [area_segmentation.Node((drone.lat, drone.lon)) for drone in drones]
-        avg_drone_node = None #area_segmentation.Node.from_average_location(drone_locations)
-        area_nodes = [area_segmentation.Node((node_dict["lat"], node_dict["long"])) for node_dict in area_coordinates]
-        avg_poly_location = area_segmentation.Node.from_average_location(area_nodes)
+            drones = thread_handler.get_drone_manager_thread().get_drones()
 
-        START_LOCATION = avg_drone_node if drones else avg_poly_location
+        drone_locations = [area_segmentation.Node((drone.lat, drone.lon)) for drone in drones]
+        
+        avg_drone_node = None
+        if drone_locations:
+            avg_drone_node = area_segmentation.Node.from_average_location(drone_locations)
+            START_LOCATION = avg_drone_node
+            _logger.info("Using average drone location as start_location")
+        else:
+            area_nodes = [area_segmentation.Node((node_dict["lat"], node_dict["long"])) for node_dict in area_coordinates]
+            avg_poly_location = area_segmentation.Node.from_average_location(area_nodes)
+            START_LOCATION = avg_poly_location
+            _logger.info("Using average polygon location as start_location")
+        
         #(area_coordinates[0]["lat"], area_coordinates[0]["long"]) # TODO: Find a more reasonable approach to find start_location
 
-        drone_count = len(drones)
-        if drone_count:
-            polygon = area_segmentation.Polygon(area_coordinates) 
-            polygon.create_area_segments(NODE_SPACING, START_LOCATION, drone_count)
-            route_list = [segment.route_dicts() for segment in polygon.segments]
+        polygon = area_segmentation.Polygon(area_coordinates) 
+        polygon.create_area_segments(NODE_SPACING, START_LOCATION, drone_count)
 
-            thread_handler.get_drone_manager_thread().set_routes(route_list)
-        else:
-            _logger.warning("No drones available when attempting route planning!")  # TODO: handle this case better
+        drone_route_dict = polygon.plan_routes(START_LOCATION, drones, data_lock)
+
+        thread_handler.get_drone_manager_thread().set_routes(drone_route_dict)
 
 @socketio.on("request_view")
 def on_request_view(data):

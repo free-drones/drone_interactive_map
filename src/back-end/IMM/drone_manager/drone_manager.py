@@ -1,7 +1,7 @@
 from threading import Thread
 from utility.helper_functions import create_logger
 from IMM.drone_manager.drone import Drone
-from IMM.drone_manager.route import Route
+#from IMM.drone_manager.route import Route
 from IMM.drone_manager.link import Link
 from IMM.drone_manager.mission import Mission
 from IMM.drone_manager.dm_config import WAIT_TIME, MIN_CHARGE_LEVEL, FULL_CHARGE_LEVEL
@@ -30,7 +30,7 @@ class DroneManager(Thread):
         super().__init__()
         self.running = True
         self.drones = []
-        self.routes = []
+        self.drone_route_dict = {} # dictionary of drone -> route
         self.mode = "AUTO"
 
         self.link = None
@@ -68,7 +68,7 @@ class DroneManager(Thread):
             time.sleep(WAIT_TIME)
 
         # wait until routes have been received, which happens after area is set by user
-        while not self.routes:
+        while not self.drone_route_dict:
             time.sleep(WAIT_TIME)
         
         _logger.info("received routes from pathfinding")
@@ -83,7 +83,7 @@ class DroneManager(Thread):
             time.sleep(WAIT_TIME)
 
 
-    def set_routes(self, route_list):
+    def set_routes(self, drone_route_dict):
         """
         Set the routes that shall be used to execute AUTO mode. The Drone Manager will assign drones
         to fly these routes continuously. Currently assumes we always have 
@@ -91,15 +91,15 @@ class DroneManager(Thread):
 
         This function is called by the IMM when the area is set and route planning has been completed.
         """
-        if not isinstance(route_list, list) or not route_list:
+        if not isinstance(drone_route_dict, dict) or not drone_route_dict:
             return False
     
-        if isinstance(route_list[0], list):
-            self.routes = [Route(route, as_dicts=True) for route in route_list]
-        elif isinstance(route_list[0], Route):
-            self.routes = route_list
-        else:
-            return False # Invalid route
+        #if isinstance(route_list[0], list):
+        #    self.routes = [Route(route, as_dicts=True) for route in route_list]
+        #elif isinstance(route_list[0], Route):
+        #    self.routes = route_list
+        #else:
+        #    return False # Invalid route
         
         # Reset drone routes and status
         for drone in self.drones:
@@ -108,7 +108,8 @@ class DroneManager(Thread):
                 if drone.status == "flying":
                     drone.status = "waiting"
 
-        _logger.info(f"Drone manager received routes: {self.routes}")
+        routes = [drone_route_dict[drone] for drone in drone_route_dict]
+        _logger.info(f"Drone manager received routes: {routes}")
         return True
         
 
@@ -165,28 +166,34 @@ class DroneManager(Thread):
                     d.route = None
                     self.link.return_to_home(d)
         
-        for r in self.routes:
+        for d in self.drone_route_dict:
             # is there a drone that flies this route?
+            # if drone.id == drone_id:
+            #  drone.route = route
+            # route.drone = route
+            r = self.drone_route_dict[d]
             if not r.drone:
-                for d in self.drones:
-                    with self.drone_data_lock:
-                        battery_lvl = self.link.get_drone_battery(d)
-                        drone_status = d.status
-                    if not d.route and battery_lvl >= FULL_CHARGE_LEVEL and drone_status in ["landed", "waiting", "idle"]:
-                        d.route = r
-                        r.drone = d
-                        break
+                with self.drone_data_lock:
+                    battery_lvl = self.link.get_drone_battery(d)
+                    drone_status = d.status
+                if not d.route and battery_lvl >= FULL_CHARGE_LEVEL and drone_status in ["landed", "waiting", "idle"]:
+                    d.route = r
+                    r.drone = d
+                    break
                 # If no available drone is found, there are too many routes currently and resegmentation shall occur
                 if not r.drone:
                     # area segmentation with # of drones that are "available" – what does that mean? etc
                     pass
-            
+    
 
     def assign_missions(self):
         """ Creates missions and executes them for each drone that have a route to fly """
-        for route in self.routes:
+        for d in self.drone_route_dict:
+            route = self.drone_route_dict[d]
             success = True
             with self.drone_data_lock:
+                # TODO: see if route.drone can be replaced with d,
+                # and if drone.route can be replaced with drone_route_dict[d]
                 if route.drone and route.drone.status in ["landed", "waiting", "idle"]:
                     mission = self.create_mission(route.drone)
                     route.drone.current_mission = mission
