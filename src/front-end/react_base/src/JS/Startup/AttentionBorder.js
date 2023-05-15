@@ -3,9 +3,10 @@
  */
 
 import React from "react";
-
 import Typography from "@mui/material/Typography";
 import { Box } from "@mui/system";
+import { Opacity } from "@mui/icons-material";
+import HelpIcon from "@mui/icons-material/Help";
 
 const styles = {
   borderBox: {
@@ -37,17 +38,29 @@ const styles = {
     transform: "translate(-50%, 0)",
 
     padding: (theme) => theme.spacing(1),
-    color: "error.main",
+    //color: "error.main",
+    color: "#000000",
     boxShadow: (theme) => theme.shadows[5],
     borderRadius: (theme) => theme.spacing(1),
     backgroundColor: "rgba(255,255,255,0.75)",
 
     zIndex: (theme) => theme.zIndex.appBar - 1,
-    pointerEvents: "none",
+
+    pointerEvents: "auto",
 
     ...(theme) => theme.typography.button,
   },
+  infoButton: {
+    zIndex: "appBar",
+    position: "relative",
+    left: "3%",
+    top: "3px",
+    color: "#0075B7",
+    userSelect:"none",
+  },
+  
 };
+
 
 /**
  * AttentionBorder component function.
@@ -55,9 +68,10 @@ const styles = {
 export function AttentionBorder(props) {
   return (
     <div>
-      <Box sx={styles.borderHead}>
+      <Box sx={styles.borderHead} onClick={() => alert("YOYOOO")}>
         <Typography variant="h6" component="h2" elevation={10}>
           {props.children}
+          <HelpIcon sx={styles.infoButton}  />
         </Typography>
       </Box>
       <Box sx={styles.borderBox} />

@@ -85,6 +85,9 @@ const styles = {
   hidden: {
     visibility: "hidden",
   },
+  infoButton: {
+    zIndex: "appBar"
+  }
 };
 
 /*
@@ -276,7 +279,9 @@ function StartUp(props) {
         </Fab>
       </ColorWrapper>
 
-      <AttentionBorder>DEFINE AREA</AttentionBorder>
+      <AttentionBorder>
+      DEFINE AREA 
+      </AttentionBorder>
 
       <div>
         <Snackbar
