@@ -52,7 +52,7 @@ pip/pip3 install -r requirements.txt
 All dependencies can be found in the requirements.txt file.
 
 ### Tile server
-The tile server in required to run image processing on incoming images. It is possible to run the back-end without
+The tile server is required to run image processing on incoming images. It is possible to run the back-end without
 tile server by setting TILE_SERVER_AVAILABLE to False in the config file. The following instructions has only
 been verified to work for Ubuntu. Text within <>-brackets should be replaced according to you local setup.
 
@@ -161,7 +161,9 @@ Under this section a overview of the program is given.
 This is the folder where the main program is located. The following can be found in this folder.
 * The database (`/database/database.py`).
 * All images which have been saved and retrieved from RDS (`/images`).
-* All threads for the server (`/threads/..`).
+* All threads except for DroneManager in the server (`/threads/..`).
+* Handling of drones and resources on the server (`/drone_manager/..`).
+* Creating and calculating areas and routes for drones (`/drone_allocator/..`).
 * Error handling of requests (`error_handler.py`).
 * Image processing of received images (`image_processing.py`)
 * The server, startup of server and communication with front-end. (`IMM_app.py`)
@@ -183,6 +185,7 @@ with session_scope() as session:
 ```
 ##### Threads
 The following threads in `/threads/..` are:
+* `thread_drone_pub` : This thread packages information from Drone manager and sends it to frontend with the help of Gui_pub thread. 
 * `thread_gui_pub.py`: This threads sends data and messages to front-end. The threads listen to a queue and when a new request (message) is appended this thread will send it to front-end.
 * `thread_info_fetcher.py`: This thread regularly requests information from RDS (using the defined API) and saves retrieved information to the database which then can be used when front-end performs a request.
 * `thread_rds_pub.py`: This thread sends requests to RDS. New requests which are to be sent to RDS can be added by calling `add_request` which will append the request to a queue.
@@ -212,11 +215,10 @@ python/python3 -m run_RDS_and_IMM
 ```
 
 #### Tests
-the folder **tests** contains all tests for the system. All tests in the folder **unittests** can be
+The folder **tests** contains all tests for the system. All tests in the folder **unittests** can be
 executed automatically by running the command below. Tests located in **manual** requires
 that the front-end and back-end is running and that certain requests and actions are performed.
-`database_tests.py` and `flask_tester.py` are unit tests for testing the database and the communinication
-between this server and the front-end.
+`database_tests.py` and `flask_tester.py` are unit tests for testing the database and the communinication between this server and the front-end.
 
 ```bash
 python/python3 -m path_to_test
@@ -229,6 +231,7 @@ In the folder **utility** various help functions can be found. For example funct
 checking if squares overlapp, for testing and image processing.
 
 * **calculate_coordinates.py**: Contains functions for calculating coordinates from image metadata.
+* **coordinate_conversion.py**: Translates coordinates from lat/long to utm in order to be used for area segmentation. 
 * **helper_functions.py**: Contains functions for calculating if polygons overlap and other various help functions for example `get_path_from_root`, `check_keys` and `coordinates_list_to_json`.
 * **image_util.py**: Contains functions functions that are used in the image processing.
 * **test_helper_function.py**: Contains functions which can be used when performing tests on the systems.
@@ -502,7 +505,10 @@ variable sent from the RDS.
 
 Here follows an overview of the future development goals for this product.
 
- - [ ] Implemnt so the server is using a production server (Currently using a Werkzeug development server which is included in Flask). See [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) for options.
+ - [ ] Make the application more robust. 
+ - [ ] Reimplement the use of RDS
+ - [ ] Implement image matching and handling
+ - [ ] Implement so the server is using a production server (Currently using a Werkzeug development server which is included in Flask). See [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) for options.
  - [ ] Make the server more secure from attacks, using a production server is a logical first step to achieve this and modyfing SERVER_CORS_ALLOWED_ORIGINS.
  - [ ] Improve which images are sent to front-end when front-end calls `request_view`. (Currently all images that overlap with specified area are sent).
  - [ ] Add functionallity to support other types of objects to be saved in the database. (For example position of firemen etc.)
