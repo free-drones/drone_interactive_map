@@ -30,9 +30,9 @@ Here follows an overview and development guide of the Interactive Map Module (IM
       - [Sending images through zeroMQ](#sending-images-through-zeromq)
   - [Future development](#future-development)
       - [Note about production server](#note-about-production-server)
-          - [Why is a new method for tranfer messages needed?](#why-is-a-new-method-for-tranfer-messages-needed)
+          - [Why is a new method for transfer messages needed?](#why-is-a-new-method-for-tranfer-messages-needed)
           - [Possible solutions](#possible-solutions)
-          - [Suggestion: New method for transfering messages that currently originate from back-end.](#suggestion-new-method-for-transfering-messages-that-currently-originate-from-back-end)
+          - [Suggestion: New method for transferring messages that currently originate from back-end.](#suggestion-new-method-for-transfering-messages-that-currently-originate-from-back-end)
 
 ## Installation
 
@@ -40,7 +40,7 @@ This section provides back-end installation instructions.
 
 ### Python dependencies
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install all
-dependencies for this project. It's recommended to use a virtual enviroment for
+dependencies for this project. It's recommended to use a virtual environment for
 this project.
 
 ```bash
@@ -135,7 +135,7 @@ sudo systemctl restart renderd
 sudo systemctl restart apache2
 ```
 
-Check the system log to ensure no renderd errors occured. If there are errors, check that you configured
+Check the system log to ensure no renderd errors occurred. If there are errors, check that you configured
 renderd correctly above.
 ```bash
 sudo journalctl -eu renderd
@@ -170,7 +170,7 @@ This is the folder where the main program is located. The following can be found
 * Thread handler for easy handling of threads (`thread_handler.py`)
 
 ##### Database
-The database is contains all tables used for the database aswell as other functions such as `use_test_database`, `use_production_db` and `session_scope`. `use_test_database` and `use_production_db` specify for the program which database should be used. `session_scope` must be used when accessing the database, for example:
+The database is contains all tables used for the database as well as other functions such as `use_test_database`, `use_production_db` and `session_scope`. `use_test_database` and `use_production_db` specify for the program which database should be used. `session_scope` must be used when accessing the database, for example:
 
 ```python
 with session_scope() as session:
@@ -189,7 +189,7 @@ The following threads in `/threads/..` are:
 * `thread_gui_pub.py`: This threads sends data and messages to front-end. The threads listen to a queue and when a new request (message) is appended this thread will send it to front-end.
 * `thread_info_fetcher.py`: This thread regularly requests information from RDS (using the defined API) and saves retrieved information to the database which then can be used when front-end performs a request.
 * `thread_rds_pub.py`: This thread sends requests to RDS. New requests which are to be sent to RDS can be added by calling `add_request` which will append the request to a queue.
-* `thread_rds_sub.py`: This thread listens and recievs responses and messages from RDS and saves related information to the database. This thread will recieve images from RDS and perform image processing on them.
+* `thread_rds_sub.py`: This thread listens and receives responses and messages from RDS and saves related information to the database. This thread will receive images from RDS and perform image processing on them.
 
 #### Server startup and communication with front-end
 The main file of the server is `IMM_app.py`. In this file the following is performed.
@@ -197,7 +197,7 @@ The main file of the server is `IMM_app.py`. In this file the following is perfo
 * ALL threads listed above are initiated (`thread_handler.start_threads()`).
 * The database is started (`use_production_db()` or `use_test_database()`).
 * The web-application/server is started (`run_imm()`).
-* functionallity of ALL API calls that front-end can perform trough socketio. It also hosts a URL where front-end can retrieve any image that is saved in the database.
+* functionality of ALL API calls that front-end can perform trough socketio. It also hosts a URL where front-end can retrieve any image that is saved in the database.
 
 
 #### RDS_emulator
@@ -218,7 +218,7 @@ python/python3 -m run_RDS_and_IMM
 The folder **tests** contains all tests for the system. All tests in the folder **unittests** can be
 executed automatically by running the command below. Tests located in **manual** requires
 that the front-end and back-end is running and that certain requests and actions are performed.
-`database_tests.py` and `flask_tester.py` are unit tests for testing the database and the communinication between this server and the front-end.
+`database_tests.py` and `flask_tester.py` are unit tests for testing the database and the communication between this server and the front-end.
 
 ```bash
 python/python3 -m path_to_test
@@ -228,7 +228,7 @@ python3 -m tests.unittests.flask_tester
 
 #### Utility
 In the folder **utility** various help functions can be found. For example functions
-checking if squares overlapp, for testing and image processing.
+checking if squares overlap, for testing and image processing.
 
 * **calculate_coordinates.py**: Contains functions for calculating coordinates from image metadata.
 * **coordinate_conversion.py**: Translates coordinates from lat/long to utm in order to be used for area segmentation. 
@@ -253,7 +253,7 @@ The API calls between front-end and back-end are implemented using the Flask-Soc
     # This function will automatically be called when "new_api_call" is called
     # trough SocketIO.
 
-    # Implement functionallity here.
+    # Implement functionality here.
 
     # Example on how to respond to the client who made the API call.
     # "response" is the channel where the response is sent
@@ -263,7 +263,7 @@ The API calls between front-end and back-end are implemented using the Flask-Soc
 
 #### Adding more API calls between back-end and RDS
 
-The API calls between back-end and RDS are implemnted using the Python version of
+The API calls between back-end and RDS are implemented using the Python version of
 ZeroMQ, [PyZMQ](https://pyzmq.readthedocs.io/en/latest/api/zmq.html). These API
 calls are located in `/IMM/threads/thread_rds_pub.py`, `/IMM/threads/thread_rds_sub.py` and
 `/IMM/threads/thread_info_fetcher.py`.
@@ -509,15 +509,15 @@ Here follows an overview of the future development goals for this product.
  - [ ] Reimplement the use of RDS
  - [ ] Implement image matching and handling
  - [ ] Implement so the server is using a production server (Currently using a Werkzeug development server which is included in Flask). See [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) for options.
- - [ ] Make the server more secure from attacks, using a production server is a logical first step to achieve this and modyfing SERVER_CORS_ALLOWED_ORIGINS.
+ - [ ] Make the server more secure from attacks, using a production server is a logical first step to achieve this and modifying SERVER_CORS_ALLOWED_ORIGINS.
  - [ ] Improve which images are sent to front-end when front-end calls `request_view`. (Currently all images that overlap with specified area are sent).
- - [ ] Add functionallity to support other types of objects to be saved in the database. (For example position of firemen etc.)
+ - [ ] Add functionality to support other types of objects to be saved in the database. (For example position of firemen etc.)
  - [ ] Implement support for WebSockets when communicating with front-end. (Currently only *Long-polling* is performed). See [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) for options.
  - [ ] Implement support for authentication of users connecting to the system.
  - [ ] Implement support for multiple sessions. (Currently only one sessions can be active on the system). Work has been done on this subject but more is needed to fully support multiple sessions.
  - [ ] Improve the image processing of images and their position on the map.
  - [ ] Implement a more robust RDS simulator.
- - [ ] Implement functionallity to make the server more stable (Error handling).
+ - [ ] Implement functionality to make the server more stable (Error handling).
  - [ ] Implement a way to stop the main server thread (see function stop_imm() in `/IMM/IMM_app.py`)
 
 
@@ -527,8 +527,8 @@ Here follows an overview of the future development goals for this product.
 
  To support Eventlet as a productions server a new method might be needed to transfer messages that originate from back-end to front-end. Currently only one type of message originates from back-end (message: notifes front-end when a new picture is received from RDS). The message is transmitted in the file `/IMM/threads/thread_gui_pub.py` and sent using the function `send_to_gui()`. The message and new pictures from RDS originates from `/IMM/threads/thread_rds_sub.py`, the message is created in the function `notify_gui()`.
 
- ###### Why is a new method for tranfer messages needed?
- Emit is not working as inteded when used in a separate thread when using Eventlet and Flask-SocketIO. Calling emit in that situation will block Flask-SocketIO completely.
+ ###### Why is a new method for transfer messages needed?
+ Emit is not working as intended when used in a separate thread when using Eventlet and Flask-SocketIO. Calling emit in that situation will block Flask-SocketIO completely.
 
  ###### Possible solutions
 
@@ -536,9 +536,9 @@ Here follows an overview of the future development goals for this product.
 
  * Using one of the other suggested production servers, see [Deployment](https://flask-socketio.readthedocs.io/en/latest/#deployment) from the Flask-SocketIO documentation.
 
- * A new method for transfering information from back-end to front-end. See below.
+ * A new method for transferring information from back-end to front-end. See below.
 
 
- ###### Suggestion: New method for transfering messages that currently originate from back-end.
+ ###### Suggestion: New method for transferring messages that currently originate from back-end.
 
- Implement a new API call between front-end and back-end which returns new information that back-end ''wants'' to send to front-end. Let front-end regularly call this function to recieve this information.
+ Implement a new API call between front-end and back-end which returns new information that back-end ''wants'' to send to front-end. Let front-end regularly call this function to receive this information.

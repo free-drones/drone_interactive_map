@@ -134,5 +134,5 @@ For each call of the downstream and upstream API there is a corresponding functi
 Here follows an overview of the future development goals for this product. See issues for more detailed descriptions.
 
  - [ ] Caching strategy for drone images (instead of reloading each image on view updates).
- - [ ] Change server connection behaviour to more robust.
+ - [ ] Change server connection behavior to more robust.
  - [ ] Clean up Storage/split into multiple files.
