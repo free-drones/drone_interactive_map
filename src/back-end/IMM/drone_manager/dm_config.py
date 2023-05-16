@@ -11,5 +11,3 @@ MIN_CHARGE_LEVEL = 20  # the battery level under which drones are sent to home f
 FULL_CHARGE_LEVEL = 95  # the battery level at which charging drones are considered fully charged and made available for missions
 
 ALTITUDE = 50       # waypoint altitude over the ground
-GROUND_LEVEL = 120  # the ground's altitude over mean sea level, 120 = Skara
-                    # TODO: solve this in a better way, e.g. by config in RDS like other apps

@@ -3,7 +3,12 @@
  */
 
 import ServerConnection from "./ServerConnection.js";
-import { store, receivePictureRequest } from "../Storage.js";
+import {
+  store,
+  receivePictureRequest,
+  setDrones,
+  setOldDrones,
+} from "../Storage.js";
 
 /**
  * Handle new image notification.
@@ -24,6 +29,19 @@ export function newImage(prioritized, imageID) {
   ServerConnection.sendUpstream(data);
 }
 
-const upstreamExports = { newImage };
+/**
+ * Handle updated drones notification.
+ *
+ * @param {Any} updatedDrones Updated list of all information for every drone.
+ */
+export function newDrones(updatedDrones) {
+  // Update old and new drones
+  if (updatedDrones && store.getState().drones !== updatedDrones) {
+    store.dispatch(setOldDrones(store.getState().drones));
+    store.dispatch(setDrones(updatedDrones));
+  }
+}
+
+const upstreamExports = { newImage, newDrones };
 
 export default upstreamExports;

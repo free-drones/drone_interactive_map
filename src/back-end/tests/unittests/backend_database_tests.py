@@ -23,8 +23,8 @@ def connect_to_backend(self_unittest):
     client = socketio.test_client(app)
     self_unittest.assertTrue(client.is_connected())
     client.emit("init_connection", {})
-    recieved = client.get_received()
-    self_unittest.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, recieved[0]["args"][0])
+    received = client.get_received()
+    self_unittest.assertEqual({"fcn":"ack","fcn_name":"connect", "arg":{"client_id":1}}, received[0]["args"][0])
     return client
 
 class TestFlask(unittest.TestCase):
@@ -61,9 +61,9 @@ class TestFlask(unittest.TestCase):
         for i in range(2, 10):  # 2,3,...,9,10.
             # Let another client be created.
             clients.emit("init_connection", {})
-            recieved = clients.get_received()
-            self.assertEqual(i, recieved[0]["args"][0]["arg"]["client_id"])
-            clients_connected.append(recieved[0]["args"][0]["arg"]["client_id"])
+            received = clients.get_received()
+            self.assertEqual(i, received[0]["args"][0]["arg"]["client_id"])
+            clients_connected.append(received[0]["args"][0]["arg"]["client_id"])
 
 
         with session_scope() as session:
@@ -90,8 +90,8 @@ class TestFlask(unittest.TestCase):
                }
 
         clients.emit("request_priority_picture", data)
-        recieved = clients.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, recieved[0]["args"][0])
+        received = clients.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, received[0]["args"][0])
 
         with session_scope() as session:
             all_prioimage = session.query(PrioImage).all()
@@ -102,8 +102,8 @@ class TestFlask(unittest.TestCase):
         # Add 8 prioImage
         for i in range(2,10):
             clients.emit("request_priority_picture", data)
-            recieved = clients.get_received()
-            self.assertEqual(i, recieved[0]["args"][0]["arg"]["force_queue_id"])
+            received = clients.get_received()
+            self.assertEqual(i, received[0]["args"][0]["arg"]["force_queue_id"])
 
         with session_scope() as session:
             all_prioimage = session.query(PrioImage).all()

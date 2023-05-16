@@ -235,8 +235,8 @@ class TestFlask(unittest.TestCase):
                }
 
         client.emit("request_priority_picture", data)
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":1}}, received[0]["args"][0])
 
         data = {"arg":
                     {
@@ -247,8 +247,8 @@ class TestFlask(unittest.TestCase):
                }
 
         client.emit("request_priority_picture", data)
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":2}}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"request_priority_picture", "arg":{"force_queue_id":2}}, received[0]["args"][0])
 
     def test_clear_queue(self):
         client = socketio.test_client(app)
@@ -274,8 +274,8 @@ class TestFlask(unittest.TestCase):
             self.assertEqual(session.query(dbx.PrioImage).first().status, "PENDING")
 
         client.emit("clear_queue", {})
-        recieved = client.get_received()
-        self.assertEqual({"fcn":"ack", "fcn_name":"clear_queue"}, recieved[0]["args"][0])
+        received = client.get_received()
+        self.assertEqual({"fcn":"ack", "fcn_name":"clear_queue"}, received[0]["args"][0])
 
         with dbx.session_scope() as session:
             self.assertEqual(session.query(dbx.PrioImage).first().status, "CANCELLED")
@@ -311,8 +311,8 @@ class TestFlask(unittest.TestCase):
             session.add(image)
 
         client.emit("queue_ETA", {})
-        recieved = client.get_received()
-        self.assertEqual(2121, recieved[0]["args"][0]["arg"]["ETA"])
+        received = client.get_received()
+        self.assertEqual(2121, received[0]["args"][0]["arg"]["ETA"])
 
 
     def test_send_to_gui(self):

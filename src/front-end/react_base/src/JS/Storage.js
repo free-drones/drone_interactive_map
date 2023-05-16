@@ -142,13 +142,74 @@ export const clearCrossingLines = createAction("CLEAR_CROSSING_LINES");
 
 export const setCrossingLines = createAction(
   "SET_CROSSING_LINES",
-  function prepare(list) {
-    if (list) {
+  function prepare(crossing_lines_list) {
+    if (crossing_lines_list) {
       return {
-        payload: list,
+        payload: crossing_lines_list,
       };
     } else {
-      throw new Error("This is not a list.");
+      throw new Error("Crossing lines list is not a list");
+    }
+  }
+);
+
+/**
+ * Actions related to  setting drones, both for new and old drone data.
+ *
+ * The format a drone object should be like is this:
+ *
+ *
+ * {
+ *  drone1: {
+ *    drone_id: 1,
+ *    location: {
+ *      lat: lat,
+ *      long: long,
+ *     },
+ *     mode: "AUTO",
+ *  },
+ *  drone2: {
+ *    drone_id: 2,
+ *    location: {
+ *      lat: lat,
+ *      long: long,
+ *    },
+ *    mode: "MAN",
+ *  },
+ *  drone3: {
+ *    drone_id: 3,
+ *    location: {
+ *      lat: lat,
+ *      long: long,
+ *    },
+ *    mode: "PHOTO",
+ *  },
+ * }
+ *
+ */
+
+export const setDrones = createAction(
+  "SET_DRONES",
+  function prepare(drone_object) {
+    if (drone_object) {
+      return {
+        payload: drone_object,
+      };
+    } else {
+      throw new Error("Drones are not an object.");
+    }
+  }
+);
+
+export const setOldDrones = createAction(
+  "SET_OLD_DRONES",
+  function prepare(drone_object) {
+    if (drone_object) {
+      return {
+        payload: drone_object,
+      };
+    } else {
+      throw new Error("Old drones are not an object.");
     }
   }
 );
@@ -581,6 +642,20 @@ export const _crossingLines = createReducer([], (builder) => {
     });
 });
 
+export const _drones = createReducer({}, (builder) => {
+  builder.addCase(setDrones, (state, action) => {
+    const newDroneObject = action.payload;
+    return newDroneObject;
+  });
+});
+
+export const _oldDrones = createReducer({}, (builder) => {
+  builder.addCase(setOldDrones, (state, action) => {
+    const droneObject = action.payload;
+    return droneObject;
+  });
+});
+
 export const _clientID = createReducer(null, (builder) => {
   builder.addCase(setClientID, (state, action) => {
     const newID = action.payload;
@@ -764,6 +839,18 @@ export function crossingLines(state) {
   };
 }
 
+export function drones(state) {
+  return {
+    drones: state.drones,
+  };
+}
+
+export function oldDrones(state) {
+  return {
+    oldDrones: state.oldDrones,
+  };
+}
+
 export function clientID(state) {
   return {
     clientID: state.clientID,
@@ -871,6 +958,8 @@ const states = {
   mapState,
   showWarning,
   crossingLines,
+  drones,
+  oldDrones,
   isInsideArea,
 };
 
@@ -950,6 +1039,11 @@ export const crossingLineActions = {
   setCrossingLines,
 };
 
+export const droneActions = {
+  setDrones,
+  setOldDrones,
+};
+
 export const isInsideAreaActions = { setIsInsideArea };
 
 const actions = {
@@ -968,6 +1062,7 @@ const actions = {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  droneActions,
   isInsideAreaActions,
 };
 
@@ -1006,6 +1101,8 @@ export const store = configureStore({
     mapState: _mapState,
     showWarning: _showWarning,
     crossingLines: _crossingLines,
+    drones: _drones,
+    oldDrones: _oldDrones,
     isInsideArea: _isInsideArea,
   },
 });

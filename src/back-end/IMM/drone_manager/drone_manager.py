@@ -6,10 +6,13 @@ from IMM.drone_manager.link import Link
 from IMM.drone_manager.mission import Mission
 from IMM.drone_manager.dm_config import WAIT_TIME, MIN_CHARGE_LEVEL, FULL_CHARGE_LEVEL
 import time
+import threading
+import queue
 
 
 LOGGER_NAME = "drone_manager"
 _logger = create_logger(LOGGER_NAME)
+_drone_logger = create_logger(LOGGER_NAME + "_drones", custom_file_name="drone_log.log")
 
 class DroneManager(Thread):
     """
@@ -32,6 +35,12 @@ class DroneManager(Thread):
 
         self.link = None
 
+        self.drone_data_lock = threading.Lock()
+        self.update_received_event = threading.Event()
+        self.event_queue = queue.Queue()
+        self.status_thread = None
+        
+
     def connect(self):
         """
         Creates a connection to RDS and attempts to connect to as many drones as possible.
@@ -47,7 +56,10 @@ class DroneManager(Thread):
         if connect_to_RDS:
             self.connect()
 
-        # get drones from RDS, wait until non-zero number of drones
+        self.status_thread = threading.Thread(target=self.status_printer, daemon=True)
+        self.status_thread.start()
+
+        # get drones from CRM, wait until non-zero number of drones
         while True:
             self.drones = self.get_drones()
             if self.drones:
@@ -61,10 +73,13 @@ class DroneManager(Thread):
         
         _logger.info("received routes from pathfinding")
 
+
         while self.running:
             self.resource_management()
             self.assign_missions()
 
+            for drone in self.drones:
+                _drone_logger.debug(drone)
             time.sleep(WAIT_TIME)
 
 
@@ -78,15 +93,24 @@ class DroneManager(Thread):
         """
         if not isinstance(route_list, list) or not route_list:
             return False
+    
         if isinstance(route_list[0], list):
             self.routes = [Route(route, as_dicts=True) for route in route_list]
-            _logger.info(f"Drone manager received routes: {self.routes}")
-            return True
         elif isinstance(route_list[0], Route):
             self.routes = route_list
-            _logger.info(f"Drone manager received routes: {self.routes}")
-            return True
-        return False
+        else:
+            return False # Invalid route
+        
+        # Reset drone routes and status
+        for drone in self.drones:
+            with self.drone_data_lock:
+                drone.route = None
+                if drone.status == "flying":
+                    drone.status = "waiting"
+
+        _logger.info(f"Drone manager received routes: {self.routes}")
+        return True
+        
 
     def get_drones(self):
         """
@@ -95,11 +119,13 @@ class DroneManager(Thread):
         drones = [Drone(id=dname) for dname in self.link.get_list_of_drones()]
         return drones
 
+
     def stop(self):
         """
         Stops the thread. Used by the thread_handler to stop the thread
         """
         self.running = False
+
 
     def get_drone_count(self):
         """
@@ -107,28 +133,45 @@ class DroneManager(Thread):
         """
         return len(self.drones)
     
+
     def create_mission(self, drone):
         """
         Return a mission that flies according to the given drone's current route
         """
         return Mission(drone.route)
 
+
     def resource_management(self):
         """ Handles assigning drones based on battery and mission status to routes. Drones are sent to charge when needed. """
+        if self.update_received_event.is_set():
+            update = self.event_queue.get()
+            self.update_received_event.clear()
+            if update['update'] == 'lost_drone':
+                drone = self.get_matching_drone(update['drone'])
+                if drone:
+                    self.drones.remove(drone)
+                # idk maybe gotta do some resource management here
+            elif update['update'] == 'gained_drone':
+                if self.link.connect_to_drone():
+                    self.drones.append(Drone(id=update['drone']))
+                # idk maybe gotta do some resource management here
+
 
         for d in self.drones:
-            if self.link.get_drone_status(d) != "charging" and self.link.get_drone_battery(d) < MIN_CHARGE_LEVEL:
-                if d.route:
-                    d.route.drone = None
-                d.route = None
-                self.link.return_to_home(d)
+            with self.drone_data_lock:
+                if d.status != "charging" and self.link.get_drone_battery(d) < MIN_CHARGE_LEVEL:
+                    if d.route:
+                        d.route.drone = None
+                    d.route = None
+                    self.link.return_to_home(d)
         
         for r in self.routes:
             # is there a drone that flies this route?
             if not r.drone:
                 for d in self.drones:
-                    battery_lvl = self.link.get_drone_battery(d)
-                    drone_status = self.link.get_drone_status(d)
+                    with self.drone_data_lock:
+                        battery_lvl = self.link.get_drone_battery(d)
+                        drone_status = d.status
                     if not d.route and battery_lvl >= FULL_CHARGE_LEVEL and drone_status in ["landed", "waiting", "idle"]:
                         d.route = r
                         r.drone = d
@@ -143,13 +186,95 @@ class DroneManager(Thread):
         """ Creates missions and executes them for each drone that have a route to fly """
         for route in self.routes:
             success = True
-            if self.link.get_drone_status(route.drone) in ["landed", "waiting", "idle"]:
-                mission = self.create_mission(route.drone)
-                route.drone.current_mission = mission
-                success = self.link.fly(mission, route.drone)
+            with self.drone_data_lock:
+                if route.drone and route.drone.status in ["landed", "waiting", "idle"]:
+                    mission = self.create_mission(route.drone)
+                    route.drone.current_mission = mission
+                    success = self.link.fly(mission, route.drone)
         return success
         #TODO: Handle routes which could not get a mission
+
+
+    def get_matching_drone(self, drone_id):
+        for d in self.drones:
+            if d.id == drone_id:
+                return d
+        return None
+    
+
+    def status_printer(self):
+        ''''Receives update msgs from link and updates the drone managers resources to reflect the changes'''
+        alive = True
+        while alive:
+            try:
+                msg = self.link.msg_queue.get()
+                _logger.info(f'got status update: {msg}')
+                if msg is None:
+                    continue
                 
+                data = msg['data']
+
+                if msg['topic'] == 'drone_status':
+                    _logger.info(f'Received drone_status update with the data being: {data}')
+                    if data['drone_status'] == 'waiting':
+                        with self.drone_data_lock:
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
+                        _logger.info('mission done')
+                    elif data['drone_status'] == 'idle':
+                        with self.drone_data_lock:
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
+                        _logger.info('idling')
+                    elif data['drone_status'] == 'charging':
+                        with self.drone_data_lock:
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
+                        _logger.info('charging battery')
+                    elif data['drone_status'] == 'flying':
+                        with self.drone_data_lock:
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
+                        _logger.info('flying mission')
+                    elif data['drone_status'] == 'returning':
+                        with self.drone_data_lock:
+                            drone = self.get_matching_drone(data['drone'])
+                            if drone:
+                                drone.status = data['drone_status']
+                        _logger.info('returning to home')
+
+                elif msg['topic'] == 'drone_position':
+                    with self.drone_data_lock:
+                        drone = self.get_matching_drone(data['drone'])
+                        if drone:
+                            drone.lat = data['lat']
+                            drone.lon = data['lon']
+                            drone.alt = data['alt']
+
+                elif msg['topic'] == 'lost_drone':
+                    _logger.info(f'topic is lost_drone, trying to get data')
+                    _logger.info(f'Received drone status update with the data being: {data}')
+                    self.event_queue.put({'drone':data['drone'], 'update':'lost_drone'})
+                    self.update_received_event.set()
+
+                elif msg['topic'] == 'gained_drone':
+                    _logger.info(f'topic is new_drone, trying to get data')
+                    _logger.info(f'Received drone status update with the data being: {data}')
+                    self.event_queue.put({'drone':data['drone'], 'update':'gained_drone'})
+                    self.update_received_event.set()
+
+                while self.update_received_event.is_set():
+                    time.sleep(0.1)
+            except KeyboardInterrupt:
+                alive = False
+            except Exception as e:
+                _logger.warning(f'exception occurred in status printer {e}')
+                pass
+                    
     
     def set_mode(self, mode):
         """ 

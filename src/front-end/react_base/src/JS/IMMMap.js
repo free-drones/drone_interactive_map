@@ -26,6 +26,8 @@ import {
   mapBounds,
   activePictures,
   crossingLines,
+  drones,
+  oldDrones,
   isInsideArea,
   isInsideAreaActions,
 } from "./Storage.js";
@@ -36,6 +38,7 @@ import {
   mapStateActions,
   showWarningActions,
   crossingLineActions,
+  droneActions,
   pictureRequestView,
   pictureRequestViewActions,
 } from "./Storage.js";
@@ -44,7 +47,6 @@ import {
   createRedLines,
   isPointInsidePolygon,
 } from "./Helpers/maphelper.js";
-import { getDrones } from "./Connection/Downstream.js";
 import { markedIcon, userPosIcon, pictureIndicatorIcon } from "./SvgIcons.js";
 
 import Leaflet from "leaflet";
@@ -64,42 +66,7 @@ class IMMMap extends React.Component {
     super(props);
     this.state = {
       userPosition: null,
-      drones: null,
-      oldDrones: null,
-      getDronesTimer: null,
     };
-  }
-
-  /**
-   * Drone position update, componentDidMount runs once on startup.
-   */
-  componentDidMount() {
-    const updateDronesTimer = 3000;
-    if (this.state.getDronesTimer) {
-      clearInterval(this.state.getDronesTimer);
-    }
-
-    this.setState({
-      getDronesTimer: setInterval(() => {
-        getDrones((response) => {
-          this.setState({ oldDrones: this.state.drones });
-          console.log(
-            "received get_drones_info response: ",
-            response,
-            response.arg
-          );
-          this.setState({ drones: response.arg.drones });
-        });
-      }, updateDronesTimer),
-    });
-  }
-
-  /**
-   * Clears timer when component is unmounted
-   */
-  componentWillUnmount() {
-    // To avoid duplicate instances of getDronesTimer
-    clearInterval(this.state.getDronesTimer);
   }
 
   /**
@@ -345,35 +312,43 @@ class IMMMap extends React.Component {
    * Places all drone icons on the map
    */
   droneFactory() {
-    if (!this.state.oldDrones) {
+    if (
+      !this.props.store.oldDrones ||
+      !this.props.store.drones ||
+      Object.keys(this.props.store.oldDrones).length === 0 ||
+      Object.keys(this.props.store.oldDrones).length !==
+        Object.keys(this.props.store.drones).length
+    ) {
       return [];
     }
 
-    const drones = Object.entries(this.state.drones).map(([key, drone], i) => (
-      <Marker
-        position={[drone.location.lat, drone.location.long]}
-        key={`drone${i}`}
-        icon={Leaflet.divIcon({
-          className: "drones",
-          iconAnchor: Leaflet.point(
-            this.props.store.config.droneIconPixelSize / 2,
-            this.props.store.config.droneIconPixelSize / 2
-          ),
-          html: `<svg fill=${this.droneColor(drone)}
+    const drones = Object.entries(this.props.store.drones).map(
+      ([key, drone], i) => (
+        <Marker
+          position={[drone.location.lat, drone.location.long]}
+          key={`drone${i}`}
+          icon={Leaflet.divIcon({
+            className: "drones",
+            iconAnchor: Leaflet.point(
+              this.props.store.config.droneIconPixelSize / 2,
+              this.props.store.config.droneIconPixelSize / 2
+            ),
+            html: `<svg fill=${this.droneColor(drone)}
                     height="${this.props.store.config.droneIconPixelSize}px" 
                     width="${this.props.store.config.droneIconPixelSize}px" 
                     version="1.1" id="Layer_1" 
                     transform="rotate(${this.droneAngle(
-                      this.state.oldDrones[key].location,
-                      drone.location
+                      this.props.store.oldDrones[key]?.location,
+                      drone?.location
                     )})"
                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
 	                  viewBox="0 0 1792 1792" xml:space="preserve">
                     <path d="M187.8,1659L896,132.9L1604.2,1659L896,1285.5L187.8,1659z"/>
                     </svg> `,
-        })}
-      />
-    ));
+          })}
+        />
+      )
+    );
     return drones;
   }
 
@@ -512,7 +487,7 @@ class IMMMap extends React.Component {
         {this.pictureRequestIndicatorFactory()}
 
         {/* Draws drone icons. */}
-        {this.props.store.config.showDroneIcons && this.state.drones
+        {this.props.store.config.showDroneIcons && this.props.store.drones
           ? this.droneFactory()
           : ""}
 
@@ -558,6 +533,8 @@ export default connect(
     mapBounds,
     activePictures,
     crossingLines,
+    drones,
+    oldDrones,
     pictureRequestView,
     isInsideArea,
   },
@@ -568,6 +545,7 @@ export default connect(
     ...mapStateActions,
     ...showWarningActions,
     ...crossingLineActions,
+    ...droneActions,
     ...pictureRequestViewActions,
     ...isInsideAreaActions,
   }

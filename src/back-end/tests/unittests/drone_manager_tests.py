@@ -3,7 +3,7 @@ from IMM.drone_manager.mission import Mission
 from IMM.drone_manager.drone import Drone
 from IMM.drone_manager.drone_manager import DroneManager
 from IMM.drone_manager.helper_functions import generate_dummy_route
-from IMM.drone_manager.dm_config import DRONE_SPEED, ALTITUDE, GROUND_LEVEL, FULL_CHARGE_LEVEL
+from IMM.drone_manager.dm_config import DRONE_SPEED, ALTITUDE, FULL_CHARGE_LEVEL
 
 
 
@@ -27,10 +27,10 @@ class TestHelper(unittest.TestCase):
         mission = Mission(route)
         mission_dict = mission.as_mission_dict()
         correct_mission_dict = {
-            "id0" : { "lat" : 58.407910, "lon": 15.596624, "alt": ALTITUDE + GROUND_LEVEL, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
-            "id1" : { "lat" : 58.408582, "lon": 15.596526, "alt": ALTITUDE + GROUND_LEVEL, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
-            "id2" : { "lat" : 58.408631, "lon": 15.597775, "alt": ALTITUDE + GROUND_LEVEL, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
-            "id3" : { "lat" : 58.407848, "lon": 15.597987, "alt": ALTITUDE + GROUND_LEVEL, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
+            "id0" : { "lat" : 58.407910, "lon": 15.596624, "alt": ALTITUDE, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
+            "id1" : { "lat" : 58.408582, "lon": 15.596526, "alt": ALTITUDE, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
+            "id2" : { "lat" : 58.408631, "lon": 15.597775, "alt": ALTITUDE, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
+            "id3" : { "lat" : 58.407848, "lon": 15.597987, "alt": ALTITUDE, "alt_type": "amsl", "heading": "course", "speed": DRONE_SPEED },
         }
         
         self.assertEqual(mission_dict, correct_mission_dict)
