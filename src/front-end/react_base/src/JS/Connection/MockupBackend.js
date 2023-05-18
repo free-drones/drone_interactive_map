@@ -116,7 +116,7 @@ io.on("connect", (socket) => {
       fcn: "ack",
       fcn_name: "quit",
     };
-    //TODO: Check if user had high priority and set new high priority
+    //TODO: Check if user had high priority and set new high priority 
 
     socket.emit("quit_response", reply);
   });
