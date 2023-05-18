@@ -68,7 +68,7 @@ const styles = {
 export function AttentionBorder(props) {
   return (
     <div>
-      <Box sx={styles.borderHead} onClick={() => alert("YOYOOO")}>
+      <Box sx={styles.borderHead} onClick={() => alert("Click/ tapp the map to place nodes that will create a polygon after 3 nodes.\n\nConfirm the area by pressing the the green check mark button in the bottom right corner.\n\nThe button will turn green when 3 or more nodes are placed with no crossing (red) lines in the polygon.")}>
         <Typography variant="h6" component="h2" elevation={10}>
           {props.children}
           <HelpIcon sx={styles.infoButton}  />
