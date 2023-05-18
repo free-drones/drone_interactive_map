@@ -45,6 +45,13 @@ const styles = {
   },
 };
 
+/**
+ * Gets the style for the picture view indicator with the 4/3 aspect ration and same
+ * size as the picture request. Also creates the darkened overlay with a shadow, that
+ * turns red if isInsideArea is false.
+ * @param {boolean} isInsideArea whether the crosshair is within the defined area
+ * @returns mui sx style object
+ */
 function getPictureViewIndicatorStyle(isInsideArea) {
   return {
     boxShadow: `inset 0 0 10px #50505090, 0 0 0 9999px ${

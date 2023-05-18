@@ -3,7 +3,7 @@
  */
 
 import React from "react";
-import Typography from "@mui/material/Typography";
+import { Typography, Popover } from "@mui/material/";
 import { Box } from "@mui/system";
 import HelpIcon from "@mui/icons-material/Help";
 
@@ -37,7 +37,6 @@ const styles = {
     transform: "translate(-50%, 0)",
 
     padding: (theme) => theme.spacing(1),
-    //color: "error.main",
     color: "#000000",
     boxShadow: (theme) => theme.shadows[5],
     borderRadius: (theme) => theme.spacing(1),
@@ -45,7 +44,8 @@ const styles = {
 
     zIndex: (theme) => theme.zIndex.appBar - 1,
 
-    pointerEvents: "auto",
+    cursor: "pointer",
+    userSelect: "none",
 
     ...(theme) => theme.typography.button,
   },
@@ -55,7 +55,6 @@ const styles = {
     left: "3%",
     top: "3px",
     color: "#0075B7",
-    userSelect: "none",
   },
 };
 
@@ -63,20 +62,45 @@ const styles = {
  * AttentionBorder component function.
  */
 export function AttentionBorder(props) {
+  const [showInformation, setShowInformation] = React.useState(false);
+  const helpButton = React.useRef(null);
   return (
     <div>
       <Box
         sx={styles.borderHead}
-        onClick={() =>
-          alert(
-            "Click/ tapp the map to place nodes that will create a polygon after 3 nodes.\n\nConfirm the area by pressing the the green check mark button in the bottom right corner.\n\nThe button will turn green when 3 or more nodes are placed with no crossing (red) lines in the polygon."
-          )
-        }
+        onClick={() => setShowInformation(!showInformation)}
+        ref={helpButton}
       >
         <Typography variant="h6" component="h2" elevation={10}>
           {props.children}
           <HelpIcon sx={styles.infoButton} />
         </Typography>
+        <Popover
+          open={showInformation}
+          anchorEl={helpButton.current}
+          onClose={() => setShowInformation(false)}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "center",
+          }}
+          transformOrigin={{
+            horizontal: "center",
+            vertical: "top",
+          }}
+        >
+          <Typography sx={{ p: 2 }}>
+            Click/tap the map to place nodes in the shape of a polygon with at
+            least 3 nodes.
+            <br />
+            <br />
+            Confirm the area by pressing the the green check mark button in the
+            bottom right corner.
+            <br />
+            <br />
+            The button will turn green when 3 or more nodes are placed with no
+            crossing (red) lines in the polygon.
+          </Typography>
+        </Popover>
       </Box>
       <Box sx={styles.borderBox} />
     </div>
