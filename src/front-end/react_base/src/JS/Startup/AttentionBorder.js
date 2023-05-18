@@ -5,7 +5,6 @@
 import React from "react";
 import Typography from "@mui/material/Typography";
 import { Box } from "@mui/system";
-import { Opacity } from "@mui/icons-material";
 import HelpIcon from "@mui/icons-material/Help";
 
 const styles = {
@@ -56,11 +55,9 @@ const styles = {
     left: "3%",
     top: "3px",
     color: "#0075B7",
-    userSelect:"none",
+    userSelect: "none",
   },
-  
 };
-
 
 /**
  * AttentionBorder component function.
@@ -68,10 +65,17 @@ const styles = {
 export function AttentionBorder(props) {
   return (
     <div>
-      <Box sx={styles.borderHead} onClick={() => alert("Click/ tapp the map to place nodes that will create a polygon after 3 nodes.\n\nConfirm the area by pressing the the green check mark button in the bottom right corner.\n\nThe button will turn green when 3 or more nodes are placed with no crossing (red) lines in the polygon.")}>
+      <Box
+        sx={styles.borderHead}
+        onClick={() =>
+          alert(
+            "Click/ tapp the map to place nodes that will create a polygon after 3 nodes.\n\nConfirm the area by pressing the the green check mark button in the bottom right corner.\n\nThe button will turn green when 3 or more nodes are placed with no crossing (red) lines in the polygon."
+          )
+        }
+      >
         <Typography variant="h6" component="h2" elevation={10}>
           {props.children}
-          <HelpIcon sx={styles.infoButton}  />
+          <HelpIcon sx={styles.infoButton} />
         </Typography>
       </Box>
       <Box sx={styles.borderBox} />

@@ -141,7 +141,7 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
 
 /**
  * Finds out if a given point is inside a given polygon.
- * 
+ *
  * @param {*} point Point that will be checked
  * @param {*} polygonMarkers List of all makers making up the polygon
  * @returns true if point is in polygon, false otherwise

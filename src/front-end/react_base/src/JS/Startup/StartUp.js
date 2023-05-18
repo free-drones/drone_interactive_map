@@ -86,8 +86,8 @@ const styles = {
     visibility: "hidden",
   },
   infoButton: {
-    zIndex: "appBar"
-  }
+    zIndex: "appBar",
+  },
 };
 
 /*
@@ -223,9 +223,7 @@ function StartUp(props) {
             }}
             variant={clearWaypointsConfirm ? "extended" : "round"}
             sx={[styles.fab, styles.fabLeft, styles.extendingFab]}
-            disabled={
-              props.store.areaWaypoints.length < 1
-            }
+            disabled={props.store.areaWaypoints.length < 1}
           >
             <Delete />
             {clearWaypointsConfirm ? "Clear all nodes?" : ""}
@@ -279,9 +277,7 @@ function StartUp(props) {
         </Fab>
       </ColorWrapper>
 
-      <AttentionBorder>
-      DEFINE AREA 
-      </AttentionBorder>
+      <AttentionBorder>DEFINE AREA</AttentionBorder>
 
       <div>
         <Snackbar

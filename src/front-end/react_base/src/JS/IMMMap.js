@@ -356,7 +356,7 @@ class IMMMap extends React.Component {
   }
 
   /**
-   * Draws the lines between markers to create a polygon 
+   * Draws the lines between markers to create a polygon
    */
   definedAreaPolygon() {
     return (
