@@ -1,7 +1,4 @@
-import {
-  createRedLines,
-  isPointInsidePolygon,
-} from "../JS/Helpers/maphelper";
+import { createRedLines, isPointInsidePolygon } from "../JS/Helpers/maphelper";
 
 const waypoints = [
   {
@@ -36,7 +33,6 @@ const point3 = {
 /**
  * -------------------- CROSSING LINES TESTS --------------------
  */
-
 
 test("Tests lines that cross when adding waypoint", () => {
   let crossingLines = createRedLines(waypoints, point1, null);
@@ -143,7 +139,6 @@ test("Tests lines that cross when removing waypoint", () => {
     ],
   ]);
 });
-
 
 /**
  * -------------------- POINT IN POLYGON TESTS --------------------
