@@ -1,4 +1,4 @@
-# Front end <!-- omit in toc -->
+# Front-end <!-- omit in toc -->
 Here follows an overview and development guide of the Interactive Map Module (IMM) front-end.
 
 - [File overview](#file-overview)
@@ -78,7 +78,7 @@ For production any webserver can be used, but an easy alternative is to use Node
 ## Running
 For info on running the app, both for production and development, see [react_base](react_base/README.md). There lies the default generated README file for Create React App projects.
 
-To run a dummy server, for testing purposes, type `npm run  `. This starts a dumb mockup server to respond to the front end while developing. Front end will connect to this server if the `TESTING`-flag is set in `App.js`.
+To run a dummy server, for testing purposes, type `npm run  `. This starts a dumb mockup server to respond to the front-end while developing. Front-end will connect to this server if the `TESTING`-flag is set in `App.js`.
 
 In production, the website can be hosted by running `serve -s your_build_folder`. 
 

@@ -141,7 +141,7 @@ renderd correctly above.
 sudo journalctl -eu renderd
 ```
 
-Now, you should be able to view a view of the earth at http://<domain name>/osm/0/0/0.png.
+Now, you should be able to get a view of the earth at http://<domain name>/osm/0/0/0.png.
 
 
 ## How to start the server
@@ -155,7 +155,7 @@ python3 -m IMM.IMM_app
 
 ## File Overview
 
-Under this section a overview of the program is given.
+In this section a overview of the program is given.
 
 #### IMM
 This is the folder where the main program is located. The following can be found in this folder.
@@ -170,7 +170,7 @@ This is the folder where the main program is located. The following can be found
 * Thread handler for easy handling of threads (`thread_handler.py`)
 
 ##### Database
-The database is contains all tables used for the database as well as other functions such as `use_test_database`, `use_production_db` and `session_scope`. `use_test_database` and `use_production_db` specify for the program which database should be used. `session_scope` must be used when accessing the database, for example:
+The database contains all tables used for the database as well as other functions such as `use_test_database`, `use_production_db` and `session_scope`. `use_test_database` and `use_production_db` specify for the program which database should be used. `session_scope` must be used when accessing the database, for example:
 
 ```python
 with session_scope() as session:
@@ -185,8 +185,8 @@ with session_scope() as session:
 ```
 ##### Threads
 The following threads in `/threads/..` are:
-* `thread_drone_pub` : This thread packages information from Drone manager and sends it to frontend with the help of Gui_pub thread. 
-* `thread_gui_pub.py`: This threads sends data and messages to front-end. The threads listen to a queue and when a new request (message) is appended this thread will send it to front-end.
+* `thread_drone_pub` : This thread packages information from Drone manager and sends it to front-end with the help of Gui_pub thread. 
+* `thread_gui_pub.py`: This thread sends data and messages to front-end. The threads listen to a queue and when a new request (message) is appended this thread will send it to front-end.
 * `thread_info_fetcher.py`: This thread regularly requests information from RDS (using the defined API) and saves retrieved information to the database which then can be used when front-end performs a request.
 * `thread_rds_pub.py`: This thread sends requests to RDS. New requests which are to be sent to RDS can be added by calling `add_request` which will append the request to a queue.
 * `thread_rds_sub.py`: This thread listens and receives responses and messages from RDS and saves related information to the database. This thread will receive images from RDS and perform image processing on them.
@@ -197,7 +197,7 @@ The main file of the server is `IMM_app.py`. In this file the following is perfo
 * ALL threads listed above are initiated (`thread_handler.start_threads()`).
 * The database is started (`use_production_db()` or `use_test_database()`).
 * The web-application/server is started (`run_imm()`).
-* functionality of ALL API calls that front-end can perform trough socketio. It also hosts a URL where front-end can retrieve any image that is saved in the database.
+* Functionality of ALL API calls that front-end can perform through socketio. It also hosts a URL where front-end can retrieve any image that is saved in the database.
 
 
 #### RDS_emulator
@@ -233,7 +233,7 @@ checking if squares overlap, for testing and image processing.
 * **calculate_coordinates.py**: Contains functions for calculating coordinates from image metadata.
 * **coordinate_conversion.py**: Translates coordinates from lat/long to utm in order to be used for area segmentation. 
 * **helper_functions.py**: Contains functions for calculating if polygons overlap and other various help functions for example `get_path_from_root`, `check_keys` and `coordinates_list_to_json`.
-* **image_util.py**: Contains functions functions that are used in the image processing.
+* **image_util.py**: Contains functions that are used in the image processing.
 * **test_helper_function.py**: Contains functions which can be used when performing tests on the systems.
 
 #### Other
@@ -509,7 +509,7 @@ Here follows an overview of the future development goals for this product.
  - [ ] Reimplement the use of RDS
  - [ ] Implement image matching and handling
  - [ ] Implement so the server is using a production server (Currently using a Werkzeug development server which is included in Flask). See [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) for options.
- - [ ] Make the server more secure from attacks, using a production server is a logical first step to achieve this and modifying SERVER_CORS_ALLOWED_ORIGINS.
+ - [ ] Make the server more secure from attacks. Using a production server and modifying SERVER_CORS_ALLOWED_ORIGINS is a logical first step to achieve this.
  - [ ] Improve which images are sent to front-end when front-end calls `request_view`. (Currently all images that overlap with specified area are sent).
  - [ ] Add functionality to support other types of objects to be saved in the database. (For example position of firemen etc.)
  - [ ] Implement support for WebSockets when communicating with front-end. (Currently only *Long-polling* is performed). See [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) for options.
