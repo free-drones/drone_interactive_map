@@ -11,36 +11,38 @@ Main contributors from RISE are, Andreas Gising, Lennart Ochel, Rasmus Lundqvist
 
 # Starting the application
 
-Via RISE server
-Starta Dronelink
-1. Open VPN till RISE server
-2. SSH till server: ssh pum01-23@10.44.170.10
-3. Byt folder:  cd rise_drones/src/app/
-4. Starta Dronelink : python app_drone_link.py
+Via RISE server 
+Start Dronelink
+1. Open VPN to RISE server
+2. SSH to the server: ssh pum01-23@10.44.170.10
+3. Change folder:  cd rise_drones/src/app/
+4. Start Dronelink : python app_drone_link.py
 
-Starta simulerade drönare
-5. Navigera till hemsidan c2m2 : skriv "10.44.170.10" i webbläsaren
-6. Starta simulerade drönare:  Klicka / -> tasks -> / -> start SITL+DSS (antingen 1 eller 3)
-Starta Backend
+Start simulated drones
+5. Navigated to the website c2m2 : URL "10.44.170.10" 
+6. Start simulated drones:  Click / -> tasks -> / -> start SITL+DSS (Either 1 or 3)
 
-7.1. Skapa virtual enviroment: python -m venv venv
-7.2. Starta virtual enviroment: venv\scripts\Activate.ps1
-7.3. Ladda ned alla requirements : pip install -r .\requirements.txt
-8. Starta backend : python .\run_RDS_and_IMM.py eller python3 .\run_RDS_and_IMM.py
+Start Backend
+7.1. Create a virtual environment: python -m venv venv
+7.2. Start the virtual environment: venv\scripts\Activate.ps1
+7.3. Install all requirements : pip install -r .\requirements.txt
+8. Start backend with RDS : python .\run_RDS_and_IMM.py or python3 .\run_RDS_and_IMM.py
+8.1 Start backend without RDS : python .\IMM_app.py or python3 .\IMM_app.py
 
-Konfigurera drönare
-9. Starta QGroundcontrol
-9.1 (Om första gången) - Sätt Firmware till Ardupilot och Typ till Multirotor
-10. Klicka på loggan uppe till vänster -> application settings -> Comm Links -> Add
-11. För varje drönare som ska läggas till: Name: godtyckligt, Type: TCP, Server Adress: 10.44.170.10
-12. Port: [17781, 17783 eller 17785] beroende på drönarnummer (om man startar 3 st). 17787 om man startar 1.
-Om detta inte funkar kan port hittas under mavproxy.py processen i c2m2 (en rad per drönare). Använd då den "lediga" porten (dvs den som inte används av motsvarande DSS process i raderna under).
-13. Efter att drönaren är skapad. Klicka på "ditt drone name" -> connect.
-14. Återvänd till startskärmen (back uppe till vänster)
-15. Sätt drönaren i Guided mode genom att klicka på "stabilize" (eller liknande) uppe till vänster -> ändra till guided.
+Configure drones
+9. Start QGroundcontrol
+9.1 (If first time) - Set "Firmware" to Ardupilot and "Typ" to Multirotor
+10. Click on the top left logo -> application settings -> Comm Links -> Add
+11. For each drone that will be added: Name: arbitrarily, Type: TCP, Server Address: 10.44.170.10
+12. Port: [17781, 17783 or 17785] depending on the amount of drones (if you start 3). 17787 if you start 1.
+If this does not work the port can be found under the mavproxy.py process in c2m2 (one row per drone). Use the "free" port (The one which is not used in the corresponding DSS).
+13. After the drone is created click on "yourdronename" -> connect.
+14. Return to the homescreen (top left).
+15. Put the drone in Guided mode by clicking on "stabilize" then change it to guided.
 
-Starta Frontend
-15. Ändra "Testing" till false i App.js under front-end/react-base/src/JS
-16. Navigera till React-base i projectfoldern.
-17. Starta terminal och skriv "npm start"
-Nu borde hemsidan nås via "http://localhost:3000/StartUp"
+Start Frontend
+15. Change the "testing" flag to false in App.js under front-end/react-base/src/JS.
+16. Navigate to React-base.
+17. Start a terminal and write "npm start"
+You can now access the website on "http://localhost:3000/StartUp"
+18. If you want the application to be able to access your location (Chrome) you need to change the following flag: chrome://flags/#unsafely-treat-insecure-origin-as-secure
