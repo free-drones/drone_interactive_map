@@ -110,7 +110,7 @@ class IMMMap extends React.Component {
   }
 
   /**
-   * Creates and sets rectangular border, 4:3 ratio, for the picture request function.
+   * Creates and sets rectangular border with 4:3 ratio for the picture request function.
    */
   updatePictureRequestView() {
     // mapPos contains the map coordinates corresponding to the screens corners.
