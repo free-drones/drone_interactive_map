@@ -139,6 +139,14 @@ function hasIntersectingVectors(a, b, c, d, p, q, r, s) {
   return 0 < length_1 && length_1 < 1 && 0 < length_2 && length_2 < 1;
 }
 
+/**
+ * Finds out if a given point is inside a given polygon.
+ *
+ * @param {*} point Point that will be checked
+ * @param {*} polygonMarkers List of all markers making up polygon
+ * @returns True if point is in polygon, false otherwise
+ */
+
 export function isPointInsidePolygon(point, polygonMarkers) {
   let inside = false;
   const x = point.lat;

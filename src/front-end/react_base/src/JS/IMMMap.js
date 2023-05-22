@@ -109,6 +109,9 @@ class IMMMap extends React.Component {
     this.updatePictureRequestView();
   }
 
+  /**
+   * Creates and sets rectangular border with 4:3 ratio for the picture request function.
+   */
   updatePictureRequestView() {
     // mapPos contains the map coordinates corresponding to the screens corners.
     const mapPos = this.props.store.mapPosition;
@@ -352,6 +355,9 @@ class IMMMap extends React.Component {
     return drones;
   }
 
+  /**
+   * Draws the lines between markers to create a polygon
+   */
   definedAreaPolygon() {
     return (
       <Polygon
