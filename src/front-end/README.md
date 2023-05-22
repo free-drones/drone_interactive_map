@@ -1,4 +1,4 @@
-# Front end <!-- omit in toc -->
+# Front-end <!-- omit in toc -->
 Here follows an overview and development guide of the Interactive Map Module (IMM) front-end.
 
 - [File overview](#file-overview)
@@ -43,7 +43,7 @@ The source is divided into three subfolders - `CSS`, `JS` and `test`.
 `test` contains the test code for the project. Currently, only Storage and the code handling connection is tested. These tests are run with [jest](https://jestjs.io/). For running tests see [Running](#running).
 
 ### Inclusion tree
-This is the inclusion tree for all React components in `src`. This is the order in which components get included in the product when served to the end user. **Note** that almost all files include parts of Storage and some communicate with the connection files, but these are not react components and have therefore been omitted. **Also note** that this is not always indicative of the React component hierarchy.
+This is the inclusion tree for some React components in `src`. This is the order in which components get included in the product when served to the end user. **Note** that almost all files include parts of Storage and some communicate with the connection files, but these are not react components and have therefore been omitted. **Also note** that this is not always indicative of the React component hierarchy.
 
  - index.js
    - App.js
@@ -78,7 +78,7 @@ For production any webserver can be used, but an easy alternative is to use Node
 ## Running
 For info on running the app, both for production and development, see [react_base](react_base/README.md). There lies the default generated README file for Create React App projects.
 
-To run a dummy server, for testing purposes, type `npm run mockup`. This starts a dumb mockup server to respond to the front end while developing. Front end will connect to this server if the `TESTING`-flag is set in `App.js`.
+To run a dummy server, for testing purposes, type `npm run  `. This starts a dumb mockup server to respond to the front-end while developing. Front-end will connect to this server if the `TESTING`-flag is set in `App.js`.
 
 In production, the website can be hosted by running `serve -s your_build_folder`. 
 
@@ -134,5 +134,5 @@ For each call of the downstream and upstream API there is a corresponding functi
 Here follows an overview of the future development goals for this product. See issues for more detailed descriptions.
 
  - [ ] Caching strategy for drone images (instead of reloading each image on view updates).
- - [ ] Change server connection behaviour to more robust.
+ - [ ] Change server connection behavior to more robust.
  - [ ] Clean up Storage/split into multiple files.
