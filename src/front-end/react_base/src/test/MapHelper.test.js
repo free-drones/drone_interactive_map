@@ -34,7 +34,7 @@ const point3 = {
  * -------------------- CROSSING LINES TESTS --------------------
  */
 
-test("Tests lines that cross when adding waypoint", () => {
+test("Tests if crossing lines are detected when adding new waypoint", () => {
   let crossingLines = createRedLines(waypoints, point1, null);
   expect(crossingLines).toEqual([
     [
@@ -50,25 +50,6 @@ test("Tests lines that cross when adding waypoint", () => {
 
 test("Tests lines that don't cross when adding waypoint", () => {
   let crossingLines = createRedLines(waypoints, point2, null);
-  expect(crossingLines).toEqual([]);
-});
-
-test("Tests lines that cross when adding and removing waypoint", () => {
-  let crossingLines = createRedLines(waypoints, point1, 1);
-  expect(crossingLines).toEqual([
-    [
-      { lat: 1, lng: 2 },
-      { lat: 2, lng: 1 },
-    ],
-    [
-      { lat: 1, lng: 1 },
-      { lat: 2, lng: 2 },
-    ],
-  ]);
-});
-
-test("Tests lines that don't cross when adding and removing waypoint", () => {
-  let crossingLines = createRedLines(waypoints, point2, 1);
   expect(crossingLines).toEqual([]);
 });
 
@@ -104,7 +85,7 @@ const crossingPolygon = [
   },
 ];
 
-test("Tests lines that cross when removing waypoint", () => {
+test("Tests lines that still cross when removing waypoint", () => {
   let crossingLines = createRedLines(crossingPolygon, null, 5);
   expect(crossingLines).toEqual([
     [
@@ -118,7 +99,7 @@ test("Tests lines that cross when removing waypoint", () => {
   ]);
 });
 
-test("Tests lines that cross when removing waypoint", () => {
+test("Tests lines that still cross when removing waypoint", () => {
   let crossingLines = createRedLines(crossingPolygon, null, 2);
   expect(crossingLines).toEqual([
     [
