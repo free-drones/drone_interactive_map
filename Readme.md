@@ -10,12 +10,11 @@ Another group of 10 started in 2023, their work is ongoing.
 Main contributors from RISE are, Andreas Gising, Lennart Ochel, Rasmus Lundqvist and Kristoffer Bergman.
 
 # Starting the application
-
-Via RISE server 
+ 
 Start Dronelink
-1. Open VPN to RISE server
+1. Connect OpenVPN to RISE server
 2. SSH to the server: ssh pum01-23@10.44.170.10
-3. Change folder:  cd rise_drones/src/app/
+3. Change folder: cd rise_drones/src/app/
 4. Start Dronelink : python app_drone_link.py
 
 Start simulated drones
@@ -31,14 +30,14 @@ Start Backend
 
 Configure drones
 9. Start QGroundcontrol
-9.1 (If first time) - Set "Firmware" to Ardupilot and "Typ" to Multirotor
+9.1 (If first time) - Set *Firmware* to Ardupilot and *Type* to Multirotor
 10. Click on the top left logo -> application settings -> Comm Links -> Add
-11. For each drone that will be added: Name: arbitrarily, Type: TCP, Server Address: 10.44.170.10
-12. Port: [17781, 17783 or 17785] depending on the amount of drones (if you start 3). 17787 if you start 1.
+11. For each drone that will be added: Name: *arbitrary*, Type: TCP, Server Address: 10.44.170.10
+12. Port: [17781, 17783 or 17785] if you start 3 drones. 17787 if you start 1 drone.
 If this does not work the port can be found under the mavproxy.py process in c2m2 (one row per drone). Use the "free" port (The one which is not used in the corresponding DSS).
-13. After the drone is created click on "yourdronename" -> connect.
+13. After the drone is created click on *yourdronename* -> connect.
 14. Return to the homescreen (top left).
-15. Put the drone in Guided mode by clicking on "stabilize" then change it to guided.
+15. Put the drones in Guided mode by clicking on "stabilize" then change it to "guided" for all drones.
 
 Start Frontend
 15. Change the "testing" flag to false in App.js under front-end/react-base/src/JS.
