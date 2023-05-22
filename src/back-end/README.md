@@ -135,8 +135,8 @@ sudo systemctl restart renderd
 sudo systemctl restart apache2
 ```
 
-Check the system log to ensure no rendered errors occurred. If there are errors, check that you configured
-rendered correctly above.
+Check the system log to ensure no renderd errors occurred. If there are errors, check that you configured
+renderd correctly above.
 ```bash
 sudo journalctl -eu renderd
 ```
